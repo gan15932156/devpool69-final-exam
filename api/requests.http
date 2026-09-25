@@ -1,0 +1,293 @@
+# ใช้กับ VS Code extension "REST Client" (humao.rest-client)
+# กด "Send Request" ที่อยู่เหนือแต่ละ request · ยิงตรงไปที่ Go (ข้ามหน้าเว็บ)
+# รันไล่จากบนลงล่างบน DB ที่เพิ่ง seed · บรรทัด "คาดหวัง:" คือผลที่ต้องได้
+# seed ใหม่: go run ./cmd/seed -reset  (หรือ docker compose down -v แล้ว up ใหม่)
+#
+# ร้านใน seed (20 ร้าน): 1 ครัวริมคลอง (10 ที่ 11:00–22:00) · 2 ส้มตำหน้าตลาด · 3 ก๋วยเตี๋ยวเรือ
+#   4 ข้าวต้มโต้รุ่งท่าน้ำ (มะลิ · 20 ที่ 18:00–02:00) · 5 ป้าแดง · 6 ขนมจีน · 7 กาแฟใต้ถุนบ้าน (มะลิ)
+#   8–19 ร้านเพิ่มเติม · 20 ขนมไทยแม่มะลิ (มะลิ) · รายละเอียดใน docs/phases/phase-7.md
+
+@api = http://localhost:8080/api/v1
+@password = toawang123
+
+###############################################################################
+# Phase 1 — บัญชี
+###############################################################################
+
+### login มะลิ (เจ้าของข้าวต้มโต้รุ่ง) — คาดหวัง: 200 + accessToken
+# @name mali
+POST {{api}}/auth/login
+Content-Type: application/json
+
+{ "email": "mali@example.com", "password": "{{password}}" }
+
+### login สมชาย (ลูกค้า) — คาดหวัง: 200
+# @name somchai
+POST {{api}}/auth/login
+Content-Type: application/json
+
+{ "email": "somchai@example.com", "password": "{{password}}" }
+
+### login เชฟนิด (เจ้าของครัวริมคลอง ร้าน 1) — คาดหวัง: 200
+# @name nid
+POST {{api}}/auth/login
+Content-Type: application/json
+
+{ "email": "nid@example.com", "password": "{{password}}" }
+
+@maliToken = {{mali.response.body.accessToken}}
+@somchaiToken = {{somchai.response.body.accessToken}}
+@nidToken = {{nid.response.body.accessToken}}
+
+### me — คาดหวัง: 200 ชื่อ "มะลิ ศรีสุข" · ไม่มี passwordHash
+GET {{api}}/me
+Authorization: Bearer {{maliToken}}
+
+### me ไม่มี token — คาดหวัง: 401 UNAUTHORIZED
+GET {{api}}/me
+
+### สมัครซ้ำด้วยอีเมลตัวพิมพ์ใหญ่ — คาดหวัง: 409 EMAIL_TAKEN
+POST {{api}}/auth/register
+Content-Type: application/json
+
+{ "name": "มะลิซ้ำ", "email": "MALI@example.com", "password": "abcdefg1" }
+
+### รหัสผ่านไม่มีตัวเลข + อีเมลผิด — คาดหวัง: 400 VALIDATION details มี email, password
+POST {{api}}/auth/register
+Content-Type: application/json
+
+{ "name": "ทดสอบ", "email": "not-an-email", "password": "abcdefgh" }
+
+### login รหัสผิด — คาดหวัง: 401 ข้อความเดียวกับ request ถัดไปทุกตัวอักษร
+POST {{api}}/auth/login
+Content-Type: application/json
+
+{ "email": "mali@example.com", "password": "wrong-pass1" }
+
+### login อีเมลที่ไม่มี — คาดหวัง: 401 ข้อความเดียวกับข้างบน
+POST {{api}}/auth/login
+Content-Type: application/json
+
+{ "email": "nobody@example.com", "password": "wrong-pass1" }
+
+###############################################################################
+# Phase 2 — ร้าน  (ต้องกด login 3 ตัวบนสุดก่อน)
+###############################################################################
+
+### รายการร้าน — คาดหวัง: 200 array · มี avgRating, reviewCount
+GET {{api}}/restaurants
+
+### ค้นหา — คาดหวัง: เฉพาะร้านที่ชื่อ/ประเภทมีคำว่า "ข้าว"
+GET {{api}}/restaurants?q=ข้าว
+
+### รายละเอียดร้าน 1 — คาดหวัง: 200 · distribution มี key 1–5 ครบ
+GET {{api}}/restaurants/1
+
+### ร้านที่ไม่มี — คาดหวัง: 404 NOT_FOUND
+GET {{api}}/restaurants/9999
+
+### สร้างร้านโดยข้อมูลผิดทุกช่อง — คาดหวัง: 400 VALIDATION details ครบ 6 ช่อง
+POST {{api}}/restaurants
+Authorization: Bearer {{maliToken}}
+Content-Type: application/json
+
+{ "name": "", "seats": 0, "openTime": "10:15", "closeTime": "xx", "cancelLeadMinutes": 20, "images": [] }
+
+### สมชายแก้ร้านของมะลิ (ร้าน 4) — คาดหวัง: 403 FORBIDDEN
+PUT {{api}}/restaurants/4
+Authorization: Bearer {{somchaiToken}}
+Content-Type: application/json
+
+{ "name": "แอบแก้", "seats": 1, "openTime": "18:00", "closeTime": "02:00", "cancelLeadMinutes": 30, "images": ["/uploads/x.png"] }
+
+### สมชายลบร้านของมะลิ — คาดหวัง: 403 FORBIDDEN
+DELETE {{api}}/restaurants/4
+Authorization: Bearer {{somchaiToken}}
+
+### ร้านของฉัน (มะลิ) — คาดหวัง: มีแค่ร้านของมะลิ
+GET {{api}}/me/restaurants
+Authorization: Bearer {{maliToken}}
+
+###############################################################################
+# Phase 3 — การจอง (แกนหลัก · ใช้ตอนอัดวิดีโอ)
+# ร้าน 1 = ครัวริมคลอง 10 ที่ 11:00–22:00 · ร้าน 4 = ข้าวต้มโต้รุ่ง 20 ที่ 18:00–02:00
+# เคสที่นั่งใช้วันที่ +10 วัน (seed สุ่มการจองแค่ 5 วันข้างหน้า → ช่วงนั้นว่างแน่นอน)
+###############################################################################
+
+@tomorrow = {{$localDatetime "YYYY-MM-DD" 1 d}}
+@yesterday = {{$localDatetime "YYYY-MM-DD" -1 d}}
+@in10days = {{$localDatetime "YYYY-MM-DD" 10 d}}
+
+### ที่นั่งรายช่อง 30 นาที ร้าน 4 พรุ่งนี้ — คาดหวัง: 16 ช่อง 18:00 … 01:30
+GET {{api}}/restaurants/4/availability?date={{tomorrow}}
+
+### ร้านข้ามเที่ยงคืน จองตอน 01:00 — คาดหวัง: 201 · startAt เป็นวันถัดไป 01:00
+POST {{api}}/restaurants/4/bookings
+Authorization: Bearer {{somchaiToken}}
+Content-Type: application/json
+
+{ "date": "{{tomorrow}}", "start": "01:00", "end": "02:00", "partySize": 2 }
+
+### นอกเวลาเปิด (21:00–22:30 ร้านปิด 22:00) — คาดหวัง: 400 OUTSIDE_HOURS
+POST {{api}}/restaurants/1/bookings
+Authorization: Bearer {{somchaiToken}}
+Content-Type: application/json
+
+{ "date": "{{tomorrow}}", "start": "21:00", "end": "22:30", "partySize": 2 }
+
+### เวลาที่ผ่านไปแล้ว — คาดหวัง: 400 IN_PAST
+POST {{api}}/restaurants/1/bookings
+Authorization: Bearer {{somchaiToken}}
+Content-Type: application/json
+
+{ "date": "{{yesterday}}", "start": "12:00", "end": "13:00", "partySize": 2 }
+
+### เวลาไม่ลง :00/:30 — คาดหวัง: 400 INVALID_SLOT
+POST {{api}}/restaurants/1/bookings
+Authorization: Bearer {{somchaiToken}}
+Content-Type: application/json
+
+{ "date": "{{tomorrow}}", "start": "12:15", "end": "13:00", "partySize": 2 }
+
+### สิ้นสุดก่อนเริ่ม — คาดหวัง: 400 INVALID_RANGE
+POST {{api}}/restaurants/1/bookings
+Authorization: Bearer {{somchaiToken}}
+Content-Type: application/json
+
+{ "date": "{{tomorrow}}", "start": "20:00", "end": "19:00", "partySize": 2 }
+
+### เตรียมเคสที่นั่ง: มะลิจอง 7 คน 15:00–16:00 — คาดหวัง: 201
+POST {{api}}/restaurants/1/bookings
+Authorization: Bearer {{maliToken}}
+Content-Type: application/json
+
+{ "date": "{{in10days}}", "start": "15:00", "end": "16:00", "partySize": 7 }
+
+### สมชายขอ 4 คนช่วงเดียวกัน — คาดหวัง: 409 SEATS_EXCEEDED used 7 + party 4 > seats 10
+POST {{api}}/restaurants/1/bookings
+Authorization: Bearer {{somchaiToken}}
+Content-Type: application/json
+
+{ "date": "{{in10days}}", "start": "15:00", "end": "16:00", "partySize": 4 }
+
+### สมชายขอ 3 คน — คาดหวัง: 201 (7 + 3 = 10 พอดี)
+POST {{api}}/restaurants/1/bookings
+Authorization: Bearer {{somchaiToken}}
+Content-Type: application/json
+
+{ "date": "{{in10days}}", "start": "15:00", "end": "16:00", "partySize": 3 }
+
+###############################################################################
+# Phase 4 — การจองของฉัน · เคส A 7→8 / 7→5 จากโจทย์
+# ร้าน 1 มี 10 ที่ · มะลิ (A) จอง 7 · สมชาย (B) จอง 3 ช่วงเดียวกัน (วันที่ +11 วัน ว่างแน่นอน)
+# หมายเหตุ: seed มีเคสเดียวกันให้ลองในหน้าเว็บ — สมชายจองครัวริมคลองพรุ่งนี้ 12:00–13:00 7 คน
+###############################################################################
+
+@in11days = {{$localDatetime "YYYY-MM-DD" 11 d}}
+
+### A จอง 7 คน — คาดหวัง: 201 (จด id ไว้)
+# @name bookingA
+POST {{api}}/restaurants/1/bookings
+Authorization: Bearer {{maliToken}}
+Content-Type: application/json
+
+{ "date": "{{in11days}}", "start": "19:00", "end": "20:00", "partySize": 7 }
+
+### B จอง 3 คน — คาดหวัง: 201 (เต็มพอดี 10)
+# @name bookingB
+POST {{api}}/restaurants/1/bookings
+Authorization: Bearer {{somchaiToken}}
+Content-Type: application/json
+
+{ "date": "{{in11days}}", "start": "19:00", "end": "20:00", "partySize": 3 }
+
+@idA = {{bookingA.response.body.id}}
+@idB = {{bookingB.response.body.id}}
+
+### A แก้เป็น 8 — คาดหวัง: 409 SEATS_EXCEEDED used 3 (ไม่นับ 7 ที่เดิมของ A ซ้ำ) + 8 = 11 > 10
+PUT {{api}}/bookings/{{idA}}
+Authorization: Bearer {{maliToken}}
+Content-Type: application/json
+
+{ "date": "{{in11days}}", "start": "19:00", "end": "20:00", "partySize": 8 }
+
+### A แก้เป็น 5 — คาดหวัง: 200 partySize 5
+PUT {{api}}/bookings/{{idA}}
+Authorization: Bearer {{maliToken}}
+Content-Type: application/json
+
+{ "date": "{{in11days}}", "start": "19:00", "end": "20:00", "partySize": 5 }
+
+### B แก้การจองของ A — คาดหวัง: 403 FORBIDDEN
+PUT {{api}}/bookings/{{idA}}
+Authorization: Bearer {{somchaiToken}}
+Content-Type: application/json
+
+{ "date": "{{in11days}}", "start": "19:00", "end": "20:00", "partySize": 1 }
+
+### B ยกเลิก — คาดหวัง: 200 status cancelled
+POST {{api}}/bookings/{{idB}}/cancel
+Authorization: Bearer {{somchaiToken}}
+
+### B ยกเลิกซ้ำ — คาดหวัง: 409 BOOKING_CANCELLED
+POST {{api}}/bookings/{{idB}}/cancel
+Authorization: Bearer {{somchaiToken}}
+
+### การจองของฉัน — คาดหวัง: upcoming / past / cancelled
+GET {{api}}/me/bookings
+Authorization: Bearer {{somchaiToken}}
+
+###############################################################################
+# Phase 5 — รีวิว + การเรียง
+###############################################################################
+
+### เรียงตามคะแนน — คาดหวัง: ร้านที่รีวิวครบ 5 ขึ้นก่อน (กาแฟใต้ถุนบ้าน 4.9 บนสุด)
+### แล้วค่อยเป็นร้านรีวิวน้อย (ป้าแดง 5.0 จาก 1 รีวิว · ข้าวซอย · ขนมไทยแม่มะลิ) · ร้านไม่มีรีวิวอยู่ท้ายสุด
+GET {{api}}/restaurants?sort=rating
+
+### เรียงตามจำนวนรีวิว — คาดหวัง: ส้มตำหน้าตลาด (311) อยู่บนสุด
+GET {{api}}/restaurants?sort=reviews
+
+### มะลิรีวิวร้านตัวเอง (ร้าน 4) — คาดหวัง: 403 OWN_RESTAURANT
+PUT {{api}}/restaurants/4/reviews/me
+Authorization: Bearer {{maliToken}}
+Content-Type: application/json
+
+{ "rating": 5, "comment": "ร้านเราอร่อยที่สุด" }
+
+### ดาวเกิน 5 — คาดหวัง: 400 VALIDATION
+PUT {{api}}/restaurants/6/reviews/me
+Authorization: Bearer {{somchaiToken}}
+Content-Type: application/json
+
+{ "rating": 6 }
+
+### สมชายรีวิวบ้านขนมจีน — คาดหวัง: 200
+PUT {{api}}/restaurants/6/reviews/me
+Authorization: Bearer {{somchaiToken}}
+Content-Type: application/json
+
+{ "rating": 4, "comment": "น้ำยาเข้มข้น ผักสด" }
+
+### รีวิวซ้ำ = แก้ของเดิม — คาดหวัง: 200 · จำนวนรีวิวของร้านไม่เพิ่ม (ดู request ถัดไป)
+PUT {{api}}/restaurants/6/reviews/me
+Authorization: Bearer {{somchaiToken}}
+Content-Type: application/json
+
+{ "rating": 5, "comment": "กลับไปอีกรอบ อร่อยกว่าเดิม" }
+
+### รีวิวร้าน 6 — คาดหวัง: total 90 (seed 89 + สมชาย 1) · mine = 5 ดาว
+GET {{api}}/restaurants/6/reviews
+Authorization: Bearer {{somchaiToken}}
+
+###############################################################################
+# Phase 6 — Dashboard เจ้าของร้าน
+###############################################################################
+
+### มะลิดูการจองของร้านตัวเองพรุ่งนี้ — คาดหวัง: 200 รายการพร้อมชื่อลูกค้า (มีการจองหลังเที่ยงคืนของรอบเดียวกัน)
+GET {{api}}/restaurants/4/bookings?date={{tomorrow}}
+Authorization: Bearer {{maliToken}}
+
+### สมชายดูการจองของร้านมะลิ — คาดหวัง: 403 FORBIDDEN
+GET {{api}}/restaurants/4/bookings?date={{tomorrow}}
+Authorization: Bearer {{somchaiToken}}

@@ -1,0 +1,107 @@
+package handlers
+
+import (
+	"net/http"
+	"strconv"
+	"time"
+
+	"github.com/gofiber/fiber/v3"
+
+	"toawang/internal/apperr"
+	"toawang/internal/booking"
+	"toawang/internal/middleware"
+	"toawang/internal/models"
+)
+
+// bookingDTO — ส่งเวลาเป็นสตริงเวลาไทยไปด้วย หน้าเว็บจะได้ไม่ต้องจัดการ timezone เอง
+type bookingDTO struct {
+	ID                 uint   `json:"id"`
+	RestaurantID       uint   `json:"restaurantId"`
+	RestaurantName     string `json:"restaurantName"`
+	PartySize          int    `json:"partySize"`
+	ServiceDate        string `json:"serviceDate"` // "2026-09-25" รอบของวันไหน
+	Start              string `json:"start"`       // "18:00"
+	End                string `json:"end"`         // "01:30"
+	Status             string `json:"status"`
+	CancelDeadline     string `json:"cancelDeadline"`     // "17:30"
+	CancelDeadlineDate string `json:"cancelDeadlineDate"` // "2026-09-25"
+	CancelLeadMinutes  int    `json:"cancelLeadMinutes"`  // ร้านให้ยกเลิกล่วงหน้ากี่นาที
+	CanCancel          bool   `json:"canCancel"`          // ยังแก้ไข/ยกเลิกได้ไหม (กติกาเดียวกับที่ Update/Cancel ใช้)
+	HasReviewed        bool   `json:"hasReviewed"`        // เคยรีวิวร้านนี้แล้วหรือยัง
+}
+
+func toBookingDTO(b *models.Booking, r *models.Restaurant, now time.Time) bookingDTO {
+	deadline := booking.CancelDeadline(b, r)
+	return bookingDTO{
+		ID:                 b.ID,
+		RestaurantID:       r.ID,
+		RestaurantName:     r.Name,
+		PartySize:          b.PartySize,
+		ServiceDate:        b.ServiceDate.Format(booking.DateLayout), // คอลัมน์ date เป็นเที่ยงคืน UTC จึง format ตรง ๆ
+		Start:              booking.Clock(b.StartAt),
+		End:                booking.Clock(b.EndAt),
+		Status:             b.Status,
+		CancelDeadline:     booking.Clock(deadline),
+		CancelDeadlineDate: deadline.In(booking.Loc).Format(booking.DateLayout),
+		CancelLeadMinutes:  r.CancelLeadMinutes,
+		CanCancel:          booking.CanModify(b, r, now) == nil,
+	}
+}
+
+// GET /restaurants/:id/availability?date=2026-09-25&excludeBookingId=12
+// ใครก็ดูได้ · excludeBookingId ใช้ตอนแก้ไขการจอง (ไม่นับที่นั่งเดิมซ้ำ) และใช้ได้เฉพาะการจองของตัวเอง
+func (h *Handler) Availability(c fiber.Ctx) error {
+	id, err := paramID(c, "id")
+	if err != nil {
+		return err
+	}
+	r, err := h.findRestaurant(id)
+	if err != nil {
+		return err
+	}
+	now := h.Now()
+	date := now.In(booking.Loc)
+	if s := c.Query("date"); s != "" {
+		if date, err = booking.ParseDateParam(s); err != nil {
+			return err
+		}
+	}
+
+	var excludeID uint
+	if raw := c.Query("excludeBookingId"); raw != "" {
+		if n, err := strconv.ParseUint(raw, 10, 64); err == nil {
+			var b models.Booking
+			if h.DB.First(&b, n).Error == nil && b.UserID == middleware.UserID(c) {
+				excludeID = b.ID
+			}
+		}
+	}
+
+	slots, err := booking.Availability(h.DB, r, date, excludeID, now)
+	if err != nil {
+		return err
+	}
+	return c.JSON(fiber.Map{
+		"date":  date.Format(booking.DateLayout),
+		"seats": r.Seats,
+		"slots": slots,
+	})
+}
+
+// POST /restaurants/:id/bookings — กติกาทั้งหมดอยู่ใน internal/booking
+func (h *Handler) CreateBooking(c fiber.Ctx) error {
+	id, err := paramID(c, "id")
+	if err != nil {
+		return err
+	}
+	var in booking.Input
+	if err := c.Bind().Body(&in); err != nil {
+		return apperr.BadBody()
+	}
+	now := h.Now()
+	b, err := booking.Create(h.DB, id, middleware.UserID(c), in, now)
+	if err != nil {
+		return err
+	}
+	return h.bookingResponse(c.Status(http.StatusCreated), b.ID, now)
+}
