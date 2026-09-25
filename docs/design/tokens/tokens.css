@@ -1,0 +1,43 @@
+:root {
+  --color-paper: #F4EADA;
+  --color-surface: #FFFBF3;
+  --color-cream: #FBF5EA;
+  --color-line: #E2D1B5;
+  --color-line-strong: #CDB892;
+  --color-ink: #231812;
+  --color-ink-2: #4A3A2C;
+  --color-muted: #6B5A48;
+  --color-indigo: #1E2B5E;
+  --color-indigo-tint: #E3E5EF;
+  --color-vermilion: #A8322A;
+  --color-vermilion-tint: #F6DED7;
+  --color-gold: #B08326;
+  --color-gold-text: #7A5A12;
+  --color-gold-tint: #F3E3BC;
+  --color-gold-on-dark: #E9C77A;
+  --color-success: #2F5A2B;
+  --color-success-tint: #E2EBDA;
+  --color-seat-booked: #C9B48A;
+  --color-disabled-bg: #E2D6C0;
+  --color-disabled-fg: #6E604E;
+  --color-low-review-seal: #8A7456;
+  --font-heading: 'Pridi', serif;
+  --font-body: 'Sarabun', sans-serif;
+  --radius-sm: 6px;
+  --radius-md: 8px;
+  --radius-lg: 12px;
+  --radius-xl: 14px;
+  --radius-2xl: 16px;
+  --radius-pill: 999px;
+  --radius-dome: 50% 50% 10px 10px / 34% 34% 10px 10px;
+  --shadow-card: 0 2px 0 var(--color-line);
+  --shadow-ticket: 0 18px 40px rgba(35, 24, 18, 0.10);
+  --seal-ring: inset 0 0 0 3px var(--color-vermilion), inset 0 0 0 4px rgba(251, 245, 234, 0.75);
+  --focus-ring: 2px solid var(--color-vermilion);
+}
+
+/* ลายไทย — ใช้เป็นพื้นหลังแบบวางซ้ำ (path ไฟล์ปรับตามโปรเจกต์) */
+.bg-prajamyam { background-color: var(--color-indigo); background-image: url("/design/pattern-prajamyam-tile.svg"); background-size: 84px 126px; }
+.band-kruay-choeng { height: 16px; background: url("/design/band-kruay-choeng-indigo.svg") repeat-x; }
+.band-kruay-choeng--red { height: 16px; background: url("/design/band-kruay-choeng-red.svg") repeat-x; }
+.img-dome { border-radius: var(--radius-dome); overflow: hidden; }

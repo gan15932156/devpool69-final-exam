@@ -1,0 +1,188 @@
+<!doctype html>
+<html lang="th">
+<head>
+<meta charset="utf-8">
+<title>ร้านของฉัน · มือถือ</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link href="https://fonts.googleapis.com/css2?family=Pridi:wght@400;500;600&amp;family=Sarabun:wght@400;500;600;700&amp;display=swap" rel="stylesheet">
+<style>
+body{margin:0;font-family:'Sarabun',sans-serif;background:#F4EADA;color:#231812}
+a{color:#1E2B5E}a:hover{color:#A8322A}
+button{font-family:inherit;cursor:pointer}
+button:disabled{cursor:not-allowed}
+input,select,textarea{font-family:inherit}
+:focus-visible{outline:2px solid #A8322A;outline-offset:2px}
+</style>
+</helmet>
+<div style="width: 390px; height: 1900px; display: flex; flex-direction: column; box-sizing: border-box; background: #F4EADA; color: #231812; font-family: 'Sarabun', sans-serif">
+<header style="height: 60px; box-sizing: border-box; display: flex; align-items: center; justify-content: space-between; padding: 0 16px; background: #F4EADA; flex-shrink: 0">
+<a href="MSearch.dc.html" style="display: flex; align-items: center; gap: 10px; text-decoration: none; color: #231812">
+<span style="width: 34px; height: 34px; flex-shrink: 0; border-radius: 50%; background: #A8322A; display: flex; align-items: center; justify-content: center; box-shadow: inset 0 0 0 3px #A8322A, inset 0 0 0 4px #FBF5EA"><svg width="19" height="19" viewBox="0 0 24 24" aria-hidden="true" style="flex-shrink: 0"><path d="M12 1.5L22.5 12L12 22.5L1.5 12Z" fill="none" stroke="#FBF5EA" stroke-width="1.4" stroke-linejoin="round"></path><path d="M12 3.8C14.5 6.1 14.2 8.8 12 10.4C9.8 8.8 9.5 6.1 12 3.8ZM20.2 12C17.9 14.5 15.2 14.2 13.6 12C15.2 9.8 17.9 9.5 20.2 12ZM12 20.2C9.5 17.9 9.8 15.2 12 13.6C14.2 15.2 14.5 17.9 12 20.2ZM3.8 12C6.1 9.5 8.8 9.8 10.4 12C8.9 14.2 6.1 14.5 3.8 12Z" fill="#FBF5EA"></path><circle cx="12" cy="12" r="1.5" fill="#A8322A"></circle></svg></span>
+<span style="font-family: Pridi, serif; font-weight: 600; font-size: 22px; letter-spacing: -0.01em">โต๊ะว่าง</span>
+</a>
+<span aria-label="บัญชีของมะลิ" style="width: 36px; height: 36px; border-radius: 50%; background: #F3E3BC; border: 1px solid #CDB892; display: flex; align-items: center; justify-content: center; font-family: Pridi, serif; font-weight: 600; font-size: 16px; color: #7A5A12">ม</span>
+</header>
+<svg width="390" height="16" viewBox="0 0 390 16" aria-hidden="true" style="display: block; flex-shrink: 0"><rect x="0" y="0" width="390" height="3" fill="#1E2B5E"></rect><path d="M1 5H17L9 15ZM19 5H35L27 15ZM37 5H53L45 15ZM55 5H71L63 15ZM73 5H89L81 15ZM91 5H107L99 15ZM109 5H125L117 15ZM127 5H143L135 15ZM145 5H161L153 15ZM163 5H179L171 15ZM181 5H197L189 15ZM199 5H215L207 15ZM217 5H233L225 15ZM235 5H251L243 15ZM253 5H269L261 15ZM271 5H287L279 15ZM289 5H305L297 15ZM307 5H323L315 15ZM325 5H341L333 15ZM343 5H359L351 15ZM361 5H377L369 15ZM379 5H395L387 15Z" fill="#B08326"></path></svg>
+<main style="padding: 20px 16px 32px; display: flex; flex-direction: column; gap: 16px">
+<div style="display: flex; align-items: center; justify-content: space-between; gap: 12px">
+<h1 style="margin: 0; font-family: Pridi, serif; font-weight: 600; letter-spacing: -0.01em; font-size: 32px; line-height: 1.3">ร้านของฉัน</h1>
+<a href="MShopForm.dc.html" style="display: flex; align-items: center; gap: 6px; min-height: 44px; padding: 0 14px; border-radius: 8px; background: #A8322A; color: #FBF5EA; font-size: 15px; font-weight: 700; text-decoration: none"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="flex-shrink: 0"><path d="M12 5v14M5 12h14"></path></svg>สร้างร้าน</a>
+</div>
+<nav aria-label="เลือกร้าน" style="display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px">
+<sc-for list="{{shopList}}" as="s" hint-placeholder-count="2">
+<button type="button" aria-pressed="{{s.pressed}}" onClick="{{s.pick}}" style="display: flex; gap: 10px; align-items: center; text-align: left; padding: 10px; border-radius: 12px; background: {{s.bg}}; border: 2px solid {{s.border}}; color: #231812">
+<span style="width: 40px; height: 48px; flex-shrink: 0; border-radius: 50% 50% 6px 6px / 40% 40% 6px 6px; background: {{s.tone}}"></span>
+<span style="display: flex; flex-direction: column; gap: 2px; min-width: 0">
+<span style="font-family: Pridi, serif; font-size: 15px; font-weight: 600; line-height: 1.3">{{s.name}}</span>
+<span style="display: flex; align-items: center; gap: 3px; font-size: 12px; color: #4A3A2C"><svg width="12" height="12" viewBox="0 0 24 24" aria-hidden="true" style="flex-shrink: 0"><path d="M12 2.8l2.8 5.9 6.4.8-4.7 4.5 1.2 6.4L12 17.2l-5.7 3.2 1.2-6.4L2.8 9.5l6.4-.8z" fill="#B08326"></path></svg>{{s.avg}} · {{s.hours}}</span>
+</span>
+</button>
+</sc-for>
+</nav>
+
+<div style="position: relative; overflow: hidden; display: flex; flex-direction: column; gap: 12px; padding: 18px; border-radius: 14px; background: #1E2B5E; color: #FBF5EA">
+<svg width="358" height="200" viewBox="0 0 358 200" aria-hidden="true" style="position: absolute; left: 0; top: 0; opacity: 0.14"><path d="M28 11.2L44.8 28L28 44.8L11.2 28ZM84 11.2L100.8 28L84 44.8L67.2 28ZM140 11.2L156.8 28L140 44.8L123.2 28ZM196 11.2L212.8 28L196 44.8L179.2 28ZM252 11.2L268.8 28L252 44.8L235.2 28ZM308 11.2L324.8 28L308 44.8L291.2 28ZM364 11.2L380.8 28L364 44.8L347.2 28ZM56 53.2L72.8 70L56 86.8L39.2 70ZM112 53.2L128.8 70L112 86.8L95.2 70ZM168 53.2L184.8 70L168 86.8L151.2 70ZM224 53.2L240.8 70L224 86.8L207.2 70ZM280 53.2L296.8 70L280 86.8L263.2 70ZM336 53.2L352.8 70L336 86.8L319.2 70ZM392 53.2L408.8 70L392 86.8L375.2 70ZM28 95.2L44.8 112L28 128.8L11.2 112ZM84 95.2L100.8 112L84 128.8L67.2 112ZM140 95.2L156.8 112L140 128.8L123.2 112ZM196 95.2L212.8 112L196 128.8L179.2 112ZM252 95.2L268.8 112L252 128.8L235.2 112ZM308 95.2L324.8 112L308 128.8L291.2 112ZM364 95.2L380.8 112L364 128.8L347.2 112ZM56 137.2L72.8 154L56 170.8L39.2 154ZM112 137.2L128.8 154L112 170.8L95.2 154ZM168 137.2L184.8 154L168 170.8L151.2 154ZM224 137.2L240.8 154L224 170.8L207.2 154ZM280 137.2L296.8 154L280 170.8L263.2 154ZM336 137.2L352.8 154L336 170.8L319.2 154ZM392 137.2L408.8 154L392 170.8L375.2 154ZM28 179.2L44.8 196L28 212.8L11.2 196ZM84 179.2L100.8 196L84 212.8L67.2 196ZM140 179.2L156.8 196L140 212.8L123.2 196ZM196 179.2L212.8 196L196 212.8L179.2 196ZM252 179.2L268.8 196L252 212.8L235.2 196ZM308 179.2L324.8 196L308 212.8L291.2 196ZM364 179.2L380.8 196L364 212.8L347.2 196ZM56 221.2L72.8 238L56 254.8L39.2 238ZM112 221.2L128.8 238L112 254.8L95.2 238ZM168 221.2L184.8 238L168 254.8L151.2 238ZM224 221.2L240.8 238L224 254.8L207.2 238ZM280 221.2L296.8 238L280 254.8L263.2 238ZM336 221.2L352.8 238L336 254.8L319.2 238ZM392 221.2L408.8 238L392 254.8L375.2 238Z" fill="none" stroke="#E9C77A" stroke-width="1"></path><path d="M28 14.9C32 18.6 31.5 23 28 25.5C24.5 23 24 18.6 28 14.9ZM41.1 28C37.4 32 33 31.5 30.5 28C33 24.5 37.4 24 41.1 28ZM28 41.1C24 37.4 24.5 33 28 30.5C31.5 33 32 37.4 28 41.1ZM14.9 28C18.6 24 23 24.5 25.5 28C23 31.5 18.6 32 14.9 28ZM84 14.9C88 18.6 87.5 23 84 25.5C80.5 23 80 18.6 84 14.9ZM97.1 28C93.4 32 89 31.5 86.5 28C89 24.5 93.4 24 97.1 28ZM84 41.1C80 37.4 80.5 33 84 30.5C87.5 33 88 37.4 84 41.1ZM70.9 28C74.6 24 79 24.5 81.5 28C79 31.5 74.6 32 70.9 28ZM140 14.9C144 18.6 143.5 23 140 25.5C136.5 23 136 18.6 140 14.9ZM153.1 28C149.4 32 145 31.5 142.5 28C145 24.5 149.4 24 153.1 28ZM140 41.1C136 37.4 136.5 33 140 30.5C143.5 33 144 37.4 140 41.1ZM126.9 28C130.6 24 135 24.5 137.5 28C135 31.5 130.6 32 126.9 28ZM196 14.9C200 18.6 199.5 23 196 25.5C192.5 23 192 18.6 196 14.9ZM209.1 28C205.4 32 201 31.5 198.5 28C201 24.5 205.4 24 209.1 28ZM196 41.1C192 37.4 192.5 33 196 30.5C199.5 33 200 37.4 196 41.1ZM182.9 28C186.6 24 191 24.5 193.5 28C191 31.5 186.6 32 182.9 28ZM252 14.9C256 18.6 255.5 23 252 25.5C248.5 23 248 18.6 252 14.9ZM265.1 28C261.4 32 257 31.5 254.5 28C257 24.5 261.4 24 265.1 28ZM252 41.1C248 37.4 248.5 33 252 30.5C255.5 33 256 37.4 252 41.1ZM238.9 28C242.6 24 247 24.5 249.5 28C247 31.5 242.6 32 238.9 28ZM308 14.9C312 18.6 311.5 23 308 25.5C304.5 23 304 18.6 308 14.9ZM321.1 28C317.4 32 313 31.5 310.5 28C313 24.5 317.4 24 321.1 28ZM308 41.1C304 37.4 304.5 33 308 30.5C311.5 33 312 37.4 308 41.1ZM294.9 28C298.6 24 303 24.5 305.5 28C303 31.5 298.6 32 294.9 28ZM364 14.9C368 18.6 367.5 23 364 25.5C360.5 23 360 18.6 364 14.9ZM377.1 28C373.4 32 369 31.5 366.5 28C369 24.5 373.4 24 377.1 28ZM364 41.1C360 37.4 360.5 33 364 30.5C367.5 33 368 37.4 364 41.1ZM350.9 28C354.6 24 359 24.5 361.5 28C359 31.5 354.6 32 350.9 28ZM56 56.9C60 60.6 59.5 65 56 67.5C52.5 65 52 60.6 56 56.9ZM69.1 70C65.4 74 61 73.5 58.5 70C61 66.5 65.4 66 69.1 70ZM56 83.1C52 79.4 52.5 75 56 72.5C59.5 75 60 79.4 56 83.1ZM42.9 70C46.6 66 51 66.5 53.5 70C51 73.5 46.6 74 42.9 70ZM112 56.9C116 60.6 115.5 65 112 67.5C108.5 65 108 60.6 112 56.9ZM125.1 70C121.4 74 117 73.5 114.5 70C117 66.5 121.4 66 125.1 70ZM112 83.1C108 79.4 108.5 75 112 72.5C115.5 75 116 79.4 112 83.1ZM98.9 70C102.6 66 107 66.5 109.5 70C107 73.5 102.6 74 98.9 70ZM168 56.9C172 60.6 171.5 65 168 67.5C164.5 65 164 60.6 168 56.9ZM181.1 70C177.4 74 173 73.5 170.5 70C173 66.5 177.4 66 181.1 70ZM168 83.1C164 79.4 164.5 75 168 72.5C171.5 75 172 79.4 168 83.1ZM154.9 70C158.6 66 163 66.5 165.5 70C163 73.5 158.6 74 154.9 70ZM224 56.9C228 60.6 227.5 65 224 67.5C220.5 65 220 60.6 224 56.9ZM237.1 70C233.4 74 229 73.5 226.5 70C229 66.5 233.4 66 237.1 70ZM224 83.1C220 79.4 220.5 75 224 72.5C227.5 75 228 79.4 224 83.1ZM210.9 70C214.6 66 219 66.5 221.5 70C219 73.5 214.6 74 210.9 70ZM280 56.9C284 60.6 283.5 65 280 67.5C276.5 65 276 60.6 280 56.9ZM293.1 70C289.4 74 285 73.5 282.5 70C285 66.5 289.4 66 293.1 70ZM280 83.1C276 79.4 276.5 75 280 72.5C283.5 75 284 79.4 280 83.1ZM266.9 70C270.6 66 275 66.5 277.5 70C275 73.5 270.6 74 266.9 70ZM336 56.9C340 60.6 339.5 65 336 67.5C332.5 65 332 60.6 336 56.9ZM349.1 70C345.4 74 341 73.5 338.5 70C341 66.5 345.4 66 349.1 70ZM336 83.1C332 79.4 332.5 75 336 72.5C339.5 75 340 79.4 336 83.1ZM322.9 70C326.6 66 331 66.5 333.5 70C331 73.5 326.6 74 322.9 70ZM392 56.9C396 60.6 395.5 65 392 67.5C388.5 65 388 60.6 392 56.9ZM405.1 70C401.4 74 397 73.5 394.5 70C397 66.5 401.4 66 405.1 70ZM392 83.1C388 79.4 388.5 75 392 72.5C395.5 75 396 79.4 392 83.1ZM378.9 70C382.6 66 387 66.5 389.5 70C387 73.5 382.6 74 378.9 70ZM28 98.9C32 102.6 31.5 107 28 109.5C24.5 107 24 102.6 28 98.9ZM41.1 112C37.4 116 33 115.5 30.5 112C33 108.5 37.4 108 41.1 112ZM28 125.1C24 121.4 24.5 117 28 114.5C31.5 117 32 121.4 28 125.1ZM14.9 112C18.6 108 23 108.5 25.5 112C23 115.5 18.6 116 14.9 112ZM84 98.9C88 102.6 87.5 107 84 109.5C80.5 107 80 102.6 84 98.9ZM97.1 112C93.4 116 89 115.5 86.5 112C89 108.5 93.4 108 97.1 112ZM84 125.1C80 121.4 80.5 117 84 114.5C87.5 117 88 121.4 84 125.1ZM70.9 112C74.6 108 79 108.5 81.5 112C79 115.5 74.6 116 70.9 112ZM140 98.9C144 102.6 143.5 107 140 109.5C136.5 107 136 102.6 140 98.9ZM153.1 112C149.4 116 145 115.5 142.5 112C145 108.5 149.4 108 153.1 112ZM140 125.1C136 121.4 136.5 117 140 114.5C143.5 117 144 121.4 140 125.1ZM126.9 112C130.6 108 135 108.5 137.5 112C135 115.5 130.6 116 126.9 112ZM196 98.9C200 102.6 199.5 107 196 109.5C192.5 107 192 102.6 196 98.9ZM209.1 112C205.4 116 201 115.5 198.5 112C201 108.5 205.4 108 209.1 112ZM196 125.1C192 121.4 192.5 117 196 114.5C199.5 117 200 121.4 196 125.1ZM182.9 112C186.6 108 191 108.5 193.5 112C191 115.5 186.6 116 182.9 112ZM252 98.9C256 102.6 255.5 107 252 109.5C248.5 107 248 102.6 252 98.9ZM265.1 112C261.4 116 257 115.5 254.5 112C257 108.5 261.4 108 265.1 112ZM252 125.1C248 121.4 248.5 117 252 114.5C255.5 117 256 121.4 252 125.1ZM238.9 112C242.6 108 247 108.5 249.5 112C247 115.5 242.6 116 238.9 112ZM308 98.9C312 102.6 311.5 107 308 109.5C304.5 107 304 102.6 308 98.9ZM321.1 112C317.4 116 313 115.5 310.5 112C313 108.5 317.4 108 321.1 112ZM308 125.1C304 121.4 304.5 117 308 114.5C311.5 117 312 121.4 308 125.1ZM294.9 112C298.6 108 303 108.5 305.5 112C303 115.5 298.6 116 294.9 112ZM364 98.9C368 102.6 367.5 107 364 109.5C360.5 107 360 102.6 364 98.9ZM377.1 112C373.4 116 369 115.5 366.5 112C369 108.5 373.4 108 377.1 112ZM364 125.1C360 121.4 360.5 117 364 114.5C367.5 117 368 121.4 364 125.1ZM350.9 112C354.6 108 359 108.5 361.5 112C359 115.5 354.6 116 350.9 112ZM56 140.9C60 144.6 59.5 149 56 151.5C52.5 149 52 144.6 56 140.9ZM69.1 154C65.4 158 61 157.5 58.5 154C61 150.5 65.4 150 69.1 154ZM56 167.1C52 163.4 52.5 159 56 156.5C59.5 159 60 163.4 56 167.1ZM42.9 154C46.6 150 51 150.5 53.5 154C51 157.5 46.6 158 42.9 154ZM112 140.9C116 144.6 115.5 149 112 151.5C108.5 149 108 144.6 112 140.9ZM125.1 154C121.4 158 117 157.5 114.5 154C117 150.5 121.4 150 125.1 154ZM112 167.1C108 163.4 108.5 159 112 156.5C115.5 159 116 163.4 112 167.1ZM98.9 154C102.6 150 107 150.5 109.5 154C107 157.5 102.6 158 98.9 154ZM168 140.9C172 144.6 171.5 149 168 151.5C164.5 149 164 144.6 168 140.9ZM181.1 154C177.4 158 173 157.5 170.5 154C173 150.5 177.4 150 181.1 154ZM168 167.1C164 163.4 164.5 159 168 156.5C171.5 159 172 163.4 168 167.1ZM154.9 154C158.6 150 163 150.5 165.5 154C163 157.5 158.6 158 154.9 154ZM224 140.9C228 144.6 227.5 149 224 151.5C220.5 149 220 144.6 224 140.9ZM237.1 154C233.4 158 229 157.5 226.5 154C229 150.5 233.4 150 237.1 154ZM224 167.1C220 163.4 220.5 159 224 156.5C227.5 159 228 163.4 224 167.1ZM210.9 154C214.6 150 219 150.5 221.5 154C219 157.5 214.6 158 210.9 154ZM280 140.9C284 144.6 283.5 149 280 151.5C276.5 149 276 144.6 280 140.9ZM293.1 154C289.4 158 285 157.5 282.5 154C285 150.5 289.4 150 293.1 154ZM280 167.1C276 163.4 276.5 159 280 156.5C283.5 159 284 163.4 280 167.1ZM266.9 154C270.6 150 275 150.5 277.5 154C275 157.5 270.6 158 266.9 154ZM336 140.9C340 144.6 339.5 149 336 151.5C332.5 149 332 144.6 336 140.9ZM349.1 154C345.4 158 341 157.5 338.5 154C341 150.5 345.4 150 349.1 154ZM336 167.1C332 163.4 332.5 159 336 156.5C339.5 159 340 163.4 336 167.1ZM322.9 154C326.6 150 331 150.5 333.5 154C331 157.5 326.6 158 322.9 154ZM392 140.9C396 144.6 395.5 149 392 151.5C388.5 149 388 144.6 392 140.9ZM405.1 154C401.4 158 397 157.5 394.5 154C397 150.5 401.4 150 405.1 154ZM392 167.1C388 163.4 388.5 159 392 156.5C395.5 159 396 163.4 392 167.1ZM378.9 154C382.6 150 387 150.5 389.5 154C387 157.5 382.6 158 378.9 154ZM28 182.9C32 186.6 31.5 191 28 193.5C24.5 191 24 186.6 28 182.9ZM41.1 196C37.4 200 33 199.5 30.5 196C33 192.5 37.4 192 41.1 196ZM28 209.1C24 205.4 24.5 201 28 198.5C31.5 201 32 205.4 28 209.1ZM14.9 196C18.6 192 23 192.5 25.5 196C23 199.5 18.6 200 14.9 196ZM84 182.9C88 186.6 87.5 191 84 193.5C80.5 191 80 186.6 84 182.9ZM97.1 196C93.4 200 89 199.5 86.5 196C89 192.5 93.4 192 97.1 196ZM84 209.1C80 205.4 80.5 201 84 198.5C87.5 201 88 205.4 84 209.1ZM70.9 196C74.6 192 79 192.5 81.5 196C79 199.5 74.6 200 70.9 196ZM140 182.9C144 186.6 143.5 191 140 193.5C136.5 191 136 186.6 140 182.9ZM153.1 196C149.4 200 145 199.5 142.5 196C145 192.5 149.4 192 153.1 196ZM140 209.1C136 205.4 136.5 201 140 198.5C143.5 201 144 205.4 140 209.1ZM126.9 196C130.6 192 135 192.5 137.5 196C135 199.5 130.6 200 126.9 196ZM196 182.9C200 186.6 199.5 191 196 193.5C192.5 191 192 186.6 196 182.9ZM209.1 196C205.4 200 201 199.5 198.5 196C201 192.5 205.4 192 209.1 196ZM196 209.1C192 205.4 192.5 201 196 198.5C199.5 201 200 205.4 196 209.1ZM182.9 196C186.6 192 191 192.5 193.5 196C191 199.5 186.6 200 182.9 196ZM252 182.9C256 186.6 255.5 191 252 193.5C248.5 191 248 186.6 252 182.9ZM265.1 196C261.4 200 257 199.5 254.5 196C257 192.5 261.4 192 265.1 196ZM252 209.1C248 205.4 248.5 201 252 198.5C255.5 201 256 205.4 252 209.1ZM238.9 196C242.6 192 247 192.5 249.5 196C247 199.5 242.6 200 238.9 196ZM308 182.9C312 186.6 311.5 191 308 193.5C304.5 191 304 186.6 308 182.9ZM321.1 196C317.4 200 313 199.5 310.5 196C313 192.5 317.4 192 321.1 196ZM308 209.1C304 205.4 304.5 201 308 198.5C311.5 201 312 205.4 308 209.1ZM294.9 196C298.6 192 303 192.5 305.5 196C303 199.5 298.6 200 294.9 196ZM364 182.9C368 186.6 367.5 191 364 193.5C360.5 191 360 186.6 364 182.9ZM377.1 196C373.4 200 369 199.5 366.5 196C369 192.5 373.4 192 377.1 196ZM364 209.1C360 205.4 360.5 201 364 198.5C367.5 201 368 205.4 364 209.1ZM350.9 196C354.6 192 359 192.5 361.5 196C359 199.5 354.6 200 350.9 196ZM56 224.9C60 228.6 59.5 233 56 235.5C52.5 233 52 228.6 56 224.9ZM69.1 238C65.4 242 61 241.5 58.5 238C61 234.5 65.4 234 69.1 238ZM56 251.1C52 247.4 52.5 243 56 240.5C59.5 243 60 247.4 56 251.1ZM42.9 238C46.6 234 51 234.5 53.5 238C51 241.5 46.6 242 42.9 238ZM112 224.9C116 228.6 115.5 233 112 235.5C108.5 233 108 228.6 112 224.9ZM125.1 238C121.4 242 117 241.5 114.5 238C117 234.5 121.4 234 125.1 238ZM112 251.1C108 247.4 108.5 243 112 240.5C115.5 243 116 247.4 112 251.1ZM98.9 238C102.6 234 107 234.5 109.5 238C107 241.5 102.6 242 98.9 238ZM168 224.9C172 228.6 171.5 233 168 235.5C164.5 233 164 228.6 168 224.9ZM181.1 238C177.4 242 173 241.5 170.5 238C173 234.5 177.4 234 181.1 238ZM168 251.1C164 247.4 164.5 243 168 240.5C171.5 243 172 247.4 168 251.1ZM154.9 238C158.6 234 163 234.5 165.5 238C163 241.5 158.6 242 154.9 238ZM224 224.9C228 228.6 227.5 233 224 235.5C220.5 233 220 228.6 224 224.9ZM237.1 238C233.4 242 229 241.5 226.5 238C229 234.5 233.4 234 237.1 238ZM224 251.1C220 247.4 220.5 243 224 240.5C227.5 243 228 247.4 224 251.1ZM210.9 238C214.6 234 219 234.5 221.5 238C219 241.5 214.6 242 210.9 238ZM280 224.9C284 228.6 283.5 233 280 235.5C276.5 233 276 228.6 280 224.9ZM293.1 238C289.4 242 285 241.5 282.5 238C285 234.5 289.4 234 293.1 238ZM280 251.1C276 247.4 276.5 243 280 240.5C283.5 243 284 247.4 280 251.1ZM266.9 238C270.6 234 275 234.5 277.5 238C275 241.5 270.6 242 266.9 238ZM336 224.9C340 228.6 339.5 233 336 235.5C332.5 233 332 228.6 336 224.9ZM349.1 238C345.4 242 341 241.5 338.5 238C341 234.5 345.4 234 349.1 238ZM336 251.1C332 247.4 332.5 243 336 240.5C339.5 243 340 247.4 336 251.1ZM322.9 238C326.6 234 331 234.5 333.5 238C331 241.5 326.6 242 322.9 238ZM392 224.9C396 228.6 395.5 233 392 235.5C388.5 233 388 228.6 392 224.9ZM405.1 238C401.4 242 397 241.5 394.5 238C397 234.5 401.4 234 405.1 238ZM392 251.1C388 247.4 388.5 243 392 240.5C395.5 243 396 247.4 392 251.1ZM378.9 238C382.6 234 387 234.5 389.5 238C387 241.5 382.6 242 378.9 238Z" fill="#E9C77A"></path></svg>
+<div style="position: relative; display: flex; flex-direction: column; gap: 4px">
+<h2 style="margin: 0; font-family: Pridi, serif; font-weight: 600; font-size: 24px">{{cur.name}}</h2>
+<span style="font-size: 15px; color: #D9DCEA">{{cur.cuisine}}</span>
+<sc-if value="{{cur.late}}" hint-placeholder-val="{{ true }}">
+<span style="align-self: flex-start; display: flex; align-items: center; gap: 4px; margin-top: 4px; padding: 3px 10px; border-radius: 6px; background: #E9C77A; color: #1E2B5E; font-size: 12px; font-weight: 700"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="flex-shrink: 0"><path d="M20 14.5A8 8 0 1 1 9.5 4a6.5 6.5 0 0 0 10.5 10.5z"></path></svg>เปิดข้ามเที่ยงคืน</span>
+</sc-if>
+</div>
+<div style="position: relative; display: flex; gap: 8px">
+<a href="MShopForm.dc.html" style="flex-grow: 1; display: flex; align-items: center; justify-content: center; gap: 6px; min-height: 44px; border-radius: 8px; background: #FBF5EA; color: #1E2B5E; font-size: 15px; font-weight: 700; text-decoration: none"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="flex-shrink: 0"><path d="M4 20h4L19 9l-4-4L4 16v4z"></path></svg>แก้ไขร้าน</a>
+<a href="MRestaurant.dc.html" style="flex-grow: 1; display: flex; align-items: center; justify-content: center; min-height: 44px; border-radius: 8px; border: 1px solid rgba(251, 245, 234, 0.5); color: #FBF5EA; font-size: 15px; font-weight: 700; text-decoration: none">ดูหน้าร้าน</a>
+<button type="button" aria-label="ลบร้าน" style="width: 44px; height: 44px; flex-shrink: 0; border-radius: 8px; border: 0; background: #A8322A; color: #FBF5EA; display: flex; align-items: center; justify-content: center"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="flex-shrink: 0"><path d="M4 7h16M10 11v6M14 11v6M6 7l1 13h10l1-13M9 7V4h6v3"></path></svg></button>
+</div>
+</div>
+
+<div style="display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px">
+<div style="padding: 14px; border-radius: 12px; background: #FFFBF3; border: 1px solid #E2D1B5; box-shadow: inset 0 3px 0 #B08326"><div style="font-size: 13px; color: #6B5A48">คะแนนเฉลี่ย</div><div style="display: flex; align-items: baseline; gap: 5px; margin-top: 4px"><span style="font-family: Pridi, serif; font-size: 28px; font-weight: 600">{{cur.avg}}</span><span style="font-size: 13px; color: #6B5A48">{{cur.count}}</span></div></div>
+<div style="padding: 14px; border-radius: 12px; background: #FFFBF3; border: 1px solid #E2D1B5; box-shadow: inset 0 3px 0 #B08326"><div style="font-size: 13px; color: #6B5A48">การจอง · {{cur.dayShort}}</div><div style="display: flex; align-items: baseline; gap: 5px; margin-top: 4px"><span style="font-family: Pridi, serif; font-size: 28px; font-weight: 600">{{activeCount}}</span><span style="font-size: 13px; color: #6B5A48">รายการ · {{guestCount}} คน</span></div></div>
+<div style="padding: 14px; border-radius: 12px; background: #FFFBF3; border: 1px solid #E2D1B5; box-shadow: inset 0 3px 0 #B08326"><div style="font-size: 13px; color: #6B5A48">ที่นั่ง</div><div style="display: flex; align-items: baseline; gap: 5px; margin-top: 4px"><span style="font-family: Pridi, serif; font-size: 28px; font-weight: 600">{{cur.seats}}</span><span style="font-size: 13px; color: #6B5A48">{{cur.hours}}</span></div></div>
+<div style="padding: 14px; border-radius: 12px; background: #FFFBF3; border: 1px solid #E2D1B5; box-shadow: inset 0 3px 0 #B08326"><div style="font-size: 13px; color: #6B5A48">ยกเลิกล่วงหน้า</div><div style="display: flex; align-items: baseline; gap: 5px; margin-top: 4px"><span style="font-family: Pridi, serif; font-size: 28px; font-weight: 600">{{cur.lead}}</span><span style="font-size: 13px; color: #6B5A48">นาที</span></div></div>
+</div>
+
+<div style="display: flex; flex-direction: column; gap: 10px; padding: 16px; border-radius: 14px; background: #FFFBF3; border: 1px solid #E2D1B5">
+<div style="display: flex; align-items: center; gap: 8px"><svg width="18" height="18" viewBox="0 0 24 24" aria-hidden="true" style="flex-shrink: 0"><path d="M12 1.5L22.5 12L12 22.5L1.5 12Z" fill="none" stroke="#B08326" stroke-width="1.4" stroke-linejoin="round"></path><path d="M12 3.8C14.5 6.1 14.2 8.8 12 10.4C9.8 8.8 9.5 6.1 12 3.8ZM20.2 12C17.9 14.5 15.2 14.2 13.6 12C15.2 9.8 17.9 9.5 20.2 12ZM12 20.2C9.5 17.9 9.8 15.2 12 13.6C14.2 15.2 14.5 17.9 12 20.2ZM3.8 12C6.1 9.5 8.8 9.8 10.4 12C8.9 14.2 6.1 14.5 3.8 12Z" fill="#B08326"></path><circle cx="12" cy="12" r="1.5" fill="#FFFBF3"></circle></svg><h3 style="margin: 0; font-family: Pridi, serif; font-size: 18px; font-weight: 600">ที่นั่งถูกจอง · {{cur.dayShort}}</h3></div>
+<span style="font-size: 13px; color: #6B5A48">{{peakText}}</span>
+<div style="position: relative; display: flex; align-items: flex-end; gap: 3px; height: 140px; margin-top: 16px; border-top: 1px dashed #6B5A48">
+<span style="position: absolute; right: 0; top: -20px; font-size: 12px; color: #6B5A48">เต็ม {{cur.seats}} ที่</span>
+<sc-for list="{{bars}}" as="b" hint-placeholder-count="16">
+<div title="{{b.title}}" style="flex-grow: 1; height: 140px; display: flex; flex-direction: column; justify-content: flex-end; border-radius: 3px 3px 1px 1px; background: {{b.bgCol}}">
+<div style="height: {{b.h}}px; border-radius: 3px 3px 1px 1px; background: {{b.color}}"></div>
+</div>
+</sc-for>
+</div>
+<div style="display: flex; gap: 3px">
+<sc-for list="{{bars}}" as="b" hint-placeholder-count="16">
+<span style="flex-grow: 1; flex-basis: 0; font-size: 10px; color: {{b.labelColor}}; white-space: nowrap">{{b.label}}</span>
+</sc-for>
+</div>
+<sc-if value="{{cur.late}}" hint-placeholder-val="{{ true }}">
+<p style="margin: 0; font-size: 13px; line-height: 1.5; color: #1E2B5E">ช่วงหลัง 00:00 (พื้นฟ้า) นับเป็นรอบของคืนเดียวกัน</p>
+</sc-if>
+</div>
+
+<div style="display: flex; flex-direction: column; gap: 10px">
+<div style="display: flex; align-items: center; gap: 8px"><svg width="18" height="18" viewBox="0 0 24 24" aria-hidden="true" style="flex-shrink: 0"><path d="M12 1.5L22.5 12L12 22.5L1.5 12Z" fill="none" stroke="#B08326" stroke-width="1.4" stroke-linejoin="round"></path><path d="M12 3.8C14.5 6.1 14.2 8.8 12 10.4C9.8 8.8 9.5 6.1 12 3.8ZM20.2 12C17.9 14.5 15.2 14.2 13.6 12C15.2 9.8 17.9 9.5 20.2 12ZM12 20.2C9.5 17.9 9.8 15.2 12 13.6C14.2 15.2 14.5 17.9 12 20.2ZM3.8 12C6.1 9.5 8.8 9.8 10.4 12C8.9 14.2 6.1 14.5 3.8 12Z" fill="#B08326"></path><circle cx="12" cy="12" r="1.5" fill="#F4EADA"></circle></svg><h3 style="margin: 0; font-family: Pridi, serif; font-size: 18px; font-weight: 600">รายการจอง · {{cur.dayShort}}</h3></div>
+<sc-for list="{{rows}}" as="r" hint-placeholder-count="4">
+<div style="display: flex; align-items: center; gap: 12px; padding: 12px 14px; border-radius: 12px; background: #FFFBF3; border: 1px solid #E2D1B5; color: {{r.fg}}">
+<div style="flex-grow: 1; display: flex; flex-direction: column; gap: 2px">
+<span style="font-size: 15px; font-weight: 700">{{r.time}}</span>
+<span style="font-size: 14px">{{r.who}} · {{r.n}} คน</span>
+</div>
+<span style="padding: 3px 8px; border-radius: 6px; font-size: 12px; font-weight: 700; background: {{r.chipBg}}; color: {{r.chipFg}}">{{r.status}}</span>
+</div>
+</sc-for>
+</div>
+</main>
+<nav aria-label="เมนูหลัก" style="margin-top: auto; flex-shrink: 0; display: flex; padding: 6px 8px 24px; background: #FFFBF3; border-top: 1px solid #CDB892; box-shadow: inset 0 3px 0 #1E2B5E"><a href="MSearch.dc.html" style="flex-grow: 1; flex-basis: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 3px; min-height: 54px; text-decoration: none; font-size: 12px; font-weight: 500; color: #4A3A2C"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#4A3A2C" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="flex-shrink: 0"><circle cx="11" cy="11" r="7"></circle><path d="M20 20l-4-4"></path></svg>ค้นหาร้าน</a><a href="MBookings.dc.html" style="flex-grow: 1; flex-basis: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 3px; min-height: 54px; text-decoration: none; font-size: 12px; font-weight: 500; color: #4A3A2C"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#4A3A2C" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="flex-shrink: 0"><rect x="3" y="5" width="18" height="16" rx="2"></rect><path d="M3 10h18M8 3v4M16 3v4"></path></svg>การจองของฉัน</a><a href="MOwner.dc.html" aria-current="page" style="flex-grow: 1; flex-basis: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 3px; min-height: 54px; text-decoration: none; font-size: 12px; font-weight: 700; color: #A8322A"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#A8322A" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="flex-shrink: 0"><path d="M3 10l1.5-5h15L21 10"></path><path d="M3 10h18v2a3 3 0 0 1-6 0 3 3 0 0 1-6 0 3 3 0 0 1-6 0z"></path><path d="M5 14v6h14v-6"></path></svg>ร้านของฉัน</a></nav>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":390,"height":1900}}'>
+class Component extends DCLogic {
+  constructor(props) {
+    super(props);
+    this.state = { sel: 'tohrung' };
+  }
+  renderVals() {
+    const shops = {
+      tohrung: {
+        name: 'ข้าวต้มโต้รุ่งท่าน้ำ', cuisine: 'ข้าวต้ม กับข้าว · โต้รุ่ง', tone: '#AEB6CC',
+        avg: '4.5', count: '42 รีวิว', seats: 20, hours: '18:00–02:00', late: true, lead: 60,
+        day: 'คืนนี้ · พฤ. 24 ก.ย.', dayShort: 'คืนนี้', open: 1080, close: 1560,
+        bookings: [
+          { s: 1080, e: 1200, n: 6, who: 'ต้นกล้า' },
+          { s: 1140, e: 1260, n: 8, who: 'เบียร์' },
+          { s: 1170, e: 1230, n: 2, who: 'จูน', cancelled: true },
+          { s: 1260, e: 1380, n: 4, who: 'แพร' },
+          { s: 1410, e: 1500, n: 5, who: 'โอ๊ต' }
+        ]
+      },
+      cafe: {
+        name: 'กาแฟใต้ถุนบ้าน', cuisine: 'กาแฟ · ขนมไทย', tone: '#E6CF97',
+        avg: '4.9', count: '17 รีวิว', seats: 12, hours: '08:00–16:00', late: false, lead: 30,
+        day: 'พรุ่งนี้ · ศ. 25 ก.ย.', dayShort: 'พรุ่งนี้', open: 480, close: 960,
+        bookings: [
+          { s: 540, e: 600, n: 4, who: 'นุ่น' },
+          { s: 570, e: 660, n: 6, who: 'พลอย' },
+          { s: 780, e: 840, n: 2, who: 'เต้' }
+        ]
+      }
+    };
+    const sel = this.state.sel;
+    const cur = shops[sel];
+    const pad = (x) => String(x).padStart(2, '0');
+    const fmt = (m) => pad(Math.floor(m / 60) % 24) + ':' + pad(m % 60);
+    const active = cur.bookings.filter((b) => !b.cancelled);
+    const H = 140;
+    const bars = [];
+    let peak = { used: 0, t: cur.open };
+    for (let t = cur.open; t < cur.close; t += 30) {
+      const used = active.filter((b) => b.s < t + 30 && b.e > t).reduce((a, b) => a + b.n, 0);
+      if (used > peak.used) peak = { used, t };
+      const full = used >= cur.seats;
+      bars.push({
+        h: Math.round((used / cur.seats) * H),
+        color: full ? '#A8322A' : '#1E2B5E',
+        bgCol: t >= 1440 ? '#E3E5EF' : '#EFE5D2',
+        title: fmt(t) + ' · ' + used + '/' + cur.seats + ' ที่',
+        label: t % 60 === 0 ? fmt(t) : '',
+        labelColor: t >= 1440 ? '#1E2B5E' : '#6B5A48'
+      });
+    }
+    const rows = cur.bookings.slice().sort((a, b) => a.s - b.s).map((b) => ({
+      time: fmt(b.s) + '–' + fmt(b.e) + (b.e > 1440 ? ' (+1 วัน)' : ''),
+      who: b.who, n: b.n,
+      status: b.cancelled ? 'ลูกค้ายกเลิก' : 'ยืนยันแล้ว',
+      chipBg: b.cancelled ? '#EDE3D2' : '#E2EBDA',
+      chipFg: b.cancelled ? '#6B5A48' : '#2F5A2B',
+      fg: b.cancelled ? '#8A7A66' : '#231812'
+    }));
+    const shopList = Object.keys(shops).map((k) => {
+      const s = shops[k];
+      const on = k === sel;
+      return {
+        name: s.name, hours: s.hours, seats: s.seats, avg: s.avg, count: s.count, tone: s.tone,
+        pressed: on ? 'true' : 'false',
+        bg: on ? '#FFFBF3' : '#F4EADA',
+        border: on ? '#A8322A' : '#E2D1B5',
+        pick: () => this.setState({ sel: k })
+      };
+    });
+    return {
+      cur, bars, rows, shopList,
+      activeCount: active.length,
+      guestCount: active.reduce((a, b) => a + b.n, 0),
+      peakText: 'แน่นสุด ' + fmt(peak.t) + '–' + fmt(peak.t + 30) + ' · ' + peak.used + '/' + cur.seats + ' ที่'
+    };
+  }
+}
+</script>
+</body>
+</html>

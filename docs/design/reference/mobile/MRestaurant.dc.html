@@ -1,0 +1,370 @@
+<!doctype html>
+<html lang="th">
+<head>
+<meta charset="utf-8">
+<title>ครัวริมคลอง · มือถือ</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link href="https://fonts.googleapis.com/css2?family=Pridi:wght@400;500;600&amp;family=Sarabun:wght@400;500;600;700&amp;display=swap" rel="stylesheet">
+<style>
+body{margin:0;font-family:'Sarabun',sans-serif;background:#F4EADA;color:#231812}
+a{color:#1E2B5E}a:hover{color:#A8322A}
+button{font-family:inherit;cursor:pointer}
+button:disabled{cursor:not-allowed}
+input,select,textarea{font-family:inherit}
+:focus-visible{outline:2px solid #A8322A;outline-offset:2px}
+</style>
+</helmet>
+<div style="width: 390px; height: 3060px; display: flex; flex-direction: column; box-sizing: border-box; background: #F4EADA; color: #231812; font-family: 'Sarabun', sans-serif">
+<header style="height: 60px; box-sizing: border-box; display: flex; align-items: center; justify-content: space-between; padding: 0 16px; background: #F4EADA; flex-shrink: 0">
+<a href="MSearch.dc.html" style="display: flex; align-items: center; gap: 10px; text-decoration: none; color: #231812">
+<span style="width: 34px; height: 34px; flex-shrink: 0; border-radius: 50%; background: #A8322A; display: flex; align-items: center; justify-content: center; box-shadow: inset 0 0 0 3px #A8322A, inset 0 0 0 4px #FBF5EA"><svg width="19" height="19" viewBox="0 0 24 24" aria-hidden="true" style="flex-shrink: 0"><path d="M12 1.5L22.5 12L12 22.5L1.5 12Z" fill="none" stroke="#FBF5EA" stroke-width="1.4" stroke-linejoin="round"></path><path d="M12 3.8C14.5 6.1 14.2 8.8 12 10.4C9.8 8.8 9.5 6.1 12 3.8ZM20.2 12C17.9 14.5 15.2 14.2 13.6 12C15.2 9.8 17.9 9.5 20.2 12ZM12 20.2C9.5 17.9 9.8 15.2 12 13.6C14.2 15.2 14.5 17.9 12 20.2ZM3.8 12C6.1 9.5 8.8 9.8 10.4 12C8.9 14.2 6.1 14.5 3.8 12Z" fill="#FBF5EA"></path><circle cx="12" cy="12" r="1.5" fill="#A8322A"></circle></svg></span>
+<span style="font-family: Pridi, serif; font-weight: 600; font-size: 22px; letter-spacing: -0.01em">โต๊ะว่าง</span>
+</a>
+<span aria-label="บัญชีของมะลิ" style="width: 36px; height: 36px; border-radius: 50%; background: #F3E3BC; border: 1px solid #CDB892; display: flex; align-items: center; justify-content: center; font-family: Pridi, serif; font-weight: 600; font-size: 16px; color: #7A5A12">ม</span>
+</header>
+<svg width="390" height="16" viewBox="0 0 390 16" aria-hidden="true" style="display: block; flex-shrink: 0"><rect x="0" y="0" width="390" height="3" fill="#1E2B5E"></rect><path d="M1 5H17L9 15ZM19 5H35L27 15ZM37 5H53L45 15ZM55 5H71L63 15ZM73 5H89L81 15ZM91 5H107L99 15ZM109 5H125L117 15ZM127 5H143L135 15ZM145 5H161L153 15ZM163 5H179L171 15ZM181 5H197L189 15ZM199 5H215L207 15ZM217 5H233L225 15ZM235 5H251L243 15ZM253 5H269L261 15ZM271 5H287L279 15ZM289 5H305L297 15ZM307 5H323L315 15ZM325 5H341L333 15ZM343 5H359L351 15ZM361 5H377L369 15ZM379 5H395L387 15Z" fill="#B08326"></path></svg>
+<main style="padding: 8px 16px 32px; display: flex; flex-direction: column; gap: 20px">
+<a href="MSearch.dc.html" style="align-self: flex-start; display: flex; align-items: center; gap: 6px; min-height: 44px; font-size: 15px; font-weight: 600; text-decoration: none"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="flex-shrink: 0"><path d="M19 12H5M11 6l-6 6 6 6"></path></svg>กลับ</a>
+
+<sc-if value="{{isOwner}}" hint-placeholder-val="{{ false }}">
+<div style="display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 12px 14px; border-radius: 10px; background: #231812; color: #FBF5EA">
+<span style="font-size: 14px; font-weight: 500">คุณเป็นเจ้าของร้านนี้</span>
+<a href="MShopForm.dc.html" style="display: flex; align-items: center; min-height: 40px; padding: 0 14px; border-radius: 999px; background: #FBF5EA; color: #231812; font-size: 14px; font-weight: 700; text-decoration: none">แก้ไขร้าน</a>
+</div>
+</sc-if>
+
+<div style="position: relative; height: 250px; border-radius: 50% 50% 12px 12px / 26% 26% 12px 12px; background: #D9B98C; display: flex; align-items: center; justify-content: center; color: rgba(35, 24, 18, 0.4); box-shadow: inset 0 0 0 6px rgba(255, 251, 243, 0.35)">
+<svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="flex-shrink: 0"><rect x="3" y="4" width="18" height="16" rx="2"></rect><circle cx="9" cy="10" r="2"></circle><path d="M21 17l-5-5-9 8"></path></svg>
+<span style="position: absolute; left: 50%; bottom: 12px; transform: translateX(-50%); padding: 3px 10px; border-radius: 999px; background: rgba(35, 24, 18, 0.7); color: #FBF5EA; font-size: 13px">1 / 3</span>
+</div>
+
+<section style="display: flex; flex-direction: column; gap: 12px">
+<p style="margin: 0; display: flex; align-items: center; gap: 8px; font-size: 14px; font-weight: 700; color: #7A5A12"><svg width="16" height="16" viewBox="0 0 24 24" aria-hidden="true" style="flex-shrink: 0"><path d="M12 1.5L22.5 12L12 22.5L1.5 12Z" fill="none" stroke="#B08326" stroke-width="1.4" stroke-linejoin="round"></path><path d="M12 3.8C14.5 6.1 14.2 8.8 12 10.4C9.8 8.8 9.5 6.1 12 3.8ZM20.2 12C17.9 14.5 15.2 14.2 13.6 12C15.2 9.8 17.9 9.5 20.2 12ZM12 20.2C9.5 17.9 9.8 15.2 12 13.6C14.2 15.2 14.5 17.9 12 20.2ZM3.8 12C6.1 9.5 8.8 9.8 10.4 12C8.9 14.2 6.1 14.5 3.8 12Z" fill="#B08326"></path><circle cx="12" cy="12" r="1.5" fill="#F4EADA"></circle></svg>อาหารไทยภาคกลาง · ริมน้ำ</p>
+<div style="display: flex; align-items: center; justify-content: space-between; gap: 12px">
+<h1 style="margin: 0; font-family: Pridi, serif; font-weight: 600; letter-spacing: -0.01em; font-size: 34px; line-height: 1.25">ครัวริมคลอง</h1>
+<div aria-label="คะแนนเฉลี่ย 4.8 จาก 126 รีวิว" style="width: 68px; height: 68px; flex-shrink: 0; border-radius: 50%; background: #A8322A; color: #FBF5EA; display: flex; flex-direction: column; align-items: center; justify-content: center; box-shadow: inset 0 0 0 3px #A8322A, inset 0 0 0 4px rgba(251, 245, 234, 0.75)">
+<span style="font-family: Pridi, serif; font-weight: 600; font-size: 24px; line-height: 1">4.8</span>
+<span style="font-size: 11px">126 รีวิว</span>
+</div>
+</div>
+<div style="display: flex; flex-wrap: wrap; gap: 8px">
+<span style="display: flex; align-items: center; gap: 6px; padding: 7px 12px; border-radius: 8px; background: #FFFBF3; border: 1px solid #E2D1B5; font-size: 14px"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#6B5A48" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="flex-shrink: 0"><path d="M16 19v-1a4 4 0 0 0-4-4H7a4 4 0 0 0-4 4v1"></path><circle cx="9.5" cy="7.5" r="3.5"></circle><path d="M21 19v-1a4 4 0 0 0-3-3.9"></path><path d="M15.5 4.1a3.5 3.5 0 0 1 0 6.8"></path></svg>10 ที่นั่ง</span>
+<span style="display: flex; align-items: center; gap: 6px; padding: 7px 12px; border-radius: 8px; background: #FFFBF3; border: 1px solid #E2D1B5; font-size: 14px"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#6B5A48" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="flex-shrink: 0"><circle cx="12" cy="12" r="9"></circle><path d="M12 7v5l3 2"></path></svg>11:00–22:00</span>
+<span style="display: flex; align-items: center; gap: 6px; padding: 7px 12px; border-radius: 8px; background: #FFFBF3; border: 1px solid #E2D1B5; font-size: 14px"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#6B5A48" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="flex-shrink: 0"><path d="M6 6l12 12M18 6L6 18"></path></svg>ยกเลิกล่วงหน้า 30 นาที</span>
+</div>
+<p style="margin: 0; font-size: 16px; line-height: 1.75; color: #4A3A2C">[รายละเอียดร้าน: ประเภทอาหาร ที่ตั้ง เมนูแนะนำ ที่จอดรถ]</p>
+<p style="margin: 0; display: flex; align-items: center; gap: 6px; font-size: 15px; color: #6B5A48"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#6B5A48" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="flex-shrink: 0"><path d="M12 21s-7-6.2-7-11.5a7 7 0 0 1 14 0C19 14.8 12 21 12 21z"></path><circle cx="12" cy="9.5" r="2.5"></circle></svg>[ที่ตั้งร้าน]</p>
+</section>
+
+<section aria-labelledby="bk" style="display: flex; flex-direction: column; border-radius: 16px; background: #FFFBF3; border: 1px solid #CDB892; overflow: hidden; box-shadow: 0 12px 28px rgba(35, 24, 18, 0.08)">
+<div style="position: relative; overflow: hidden; padding: 18px 20px 16px; background: #A8322A; color: #FBF5EA">
+<svg width="358" height="100" viewBox="0 0 358 100" aria-hidden="true" style="position: absolute; left: 0; top: 0; opacity: 0.16"><path d="M28 11.2L44.8 28L28 44.8L11.2 28ZM84 11.2L100.8 28L84 44.8L67.2 28ZM140 11.2L156.8 28L140 44.8L123.2 28ZM196 11.2L212.8 28L196 44.8L179.2 28ZM252 11.2L268.8 28L252 44.8L235.2 28ZM308 11.2L324.8 28L308 44.8L291.2 28ZM364 11.2L380.8 28L364 44.8L347.2 28ZM56 53.2L72.8 70L56 86.8L39.2 70ZM112 53.2L128.8 70L112 86.8L95.2 70ZM168 53.2L184.8 70L168 86.8L151.2 70ZM224 53.2L240.8 70L224 86.8L207.2 70ZM280 53.2L296.8 70L280 86.8L263.2 70ZM336 53.2L352.8 70L336 86.8L319.2 70ZM392 53.2L408.8 70L392 86.8L375.2 70ZM28 95.2L44.8 112L28 128.8L11.2 112ZM84 95.2L100.8 112L84 128.8L67.2 112ZM140 95.2L156.8 112L140 128.8L123.2 112ZM196 95.2L212.8 112L196 128.8L179.2 112ZM252 95.2L268.8 112L252 128.8L235.2 112ZM308 95.2L324.8 112L308 128.8L291.2 112ZM364 95.2L380.8 112L364 128.8L347.2 112ZM56 137.2L72.8 154L56 170.8L39.2 154ZM112 137.2L128.8 154L112 170.8L95.2 154ZM168 137.2L184.8 154L168 170.8L151.2 154ZM224 137.2L240.8 154L224 170.8L207.2 154ZM280 137.2L296.8 154L280 170.8L263.2 154ZM336 137.2L352.8 154L336 170.8L319.2 154ZM392 137.2L408.8 154L392 170.8L375.2 154Z" fill="none" stroke="#F6D9CF" stroke-width="1"></path><path d="M28 14.9C32 18.6 31.5 23 28 25.5C24.5 23 24 18.6 28 14.9ZM41.1 28C37.4 32 33 31.5 30.5 28C33 24.5 37.4 24 41.1 28ZM28 41.1C24 37.4 24.5 33 28 30.5C31.5 33 32 37.4 28 41.1ZM14.9 28C18.6 24 23 24.5 25.5 28C23 31.5 18.6 32 14.9 28ZM84 14.9C88 18.6 87.5 23 84 25.5C80.5 23 80 18.6 84 14.9ZM97.1 28C93.4 32 89 31.5 86.5 28C89 24.5 93.4 24 97.1 28ZM84 41.1C80 37.4 80.5 33 84 30.5C87.5 33 88 37.4 84 41.1ZM70.9 28C74.6 24 79 24.5 81.5 28C79 31.5 74.6 32 70.9 28ZM140 14.9C144 18.6 143.5 23 140 25.5C136.5 23 136 18.6 140 14.9ZM153.1 28C149.4 32 145 31.5 142.5 28C145 24.5 149.4 24 153.1 28ZM140 41.1C136 37.4 136.5 33 140 30.5C143.5 33 144 37.4 140 41.1ZM126.9 28C130.6 24 135 24.5 137.5 28C135 31.5 130.6 32 126.9 28ZM196 14.9C200 18.6 199.5 23 196 25.5C192.5 23 192 18.6 196 14.9ZM209.1 28C205.4 32 201 31.5 198.5 28C201 24.5 205.4 24 209.1 28ZM196 41.1C192 37.4 192.5 33 196 30.5C199.5 33 200 37.4 196 41.1ZM182.9 28C186.6 24 191 24.5 193.5 28C191 31.5 186.6 32 182.9 28ZM252 14.9C256 18.6 255.5 23 252 25.5C248.5 23 248 18.6 252 14.9ZM265.1 28C261.4 32 257 31.5 254.5 28C257 24.5 261.4 24 265.1 28ZM252 41.1C248 37.4 248.5 33 252 30.5C255.5 33 256 37.4 252 41.1ZM238.9 28C242.6 24 247 24.5 249.5 28C247 31.5 242.6 32 238.9 28ZM308 14.9C312 18.6 311.5 23 308 25.5C304.5 23 304 18.6 308 14.9ZM321.1 28C317.4 32 313 31.5 310.5 28C313 24.5 317.4 24 321.1 28ZM308 41.1C304 37.4 304.5 33 308 30.5C311.5 33 312 37.4 308 41.1ZM294.9 28C298.6 24 303 24.5 305.5 28C303 31.5 298.6 32 294.9 28ZM364 14.9C368 18.6 367.5 23 364 25.5C360.5 23 360 18.6 364 14.9ZM377.1 28C373.4 32 369 31.5 366.5 28C369 24.5 373.4 24 377.1 28ZM364 41.1C360 37.4 360.5 33 364 30.5C367.5 33 368 37.4 364 41.1ZM350.9 28C354.6 24 359 24.5 361.5 28C359 31.5 354.6 32 350.9 28ZM56 56.9C60 60.6 59.5 65 56 67.5C52.5 65 52 60.6 56 56.9ZM69.1 70C65.4 74 61 73.5 58.5 70C61 66.5 65.4 66 69.1 70ZM56 83.1C52 79.4 52.5 75 56 72.5C59.5 75 60 79.4 56 83.1ZM42.9 70C46.6 66 51 66.5 53.5 70C51 73.5 46.6 74 42.9 70ZM112 56.9C116 60.6 115.5 65 112 67.5C108.5 65 108 60.6 112 56.9ZM125.1 70C121.4 74 117 73.5 114.5 70C117 66.5 121.4 66 125.1 70ZM112 83.1C108 79.4 108.5 75 112 72.5C115.5 75 116 79.4 112 83.1ZM98.9 70C102.6 66 107 66.5 109.5 70C107 73.5 102.6 74 98.9 70ZM168 56.9C172 60.6 171.5 65 168 67.5C164.5 65 164 60.6 168 56.9ZM181.1 70C177.4 74 173 73.5 170.5 70C173 66.5 177.4 66 181.1 70ZM168 83.1C164 79.4 164.5 75 168 72.5C171.5 75 172 79.4 168 83.1ZM154.9 70C158.6 66 163 66.5 165.5 70C163 73.5 158.6 74 154.9 70ZM224 56.9C228 60.6 227.5 65 224 67.5C220.5 65 220 60.6 224 56.9ZM237.1 70C233.4 74 229 73.5 226.5 70C229 66.5 233.4 66 237.1 70ZM224 83.1C220 79.4 220.5 75 224 72.5C227.5 75 228 79.4 224 83.1ZM210.9 70C214.6 66 219 66.5 221.5 70C219 73.5 214.6 74 210.9 70ZM280 56.9C284 60.6 283.5 65 280 67.5C276.5 65 276 60.6 280 56.9ZM293.1 70C289.4 74 285 73.5 282.5 70C285 66.5 289.4 66 293.1 70ZM280 83.1C276 79.4 276.5 75 280 72.5C283.5 75 284 79.4 280 83.1ZM266.9 70C270.6 66 275 66.5 277.5 70C275 73.5 270.6 74 266.9 70ZM336 56.9C340 60.6 339.5 65 336 67.5C332.5 65 332 60.6 336 56.9ZM349.1 70C345.4 74 341 73.5 338.5 70C341 66.5 345.4 66 349.1 70ZM336 83.1C332 79.4 332.5 75 336 72.5C339.5 75 340 79.4 336 83.1ZM322.9 70C326.6 66 331 66.5 333.5 70C331 73.5 326.6 74 322.9 70ZM392 56.9C396 60.6 395.5 65 392 67.5C388.5 65 388 60.6 392 56.9ZM405.1 70C401.4 74 397 73.5 394.5 70C397 66.5 401.4 66 405.1 70ZM392 83.1C388 79.4 388.5 75 392 72.5C395.5 75 396 79.4 392 83.1ZM378.9 70C382.6 66 387 66.5 389.5 70C387 73.5 382.6 74 378.9 70ZM28 98.9C32 102.6 31.5 107 28 109.5C24.5 107 24 102.6 28 98.9ZM41.1 112C37.4 116 33 115.5 30.5 112C33 108.5 37.4 108 41.1 112ZM28 125.1C24 121.4 24.5 117 28 114.5C31.5 117 32 121.4 28 125.1ZM14.9 112C18.6 108 23 108.5 25.5 112C23 115.5 18.6 116 14.9 112ZM84 98.9C88 102.6 87.5 107 84 109.5C80.5 107 80 102.6 84 98.9ZM97.1 112C93.4 116 89 115.5 86.5 112C89 108.5 93.4 108 97.1 112ZM84 125.1C80 121.4 80.5 117 84 114.5C87.5 117 88 121.4 84 125.1ZM70.9 112C74.6 108 79 108.5 81.5 112C79 115.5 74.6 116 70.9 112ZM140 98.9C144 102.6 143.5 107 140 109.5C136.5 107 136 102.6 140 98.9ZM153.1 112C149.4 116 145 115.5 142.5 112C145 108.5 149.4 108 153.1 112ZM140 125.1C136 121.4 136.5 117 140 114.5C143.5 117 144 121.4 140 125.1ZM126.9 112C130.6 108 135 108.5 137.5 112C135 115.5 130.6 116 126.9 112ZM196 98.9C200 102.6 199.5 107 196 109.5C192.5 107 192 102.6 196 98.9ZM209.1 112C205.4 116 201 115.5 198.5 112C201 108.5 205.4 108 209.1 112ZM196 125.1C192 121.4 192.5 117 196 114.5C199.5 117 200 121.4 196 125.1ZM182.9 112C186.6 108 191 108.5 193.5 112C191 115.5 186.6 116 182.9 112ZM252 98.9C256 102.6 255.5 107 252 109.5C248.5 107 248 102.6 252 98.9ZM265.1 112C261.4 116 257 115.5 254.5 112C257 108.5 261.4 108 265.1 112ZM252 125.1C248 121.4 248.5 117 252 114.5C255.5 117 256 121.4 252 125.1ZM238.9 112C242.6 108 247 108.5 249.5 112C247 115.5 242.6 116 238.9 112ZM308 98.9C312 102.6 311.5 107 308 109.5C304.5 107 304 102.6 308 98.9ZM321.1 112C317.4 116 313 115.5 310.5 112C313 108.5 317.4 108 321.1 112ZM308 125.1C304 121.4 304.5 117 308 114.5C311.5 117 312 121.4 308 125.1ZM294.9 112C298.6 108 303 108.5 305.5 112C303 115.5 298.6 116 294.9 112ZM364 98.9C368 102.6 367.5 107 364 109.5C360.5 107 360 102.6 364 98.9ZM377.1 112C373.4 116 369 115.5 366.5 112C369 108.5 373.4 108 377.1 112ZM364 125.1C360 121.4 360.5 117 364 114.5C367.5 117 368 121.4 364 125.1ZM350.9 112C354.6 108 359 108.5 361.5 112C359 115.5 354.6 116 350.9 112ZM56 140.9C60 144.6 59.5 149 56 151.5C52.5 149 52 144.6 56 140.9ZM69.1 154C65.4 158 61 157.5 58.5 154C61 150.5 65.4 150 69.1 154ZM56 167.1C52 163.4 52.5 159 56 156.5C59.5 159 60 163.4 56 167.1ZM42.9 154C46.6 150 51 150.5 53.5 154C51 157.5 46.6 158 42.9 154ZM112 140.9C116 144.6 115.5 149 112 151.5C108.5 149 108 144.6 112 140.9ZM125.1 154C121.4 158 117 157.5 114.5 154C117 150.5 121.4 150 125.1 154ZM112 167.1C108 163.4 108.5 159 112 156.5C115.5 159 116 163.4 112 167.1ZM98.9 154C102.6 150 107 150.5 109.5 154C107 157.5 102.6 158 98.9 154ZM168 140.9C172 144.6 171.5 149 168 151.5C164.5 149 164 144.6 168 140.9ZM181.1 154C177.4 158 173 157.5 170.5 154C173 150.5 177.4 150 181.1 154ZM168 167.1C164 163.4 164.5 159 168 156.5C171.5 159 172 163.4 168 167.1ZM154.9 154C158.6 150 163 150.5 165.5 154C163 157.5 158.6 158 154.9 154ZM224 140.9C228 144.6 227.5 149 224 151.5C220.5 149 220 144.6 224 140.9ZM237.1 154C233.4 158 229 157.5 226.5 154C229 150.5 233.4 150 237.1 154ZM224 167.1C220 163.4 220.5 159 224 156.5C227.5 159 228 163.4 224 167.1ZM210.9 154C214.6 150 219 150.5 221.5 154C219 157.5 214.6 158 210.9 154ZM280 140.9C284 144.6 283.5 149 280 151.5C276.5 149 276 144.6 280 140.9ZM293.1 154C289.4 158 285 157.5 282.5 154C285 150.5 289.4 150 293.1 154ZM280 167.1C276 163.4 276.5 159 280 156.5C283.5 159 284 163.4 280 167.1ZM266.9 154C270.6 150 275 150.5 277.5 154C275 157.5 270.6 158 266.9 154ZM336 140.9C340 144.6 339.5 149 336 151.5C332.5 149 332 144.6 336 140.9ZM349.1 154C345.4 158 341 157.5 338.5 154C341 150.5 345.4 150 349.1 154ZM336 167.1C332 163.4 332.5 159 336 156.5C339.5 159 340 163.4 336 167.1ZM322.9 154C326.6 150 331 150.5 333.5 154C331 157.5 326.6 158 322.9 154ZM392 140.9C396 144.6 395.5 149 392 151.5C388.5 149 388 144.6 392 140.9ZM405.1 154C401.4 158 397 157.5 394.5 154C397 150.5 401.4 150 405.1 154ZM392 167.1C388 163.4 388.5 159 392 156.5C395.5 159 396 163.4 392 167.1ZM378.9 154C382.6 150 387 150.5 389.5 154C387 157.5 382.6 158 378.9 154Z" fill="#F6D9CF"></path></svg>
+<div style="position: relative">
+<h2 id="bk" style="margin: 0; font-family: Pridi, serif; font-weight: 600; font-size: 28px; line-height: 1.3">ใบจองโต๊ะ</h2>
+<p style="margin: 2px 0 0; font-size: 14px; color: #F6D9CF">ร้านมี 10 ที่นั่ง · เปิด 11:00–22:00</p>
+</div>
+</div>
+<svg width="358" height="16" viewBox="0 0 358 16" aria-hidden="true" style="display: block; flex-shrink: 0"><rect x="0" y="0" width="358" height="3" fill="#A8322A"></rect><path d="M1 5H17L9 15ZM19 5H35L27 15ZM37 5H53L45 15ZM55 5H71L63 15ZM73 5H89L81 15ZM91 5H107L99 15ZM109 5H125L117 15ZM127 5H143L135 15ZM145 5H161L153 15ZM163 5H179L171 15ZM181 5H197L189 15ZM199 5H215L207 15ZM217 5H233L225 15ZM235 5H251L243 15ZM253 5H269L261 15ZM271 5H287L279 15ZM289 5H305L297 15ZM307 5H323L315 15ZM325 5H341L333 15ZM343 5H359L351 15Z" fill="#B08326"></path></svg>
+<div style="padding: 18px 18px 6px; display: flex; flex-direction: column; gap: 20px">
+<div style="display: flex; flex-direction: column; gap: 10px">
+<span style="display: flex; align-items: center; gap: 10px; font-family: Pridi, serif; font-weight: 600; font-size: 17px"><span style="width: 28px; height: 28px; flex-shrink: 0; border-radius: 50%; border: 1.5px solid #A8322A; color: #A8322A; display: flex; align-items: center; justify-content: center; font-family: Pridi, serif; font-size: 15px; font-weight: 600">๑</span>จำนวนคน</span>
+<div style="display: flex; align-items: center; justify-content: space-between; padding: 4px; border-radius: 999px; border: 1px solid #CDB892">
+<button type="button" aria-label="ลดจำนวนคน" disabled="{{decOff}}" onClick="{{dec}}" style="width: 48px; height: 48px; border-radius: 50%; border: 0; background: #F4EADA; color: {{decFg}}; display: flex; align-items: center; justify-content: center"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="flex-shrink: 0"><path d="M5 12h14"></path></svg></button>
+<output aria-live="polite" style="font-family: Pridi, serif; font-size: 24px; font-weight: 600">{{party}} คน</output>
+<button type="button" aria-label="เพิ่มจำนวนคน" disabled="{{incOff}}" onClick="{{inc}}" style="width: 48px; height: 48px; border-radius: 50%; border: 0; background: #F4EADA; color: {{incFg}}; display: flex; align-items: center; justify-content: center"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="flex-shrink: 0"><path d="M12 5v14M5 12h14"></path></svg></button>
+</div>
+</div>
+<div style="display: flex; flex-direction: column; gap: 10px">
+<span style="display: flex; align-items: center; gap: 10px; font-family: Pridi, serif; font-weight: 600; font-size: 17px"><span style="width: 28px; height: 28px; flex-shrink: 0; border-radius: 50%; border: 1.5px solid #A8322A; color: #A8322A; display: flex; align-items: center; justify-content: center; font-family: Pridi, serif; font-size: 15px; font-weight: 600">๒</span>วันที่</span>
+<div role="group" aria-label="เลือกวันที่" style="display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 6px">
+<sc-for list="{{dates}}" as="d" hint-placeholder-count="5">
+<button type="button" aria-pressed="{{d.pressed}}" onClick="{{d.pick}}" style="min-height: 68px; padding: 4px 0; border-radius: 30px 30px 8px 8px / 18px 18px 8px 8px; border: 1px solid {{d.border}}; background: {{d.bg}}; color: {{d.fg}}; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 1px">
+<span style="font-size: 12px">{{d.dow}}</span>
+<span style="font-family: Pridi, serif; font-size: 20px; font-weight: 600; line-height: 1.1">{{d.day}}</span>
+<span style="font-size: 11px">{{d.sub}}</span>
+</button>
+</sc-for>
+</div>
+</div>
+<div style="display: flex; flex-direction: column; gap: 10px">
+<span style="display: flex; align-items: center; gap: 10px; font-family: Pridi, serif; font-weight: 600; font-size: 17px"><span style="width: 28px; height: 28px; flex-shrink: 0; border-radius: 50%; border: 1.5px solid #A8322A; color: #A8322A; display: flex; align-items: center; justify-content: center; font-family: Pridi, serif; font-size: 15px; font-weight: 600">๓</span>เวลาเริ่ม–สิ้นสุด</span>
+<div style="display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px">
+<div style="display: flex; flex-direction: column; gap: 6px">
+<label for="ts" style="font-size: 13px; color: #6B5A48">เริ่ม</label>
+<input id="ts" type="time" step="1800" min="11:00" max="22:00" value="{{startStr}}" onChange="{{onStart}}" style="height: 50px; width: 100%; box-sizing: border-box; padding: 0 10px; border: 1px solid #CDB892; border-radius: 8px; background: #FFFBF3; font-size: 17px; color: #231812">
+</div>
+<div style="display: flex; flex-direction: column; gap: 6px">
+<label for="te" style="font-size: 13px; color: #6B5A48">สิ้นสุด</label>
+<input id="te" type="time" step="1800" min="11:00" max="22:00" value="{{endStr}}" onChange="{{onEnd}}" style="height: 50px; width: 100%; box-sizing: border-box; padding: 0 10px; border: 1px solid #CDB892; border-radius: 8px; background: #FFFBF3; font-size: 17px; color: #231812">
+</div>
+</div>
+</div>
+<div style="display: flex; flex-direction: column; gap: 8px; padding: 14px; border-radius: 12px; background: #F4EADA; border: 1px solid #E2D1B5">
+<span style="font-size: 14px; font-weight: 600">ที่นั่งที่ถูกจองแล้ว · {{dateLabel}}</span>
+<div style="display: flex; align-items: flex-end; gap: 2px; height: 56px; border-top: 1px dashed #6B5A48">
+<sc-for list="{{slots}}" as="s" hint-placeholder-count="22">
+<div title="{{s.title}}" style="flex-grow: 1; height: 56px; display: flex; flex-direction: column; justify-content: flex-end; border-radius: 2px; overflow: hidden; background: {{s.colBg}}; box-shadow: inset 0 0 0 1px {{s.border}}">
+<div style="flex-shrink: 0; height: {{s.reqH}}px; background: {{s.reqColor}}"></div>
+<div style="flex-shrink: 0; height: {{s.usedH}}px; background: {{s.usedColor}}"></div>
+</div>
+</sc-for>
+</div>
+<div style="display: flex; justify-content: space-between; font-size: 11px; color: #6B5A48"><span>11:00</span><span>14:00</span><span>17:00</span><span>20:00</span><span>22:00</span></div>
+<div style="display: flex; gap: 10px; font-size: 12px; color: #4A3A2C; flex-wrap: wrap">
+<span style="display: flex; align-items: center; gap: 5px"><span style="width: 10px; height: 10px; border-radius: 2px; background: #C9B48A"></span>จองแล้ว</span>
+<span style="display: flex; align-items: center; gap: 5px"><span style="width: 10px; height: 10px; border-radius: 2px; background: #1E2B5E"></span>ของคุณ</span>
+<span style="display: flex; align-items: center; gap: 5px"><span style="width: 10px; height: 10px; border-radius: 2px; background: #A8322A"></span>เกินที่นั่ง</span>
+</div>
+</div>
+<ul style="margin: 0; padding: 0; list-style: none; display: flex; flex-direction: column; gap: 10px">
+<sc-for list="{{checks}}" as="c" hint-placeholder-count="3">
+<li style="display: flex; gap: 10px; font-size: 15px; line-height: 1.5; color: {{c.color}}">
+<sc-if value="{{c.ok}}" hint-placeholder-val="{{ true }}">
+<span style="width: 22px; height: 22px; flex-shrink: 0; margin-top: 1px; border-radius: 50%; background: #1E2B5E; color: #FBF5EA; display: flex; align-items: center; justify-content: center" aria-label="ผ่าน"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="flex-shrink: 0"><path d="M5 12.5l4.5 4.5L19 7.5"></path></svg></span>
+</sc-if>
+<sc-if value="{{c.bad}}" hint-placeholder-val="{{ false }}">
+<span style="width: 22px; height: 22px; flex-shrink: 0; margin-top: 1px; border-radius: 50%; background: #A8322A; color: #FBF5EA; display: flex; align-items: center; justify-content: center" aria-label="ไม่ผ่าน"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="flex-shrink: 0"><path d="M6 6l12 12M18 6L6 18"></path></svg></span>
+</sc-if>
+<span>{{c.text}}</span>
+</li>
+</sc-for>
+</ul>
+</div>
+<div style="position: relative; height: 26px; margin: 4px 0">
+<span style="position: absolute; left: -14px; top: 0; width: 26px; height: 26px; border-radius: 50%; background: #F4EADA; box-shadow: inset -1px 0 0 #CDB892"></span>
+<span style="position: absolute; left: 20px; right: 20px; top: 12px; border-top: 2px dashed #CDB892"></span>
+<span style="position: absolute; right: -14px; top: 0; width: 26px; height: 26px; border-radius: 50%; background: #F4EADA; box-shadow: inset 1px 0 0 #CDB892"></span>
+</div>
+<div style="padding: 2px 18px 22px; display: flex; flex-direction: column; gap: 10px">
+<div style="display: flex; flex-direction: column; gap: 2px; font-size: 15px">
+<span style="color: #6B5A48">สรุป</span>
+<span style="font-weight: 700">{{summary}}</span>
+</div>
+<button type="button" disabled="{{notOk}}" style="min-height: 54px; border: 0; border-radius: 8px; font-size: 17px; font-weight: 700; background: {{btnBg}}; color: {{btnFg}}">ยืนยันการจอง</button>
+<p style="margin: 0; font-size: 13px; color: #6B5A48; text-align: center">{{cancelNote}}</p>
+</div>
+</section>
+
+<section aria-labelledby="rv" style="display: flex; flex-direction: column; gap: 16px; margin-top: 8px">
+<div style="display: flex; align-items: center; gap: 10px"><svg width="22" height="22" viewBox="0 0 24 24" aria-hidden="true" style="flex-shrink: 0"><path d="M12 1.5L22.5 12L12 22.5L1.5 12Z" fill="none" stroke="#B08326" stroke-width="1.4" stroke-linejoin="round"></path><path d="M12 3.8C14.5 6.1 14.2 8.8 12 10.4C9.8 8.8 9.5 6.1 12 3.8ZM20.2 12C17.9 14.5 15.2 14.2 13.6 12C15.2 9.8 17.9 9.5 20.2 12ZM12 20.2C9.5 17.9 9.8 15.2 12 13.6C14.2 15.2 14.5 17.9 12 20.2ZM3.8 12C6.1 9.5 8.8 9.8 10.4 12C8.9 14.2 6.1 14.5 3.8 12Z" fill="#B08326"></path><circle cx="12" cy="12" r="1.5" fill="#F4EADA"></circle></svg><h2 id="rv" style="margin: 0; font-family: Pridi, serif; font-weight: 600; font-size: 24px">รีวิวจากลูกค้า</h2><span style="flex-grow: 1; height: 1px; background: #CDB892"></span></div>
+<div style="display: flex; flex-direction: column; gap: 14px; padding: 18px; border-radius: 14px; background: #FFFBF3; border: 1px solid #E2D1B5">
+<div style="display: flex; align-items: center; gap: 14px">
+<span style="font-family: Pridi, serif; font-weight: 600; font-size: 48px; line-height: 1">4.8</span>
+<div style="display: flex; flex-direction: column; gap: 4px">
+<span style="display: flex; gap: 2px" aria-label="4.8 จาก 5 ดาว"><svg width="18" height="18" viewBox="0 0 24 24" aria-hidden="true" style="flex-shrink: 0"><path d="M12 2.8l2.8 5.9 6.4.8-4.7 4.5 1.2 6.4L12 17.2l-5.7 3.2 1.2-6.4L2.8 9.5l6.4-.8z" fill="#B08326"></path></svg><svg width="18" height="18" viewBox="0 0 24 24" aria-hidden="true" style="flex-shrink: 0"><path d="M12 2.8l2.8 5.9 6.4.8-4.7 4.5 1.2 6.4L12 17.2l-5.7 3.2 1.2-6.4L2.8 9.5l6.4-.8z" fill="#B08326"></path></svg><svg width="18" height="18" viewBox="0 0 24 24" aria-hidden="true" style="flex-shrink: 0"><path d="M12 2.8l2.8 5.9 6.4.8-4.7 4.5 1.2 6.4L12 17.2l-5.7 3.2 1.2-6.4L2.8 9.5l6.4-.8z" fill="#B08326"></path></svg><svg width="18" height="18" viewBox="0 0 24 24" aria-hidden="true" style="flex-shrink: 0"><path d="M12 2.8l2.8 5.9 6.4.8-4.7 4.5 1.2 6.4L12 17.2l-5.7 3.2 1.2-6.4L2.8 9.5l6.4-.8z" fill="#B08326"></path></svg><svg width="18" height="18" viewBox="0 0 24 24" aria-hidden="true" style="flex-shrink: 0"><path d="M12 2.8l2.8 5.9 6.4.8-4.7 4.5 1.2 6.4L12 17.2l-5.7 3.2 1.2-6.4L2.8 9.5l6.4-.8z" fill="#B08326"></path></svg></span>
+<span style="font-size: 14px; color: #6B5A48">เฉลี่ยจาก 126 รีวิว</span>
+</div>
+</div>
+<div style="display: flex; flex-direction: column; gap: 6px">
+<sc-for list="{{dist}}" as="d" hint-placeholder-count="5">
+<div style="display: flex; align-items: center; gap: 10px; font-size: 14px">
+<span style="width: 44px; color: #4A3A2C">{{d.star}} ดาว</span>
+<div style="flex-grow: 1; height: 8px; border-radius: 4px; background: #EFE3CC; overflow: hidden"><div style="height: 8px; border-radius: 4px; background: #B08326; width: {{d.w}}"></div></div>
+<span style="width: 30px; text-align: right; color: #6B5A48">{{d.count}}</span>
+</div>
+</sc-for>
+</div>
+</div>
+
+<sc-if value="{{isCustomer}}" hint-placeholder-val="{{ true }}">
+<div style="display: flex; flex-direction: column; gap: 12px; padding: 18px; border-radius: 14px; background: #FFFBF3; border: 1px solid #E2D1B5">
+<h3 style="margin: 0; font-family: Pridi, serif; font-weight: 600; font-size: 18px">เขียนรีวิวของคุณ</h3>
+<div role="group" aria-label="ให้คะแนน 1 ถึง 5 ดาว" style="display: flex; gap: 2px">
+<sc-for list="{{stars}}" as="s" hint-placeholder-count="5">
+<button type="button" aria-label="{{s.label}}" aria-pressed="{{s.pressed}}" onClick="{{s.pick}}" style="width: 48px; height: 48px; border: 0; background: transparent; padding: 0; display: flex; align-items: center; justify-content: center">
+<svg width="34" height="34" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2.8l2.8 5.9 6.4.8-4.7 4.5 1.2 6.4L12 17.2l-5.7 3.2 1.2-6.4L2.8 9.5l6.4-.8z" fill="{{s.fill}}" stroke="{{s.stroke}}" stroke-width="1.3" stroke-linejoin="round"></path></svg>
+</button>
+</sc-for>
+</div>
+<span style="font-size: 15px; color: #4A3A2C">{{ratingLabel}}</span>
+<label for="rtext" style="position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0)">ข้อความรีวิว</label>
+<textarea id="rtext" rows="4" placeholder="เล่าประสบการณ์ อาหาร บริการ บรรยากาศ" style="box-sizing: border-box; width: 100%; padding: 12px; border: 1px solid #CDB892; border-radius: 8px; background: #F4EADA; font-size: 16px; line-height: 1.6; resize: vertical; color: #231812"></textarea>
+<button type="button" disabled="{{noRating}}" style="min-height: 50px; border: 0; border-radius: 8px; font-size: 16px; font-weight: 700; background: {{postBg}}; color: {{postFg}}">โพสต์รีวิว</button>
+</div>
+</sc-if>
+<sc-if value="{{isOwner}}" hint-placeholder-val="{{ false }}">
+<div style="display: flex; align-items: center; gap: 12px; padding: 16px; border-radius: 14px; background: #EFE3CC; border: 1px dashed #CDB892">
+<span style="width: 42px; height: 42px; flex-shrink: 0; border-radius: 50%; background: #FFFBF3; display: flex; align-items: center; justify-content: center; color: #4A3A2C"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="flex-shrink: 0"><rect x="5" y="11" width="14" height="10" rx="2"></rect><path d="M8 11V8a4 4 0 0 1 8 0v3"></path></svg></span>
+<div>
+<div style="font-family: Pridi, serif; font-size: 17px; font-weight: 600">รีวิวร้านของตัวเองไม่ได้</div>
+<div style="font-size: 14px; color: #4A3A2C">คะแนนและรีวิวมาจากลูกค้าเท่านั้น</div>
+</div>
+</div>
+</sc-if>
+<div style="display: flex; flex-direction: column">
+<article style="display: flex; flex-direction: column; gap: 8px; padding: 18px 0; border-bottom: 1px dashed #CDB892">
+<div style="display: flex; align-items: center; gap: 10px">
+<span style="width: 38px; height: 38px; border-radius: 50%; background: #B9C7A0; display: flex; align-items: center; justify-content: center; font-family: Pridi, serif; font-weight: 600">ต</span>
+<div style="flex-grow: 1">
+<div style="font-size: 15px; font-weight: 600">ต้นกล้า</div>
+<div style="font-size: 13px; color: #6B5A48">21 ก.ย. 2569</div>
+</div>
+<span style="display: flex; gap: 1px" aria-label="5 ดาว"><svg width="14" height="14" viewBox="0 0 24 24" aria-hidden="true" style="flex-shrink: 0"><path d="M12 2.8l2.8 5.9 6.4.8-4.7 4.5 1.2 6.4L12 17.2l-5.7 3.2 1.2-6.4L2.8 9.5l6.4-.8z" fill="#B08326"></path></svg><svg width="14" height="14" viewBox="0 0 24 24" aria-hidden="true" style="flex-shrink: 0"><path d="M12 2.8l2.8 5.9 6.4.8-4.7 4.5 1.2 6.4L12 17.2l-5.7 3.2 1.2-6.4L2.8 9.5l6.4-.8z" fill="#B08326"></path></svg><svg width="14" height="14" viewBox="0 0 24 24" aria-hidden="true" style="flex-shrink: 0"><path d="M12 2.8l2.8 5.9 6.4.8-4.7 4.5 1.2 6.4L12 17.2l-5.7 3.2 1.2-6.4L2.8 9.5l6.4-.8z" fill="#B08326"></path></svg><svg width="14" height="14" viewBox="0 0 24 24" aria-hidden="true" style="flex-shrink: 0"><path d="M12 2.8l2.8 5.9 6.4.8-4.7 4.5 1.2 6.4L12 17.2l-5.7 3.2 1.2-6.4L2.8 9.5l6.4-.8z" fill="#B08326"></path></svg><svg width="14" height="14" viewBox="0 0 24 24" aria-hidden="true" style="flex-shrink: 0"><path d="M12 2.8l2.8 5.9 6.4.8-4.7 4.5 1.2 6.4L12 17.2l-5.7 3.2 1.2-6.4L2.8 9.5l6.4-.8z" fill="#B08326"></path></svg></span>
+</div>
+<p style="margin: 0; font-size: 16px; line-height: 1.7; color: #4A3A2C">[ข้อความรีวิว]</p>
+</article>
+<article style="display: flex; flex-direction: column; gap: 8px; padding: 18px 0; border-bottom: 1px dashed #CDB892">
+<div style="display: flex; align-items: center; gap: 10px">
+<span style="width: 38px; height: 38px; border-radius: 50%; background: #D8A48A; display: flex; align-items: center; justify-content: center; font-family: Pridi, serif; font-weight: 600">พ</span>
+<div style="flex-grow: 1">
+<div style="font-size: 15px; font-weight: 600">พลอย</div>
+<div style="font-size: 13px; color: #6B5A48">18 ก.ย. 2569</div>
+</div>
+<span style="display: flex; gap: 1px" aria-label="4 ดาว"><svg width="14" height="14" viewBox="0 0 24 24" aria-hidden="true" style="flex-shrink: 0"><path d="M12 2.8l2.8 5.9 6.4.8-4.7 4.5 1.2 6.4L12 17.2l-5.7 3.2 1.2-6.4L2.8 9.5l6.4-.8z" fill="#B08326"></path></svg><svg width="14" height="14" viewBox="0 0 24 24" aria-hidden="true" style="flex-shrink: 0"><path d="M12 2.8l2.8 5.9 6.4.8-4.7 4.5 1.2 6.4L12 17.2l-5.7 3.2 1.2-6.4L2.8 9.5l6.4-.8z" fill="#B08326"></path></svg><svg width="14" height="14" viewBox="0 0 24 24" aria-hidden="true" style="flex-shrink: 0"><path d="M12 2.8l2.8 5.9 6.4.8-4.7 4.5 1.2 6.4L12 17.2l-5.7 3.2 1.2-6.4L2.8 9.5l6.4-.8z" fill="#B08326"></path></svg><svg width="14" height="14" viewBox="0 0 24 24" aria-hidden="true" style="flex-shrink: 0"><path d="M12 2.8l2.8 5.9 6.4.8-4.7 4.5 1.2 6.4L12 17.2l-5.7 3.2 1.2-6.4L2.8 9.5l6.4-.8z" fill="#B08326"></path></svg><svg width="14" height="14" viewBox="0 0 24 24" aria-hidden="true" style="flex-shrink: 0"><path d="M12 2.8l2.8 5.9 6.4.8-4.7 4.5 1.2 6.4L12 17.2l-5.7 3.2 1.2-6.4L2.8 9.5l6.4-.8z" fill="#E2D1B5"></path></svg></span>
+</div>
+<p style="margin: 0; font-size: 16px; line-height: 1.7; color: #4A3A2C">[ข้อความรีวิว]</p>
+</article>
+<article style="display: flex; flex-direction: column; gap: 8px; padding: 18px 0; border-bottom: 1px dashed #CDB892">
+<div style="display: flex; align-items: center; gap: 10px">
+<span style="width: 38px; height: 38px; border-radius: 50%; background: #AEB6CC; display: flex; align-items: center; justify-content: center; font-family: Pridi, serif; font-weight: 600">ณ</span>
+<div style="flex-grow: 1">
+<div style="font-size: 15px; font-weight: 600">ณัฐ</div>
+<div style="font-size: 13px; color: #6B5A48">12 ก.ย. 2569</div>
+</div>
+<span style="display: flex; gap: 1px" aria-label="5 ดาว"><svg width="14" height="14" viewBox="0 0 24 24" aria-hidden="true" style="flex-shrink: 0"><path d="M12 2.8l2.8 5.9 6.4.8-4.7 4.5 1.2 6.4L12 17.2l-5.7 3.2 1.2-6.4L2.8 9.5l6.4-.8z" fill="#B08326"></path></svg><svg width="14" height="14" viewBox="0 0 24 24" aria-hidden="true" style="flex-shrink: 0"><path d="M12 2.8l2.8 5.9 6.4.8-4.7 4.5 1.2 6.4L12 17.2l-5.7 3.2 1.2-6.4L2.8 9.5l6.4-.8z" fill="#B08326"></path></svg><svg width="14" height="14" viewBox="0 0 24 24" aria-hidden="true" style="flex-shrink: 0"><path d="M12 2.8l2.8 5.9 6.4.8-4.7 4.5 1.2 6.4L12 17.2l-5.7 3.2 1.2-6.4L2.8 9.5l6.4-.8z" fill="#B08326"></path></svg><svg width="14" height="14" viewBox="0 0 24 24" aria-hidden="true" style="flex-shrink: 0"><path d="M12 2.8l2.8 5.9 6.4.8-4.7 4.5 1.2 6.4L12 17.2l-5.7 3.2 1.2-6.4L2.8 9.5l6.4-.8z" fill="#B08326"></path></svg><svg width="14" height="14" viewBox="0 0 24 24" aria-hidden="true" style="flex-shrink: 0"><path d="M12 2.8l2.8 5.9 6.4.8-4.7 4.5 1.2 6.4L12 17.2l-5.7 3.2 1.2-6.4L2.8 9.5l6.4-.8z" fill="#B08326"></path></svg></span>
+</div>
+<p style="margin: 0; font-size: 16px; line-height: 1.7; color: #4A3A2C">[ข้อความรีวิว]</p>
+</article>
+<button type="button" style="margin-top: 14px; min-height: 48px; border: 1px solid #CDB892; border-radius: 8px; background: #FFFBF3; font-size: 15px; font-weight: 700; color: #231812">ดูรีวิวทั้งหมด 126 รีวิว</button>
+</div>
+</section>
+</main>
+<nav aria-label="เมนูหลัก" style="margin-top: auto; flex-shrink: 0; display: flex; padding: 6px 8px 24px; background: #FFFBF3; border-top: 1px solid #CDB892; box-shadow: inset 0 3px 0 #1E2B5E"><a href="MSearch.dc.html" aria-current="page" style="flex-grow: 1; flex-basis: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 3px; min-height: 54px; text-decoration: none; font-size: 12px; font-weight: 700; color: #A8322A"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#A8322A" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="flex-shrink: 0"><circle cx="11" cy="11" r="7"></circle><path d="M20 20l-4-4"></path></svg>ค้นหาร้าน</a><a href="MBookings.dc.html" style="flex-grow: 1; flex-basis: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 3px; min-height: 54px; text-decoration: none; font-size: 12px; font-weight: 500; color: #4A3A2C"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#4A3A2C" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="flex-shrink: 0"><rect x="3" y="5" width="18" height="16" rx="2"></rect><path d="M3 10h18M8 3v4M16 3v4"></path></svg>การจองของฉัน</a><a href="MOwner.dc.html" style="flex-grow: 1; flex-basis: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 3px; min-height: 54px; text-decoration: none; font-size: 12px; font-weight: 500; color: #4A3A2C"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#4A3A2C" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="flex-shrink: 0"><path d="M3 10l1.5-5h15L21 10"></path><path d="M3 10h18v2a3 3 0 0 1-6 0 3 3 0 0 1-6 0 3 3 0 0 1-6 0z"></path><path d="M5 14v6h14v-6"></path></svg>ร้านของฉัน</a></nav>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"viewAs":{"editor":"enum","options":["customer","owner"],"default":"customer","section":"มุมมอง"},"$preview":{"width":390,"height":3060}}'>
+class Component extends DCLogic {
+  constructor(props) {
+    super(props);
+    this.state = { party: 2, date: '25', start: 1080, end: 1170, rating: 0 };
+  }
+  renderVals() {
+    const owner = (this.props.viewAs ?? 'customer') === 'owner';
+    const SEATS = 10, OPEN = 660, CLOSE = 1320, LEAD = 30, TODAY = '24', NOW = 1150, H = 56;
+    const booked = {
+      '24': [{ s: 1080, e: 1200, n: 4 }, { s: 1170, e: 1260, n: 6 }],
+      '25': [{ s: 720, e: 780, n: 7 }, { s: 720, e: 780, n: 3 }, { s: 1080, e: 1200, n: 6 }, { s: 1170, e: 1260, n: 2 }],
+      '26': [{ s: 1110, e: 1230, n: 8 }],
+      '27': [],
+      '28': [{ s: 690, e: 780, n: 4 }]
+    };
+    const st = this.state;
+    const list = booked[st.date] || [];
+    const pad = (x) => String(x).padStart(2, '0');
+    const fmt = (m) => pad(Math.floor(m / 60) % 24) + ':' + pad(m % 60);
+    const parse = (v) => {
+      if (!v || v.indexOf(':') < 0) return null;
+      const parts = v.split(':');
+      return parseInt(parts[0], 10) * 60 + parseInt(parts[1], 10);
+    };
+
+    const slots = [];
+    let firstOver = null;
+    let peak = 0;
+    for (let t = OPEN; t < CLOSE; t += 30) {
+      const used = list.filter((b) => b.s < t + 30 && b.e > t).reduce((a, b) => a + b.n, 0);
+      const inRange = st.end > st.start && t >= st.start && t < st.end;
+      const past = st.date === TODAY && t + 30 <= NOW;
+      const over = inRange && used + st.party > SEATS;
+      if (over && !firstOver) firstOver = { t, used };
+      if (inRange) peak = Math.max(peak, used);
+      const usedH = Math.round((used / SEATS) * H);
+      const reqH = inRange ? Math.max(0, Math.min(Math.round((st.party / SEATS) * H), H - usedH)) : 0;
+      slots.push({
+        usedH, reqH,
+        reqColor: over ? '#A8322A' : '#1E2B5E',
+        usedColor: past ? '#DDD0B8' : '#C9B48A',
+        colBg: over ? '#F6DED7' : (past ? '#F1E9DA' : '#EADFC9'),
+        border: over ? '#A8322A' : 'transparent',
+        title: fmt(t) + ' จองแล้ว ' + used + '/' + SEATS + ' ที่'
+      });
+    }
+
+    const endOk = st.end > st.start;
+    const inHours = st.start >= OPEN && st.end <= CLOSE;
+    const notPast = !(st.date === TODAY && st.start < NOW);
+    const seatsOk = endOk && !firstOver;
+    const ok = endOk && inHours && notPast && seatsOk;
+    const left = SEATS - peak - st.party;
+    let seatText;
+    if (!endOk) seatText = 'เวลาสิ้นสุดต้องอยู่หลังเวลาเริ่ม';
+    else if (firstOver) seatText = 'ที่นั่งไม่พอ: ช่วง ' + fmt(firstOver.t) + '–' + fmt(firstOver.t + 30) + ' จองแล้ว ' + firstOver.used + ' + คุณ ' + st.party + ' = ' + (firstOver.used + st.party) + ' เกิน ' + SEATS + ' ที่';
+    else if (left === 0) seatText = 'ที่นั่งพอดี — ช่วงที่แน่นที่สุดจะเต็ม ' + SEATS + '/' + SEATS;
+    else seatText = 'ที่นั่งพอ — ช่วงที่แน่นที่สุดยังเหลือ ' + left + ' ที่';
+    const mk = (good, text) => ({ ok: good, bad: !good, text, color: good ? '#231812' : '#A8322A' });
+    const checks = [
+      mk(inHours, inHours ? 'อยู่ในเวลาเปิดร้าน 11:00–22:00' : 'อยู่นอกเวลาเปิดร้าน 11:00–22:00'),
+      mk(notPast, notPast ? 'ไม่ใช่เวลาที่ผ่านไปแล้ว' : 'เวลาเริ่มผ่านไปแล้ว (ตอนนี้ ' + fmt(NOW) + ')'),
+      mk(seatsOk, seatText)
+    ];
+
+    const dayDefs = [
+      { id: '24', dow: 'พฤ.', day: '24', sub: 'วันนี้' },
+      { id: '25', dow: 'ศ.', day: '25', sub: 'ก.ย.' },
+      { id: '26', dow: 'ส.', day: '26', sub: 'ก.ย.' },
+      { id: '27', dow: 'อา.', day: '27', sub: 'ก.ย.' },
+      { id: '28', dow: 'จ.', day: '28', sub: 'ก.ย.' }
+    ];
+    const dates = dayDefs.map((d) => {
+      const sel = d.id === st.date;
+      return {
+        ...d,
+        pressed: sel ? 'true' : 'false',
+        bg: sel ? '#1E2B5E' : '#FFFBF3',
+        fg: sel ? '#FBF5EA' : '#231812',
+        border: sel ? '#1E2B5E' : '#CDB892',
+        pick: () => this.setState({ date: d.id })
+      };
+    });
+    const cur = dayDefs.find((d) => d.id === st.date);
+    const dateLabel = cur.dow + ' ' + cur.day + ' ก.ย. 2569';
+
+    const labels = ['แตะดาวเพื่อให้คะแนน', '1 ดาว — แย่', '2 ดาว — พอใช้', '3 ดาว — ดี', '4 ดาว — ดีมาก', '5 ดาว — ยอดเยี่ยม'];
+    const stars = [1, 2, 3, 4, 5].map((n) => ({
+      label: 'ให้ ' + n + ' ดาว',
+      pressed: n === st.rating ? 'true' : 'false',
+      fill: n <= st.rating ? '#B08326' : 'none',
+      stroke: n <= st.rating ? '#B08326' : '#9C8A70',
+      pick: () => this.setState({ rating: n })
+    }));
+
+    const distRaw = [[5, 104], [4, 18], [3, 3], [2, 1], [1, 0]];
+    const dist = distRaw.map(([star, count]) => ({ star, count, w: Math.round((count / 126) * 100) + '%' }));
+
+    return {
+      isOwner: owner,
+      isCustomer: !owner,
+      party: st.party,
+      dec: () => this.setState({ party: Math.max(1, st.party - 1) }),
+      inc: () => this.setState({ party: Math.min(SEATS, st.party + 1) }),
+      decOff: st.party <= 1,
+      incOff: st.party >= SEATS,
+      decFg: st.party <= 1 ? '#CDB892' : '#231812',
+      incFg: st.party >= SEATS ? '#CDB892' : '#231812',
+      dates, dateLabel,
+      startStr: fmt(st.start),
+      endStr: fmt(st.end),
+      onStart: (e) => { const m = parse(e.target.value); if (m !== null) this.setState({ start: m }); },
+      onEnd: (e) => { const m = parse(e.target.value); if (m !== null) this.setState({ end: m === 0 ? 1440 : m }); },
+      slots, checks,
+      summary: dateLabel + ' · ' + fmt(st.start) + '–' + fmt(st.end) + ' · ' + st.party + ' คน',
+      notOk: !ok,
+      btnBg: ok ? '#1E2B5E' : '#E2D6C0',
+      btnFg: ok ? '#FBF5EA' : '#6E604E',
+      cancelNote: 'ยกเลิกได้ถึง ' + fmt(st.start - LEAD) + ' ของวันที่จอง (ร้านกำหนดล่วงหน้า ' + LEAD + ' นาที)',
+      stars,
+      ratingLabel: labels[st.rating],
+      noRating: st.rating === 0,
+      postBg: st.rating === 0 ? '#E2D6C0' : '#1E2B5E',
+      postFg: st.rating === 0 ? '#6E604E' : '#FBF5EA',
+      dist
+    };
+  }
+}
+</script>
+</body>
+</html>

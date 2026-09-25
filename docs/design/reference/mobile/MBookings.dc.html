@@ -1,0 +1,144 @@
+<!doctype html>
+<html lang="th">
+<head>
+<meta charset="utf-8">
+<title>การจองของฉัน · มือถือ</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link href="https://fonts.googleapis.com/css2?family=Pridi:wght@400;500;600&amp;family=Sarabun:wght@400;500;600;700&amp;display=swap" rel="stylesheet">
+<style>
+body{margin:0;font-family:'Sarabun',sans-serif;background:#F4EADA;color:#231812}
+a{color:#1E2B5E}a:hover{color:#A8322A}
+button{font-family:inherit;cursor:pointer}
+button:disabled{cursor:not-allowed}
+input,select,textarea{font-family:inherit}
+:focus-visible{outline:2px solid #A8322A;outline-offset:2px}
+</style>
+</helmet>
+<div style="width: 390px; height: 1600px; display: flex; flex-direction: column; box-sizing: border-box; background: #F4EADA; color: #231812; font-family: 'Sarabun', sans-serif">
+<header style="height: 60px; box-sizing: border-box; display: flex; align-items: center; justify-content: space-between; padding: 0 16px; background: #F4EADA; flex-shrink: 0">
+<a href="MSearch.dc.html" style="display: flex; align-items: center; gap: 10px; text-decoration: none; color: #231812">
+<span style="width: 34px; height: 34px; flex-shrink: 0; border-radius: 50%; background: #A8322A; display: flex; align-items: center; justify-content: center; box-shadow: inset 0 0 0 3px #A8322A, inset 0 0 0 4px #FBF5EA"><svg width="19" height="19" viewBox="0 0 24 24" aria-hidden="true" style="flex-shrink: 0"><path d="M12 1.5L22.5 12L12 22.5L1.5 12Z" fill="none" stroke="#FBF5EA" stroke-width="1.4" stroke-linejoin="round"></path><path d="M12 3.8C14.5 6.1 14.2 8.8 12 10.4C9.8 8.8 9.5 6.1 12 3.8ZM20.2 12C17.9 14.5 15.2 14.2 13.6 12C15.2 9.8 17.9 9.5 20.2 12ZM12 20.2C9.5 17.9 9.8 15.2 12 13.6C14.2 15.2 14.5 17.9 12 20.2ZM3.8 12C6.1 9.5 8.8 9.8 10.4 12C8.9 14.2 6.1 14.5 3.8 12Z" fill="#FBF5EA"></path><circle cx="12" cy="12" r="1.5" fill="#A8322A"></circle></svg></span>
+<span style="font-family: Pridi, serif; font-weight: 600; font-size: 22px; letter-spacing: -0.01em">โต๊ะว่าง</span>
+</a>
+<span aria-label="บัญชีของมะลิ" style="width: 36px; height: 36px; border-radius: 50%; background: #F3E3BC; border: 1px solid #CDB892; display: flex; align-items: center; justify-content: center; font-family: Pridi, serif; font-weight: 600; font-size: 16px; color: #7A5A12">ม</span>
+</header>
+<svg width="390" height="16" viewBox="0 0 390 16" aria-hidden="true" style="display: block; flex-shrink: 0"><rect x="0" y="0" width="390" height="3" fill="#1E2B5E"></rect><path d="M1 5H17L9 15ZM19 5H35L27 15ZM37 5H53L45 15ZM55 5H71L63 15ZM73 5H89L81 15ZM91 5H107L99 15ZM109 5H125L117 15ZM127 5H143L135 15ZM145 5H161L153 15ZM163 5H179L171 15ZM181 5H197L189 15ZM199 5H215L207 15ZM217 5H233L225 15ZM235 5H251L243 15ZM253 5H269L261 15ZM271 5H287L279 15ZM289 5H305L297 15ZM307 5H323L315 15ZM325 5H341L333 15ZM343 5H359L351 15ZM361 5H377L369 15ZM379 5H395L387 15Z" fill="#B08326"></path></svg>
+<main style="padding: 20px 16px 32px; display: flex; flex-direction: column; gap: 18px">
+<div>
+<h1 style="margin: 0; font-family: Pridi, serif; font-weight: 600; letter-spacing: -0.01em; font-size: 32px; line-height: 1.3">การจองของฉัน</h1>
+<p style="margin: 2px 0 0; font-size: 15px; line-height: 1.5; color: #6B5A48">แต่ละร้านกำหนดเวลายกเลิกล่วงหน้าเอง (อย่างน้อย 30 นาที)</p>
+</div>
+<div role="tablist" aria-label="สถานะการจอง" style="display: flex; gap: 20px; border-bottom: 1px solid #CDB892">
+<button type="button" role="tab" aria-selected="true" style="min-height: 46px; padding: 0 2px; border: 0; background: transparent; font-size: 15px; font-weight: 700; color: #A8322A; box-shadow: inset 0 -3px 0 #A8322A">กำลังจะถึง · {{upcomingCount}}</button>
+<button type="button" role="tab" aria-selected="false" style="min-height: 46px; padding: 0 2px; border: 0; background: transparent; font-size: 15px; font-weight: 500; color: #6B5A48">ที่ผ่านมา</button>
+<button type="button" role="tab" aria-selected="false" style="min-height: 46px; padding: 0 2px; border: 0; background: transparent; font-size: 15px; font-weight: 500; color: #6B5A48">ยกเลิกแล้ว</button>
+</div>
+
+<div style="display: flex; flex-direction: column; gap: 16px">
+<sc-for list="{{bookings}}" as="b" hint-placeholder-count="3">
+<article style="display: flex; flex-direction: column; border-radius: 14px; background: #FFFBF3; border: 1px solid #E2D1B5; overflow: hidden; opacity: {{b.opacity}}; box-shadow: 0 2px 0 #E2D1B5">
+<div style="display: flex; align-items: stretch">
+<div style="width: 78px; flex-shrink: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 1px; padding: 14px 0; background: {{b.stubBg}}; color: #FBF5EA">
+<span style="font-size: 12px">{{b.dow}}</span>
+<span style="font-family: Pridi, serif; font-weight: 600; font-size: 32px; line-height: 1">{{b.day}}</span>
+<span style="font-size: 12px">{{b.mon}}</span>
+</div>
+<div style="width: 0; border-left: 2px dashed #CDB892"></div>
+<div style="flex-grow: 1; min-width: 0; display: flex; flex-direction: column; gap: 6px; padding: 14px 14px">
+<div style="display: flex; align-items: center; gap: 8px; flex-wrap: wrap">
+<h2 style="margin: 0; font-family: Pridi, serif; font-weight: 600; font-size: 18px">{{b.shop}}</h2>
+<span style="padding: 2px 8px; border-radius: 6px; font-size: 12px; font-weight: 700; background: {{b.chipBg}}; color: {{b.chipFg}}">{{b.status}}</span>
+</div>
+<div style="display: flex; flex-wrap: wrap; gap: 12px; font-size: 15px; color: #4A3A2C">
+<span style="display: flex; align-items: center; gap: 5px"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#6B5A48" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="flex-shrink: 0"><circle cx="12" cy="12" r="9"></circle><path d="M12 7v5l3 2"></path></svg>{{b.time}}</span>
+<span style="display: flex; align-items: center; gap: 5px"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#6B5A48" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="flex-shrink: 0"><path d="M16 19v-1a4 4 0 0 0-4-4H7a4 4 0 0 0-4 4v1"></path><circle cx="9.5" cy="7.5" r="3.5"></circle><path d="M21 19v-1a4 4 0 0 0-3-3.9"></path><path d="M15.5 4.1a3.5 3.5 0 0 1 0 6.8"></path></svg>{{b.party}}</span>
+</div>
+<p style="margin: 0; font-size: 13px; line-height: 1.5; color: {{b.deadlineColor}}">{{b.deadline}}</p>
+</div>
+</div>
+<sc-if value="{{b.showActions}}" hint-placeholder-val="{{ true }}">
+<div style="display: flex; gap: 8px; padding: 10px 12px 12px; border-top: 1px dashed #CDB892">
+<a href="MEditBooking.dc.html" style="flex-grow: 1; flex-basis: 0; display: flex; align-items: center; justify-content: center; gap: 6px; min-height: 46px; border-radius: 8px; background: #1E2B5E; color: #FBF5EA; font-size: 15px; font-weight: 700; text-decoration: none"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="flex-shrink: 0"><path d="M4 20h4L19 9l-4-4L4 16v4z"></path></svg>แก้ไข</a>
+<button type="button" disabled="{{b.cancelOff}}" onClick="{{b.ask}}" style="flex-grow: 1; flex-basis: 0; min-height: 46px; border-radius: 8px; border: 1px solid {{b.cancelBorder}}; background: #FFFBF3; color: {{b.cancelFg}}; font-size: 15px; font-weight: 700">ยกเลิกการจอง</button>
+</div>
+</sc-if>
+<sc-if value="{{b.confirming}}" hint-placeholder-val="{{ false }}">
+<div role="alertdialog" aria-label="ยืนยันการยกเลิก" style="display: flex; flex-direction: column; gap: 10px; padding: 14px; background: #F6DED7; border-top: 1px solid #E9BBAE">
+<span style="font-size: 15px; color: #6E1F18; font-weight: 600">ยกเลิกการจองนี้? ที่นั่ง {{b.party}} จะถูกคืนให้ร้านทันที</span>
+<div style="display: flex; gap: 8px">
+<button type="button" onClick="{{b.keep}}" style="flex-grow: 1; flex-basis: 0; min-height: 46px; border-radius: 8px; border: 1px solid #CDB892; background: #FFFBF3; color: #231812; font-size: 15px; font-weight: 700">ไม่ยกเลิก</button>
+<button type="button" onClick="{{b.confirm}}" style="flex-grow: 1; flex-basis: 0; min-height: 46px; border-radius: 8px; border: 0; background: #A8322A; color: #FBF5EA; font-size: 15px; font-weight: 700">ยืนยันยกเลิก</button>
+</div>
+</div>
+</sc-if>
+</article>
+</sc-for>
+</div>
+
+<section style="display: flex; flex-direction: column; gap: 10px; margin-top: 8px">
+<div style="display: flex; align-items: center; gap: 12px"><svg width="22" height="22" viewBox="0 0 24 24" aria-hidden="true" style="flex-shrink: 0"><path d="M12 1.5L22.5 12L12 22.5L1.5 12Z" fill="none" stroke="#B08326" stroke-width="1.4" stroke-linejoin="round"></path><path d="M12 3.8C14.5 6.1 14.2 8.8 12 10.4C9.8 8.8 9.5 6.1 12 3.8ZM20.2 12C17.9 14.5 15.2 14.2 13.6 12C15.2 9.8 17.9 9.5 20.2 12ZM12 20.2C9.5 17.9 9.8 15.2 12 13.6C14.2 15.2 14.5 17.9 12 20.2ZM3.8 12C6.1 9.5 8.8 9.8 10.4 12C8.9 14.2 6.1 14.5 3.8 12Z" fill="#B08326"></path><circle cx="12" cy="12" r="1.5" fill="#F4EADA"></circle></svg><h2 style="margin: 0; font-family: Pridi, serif; font-weight: 600; font-size: 20px">ที่ผ่านมาล่าสุด</h2><span style="flex-grow: 1; height: 1px; background: #CDB892"></span></div>
+<div style="display: flex; align-items: center; gap: 12px; padding: 14px; border-radius: 12px; background: #FFFBF3; border: 1px solid #E2D1B5">
+<div style="flex-grow: 1">
+<div style="font-family: Pridi, serif; font-size: 17px; font-weight: 600">บ้านขนมจีนคุณยาย</div>
+<div style="font-size: 14px; color: #6B5A48">ส. 20 ก.ย. · 09:00–10:00 · 3 คน</div>
+</div>
+<a href="MRestaurant.dc.html" style="display: flex; align-items: center; gap: 6px; min-height: 44px; padding: 0 12px; border-radius: 8px; background: #F3E3BC; color: #7A5A12; font-size: 14px; font-weight: 700; text-decoration: none; flex-shrink: 0"><svg width="15" height="15" viewBox="0 0 24 24" aria-hidden="true" style="flex-shrink: 0"><path d="M12 2.8l2.8 5.9 6.4.8-4.7 4.5 1.2 6.4L12 17.2l-5.7 3.2 1.2-6.4L2.8 9.5l6.4-.8z" fill="#B08326"></path></svg>รีวิว</a>
+</div>
+<div style="display: flex; align-items: center; gap: 12px; padding: 14px; border-radius: 12px; background: #FFFBF3; border: 1px solid #E2D1B5">
+<div style="flex-grow: 1">
+<div style="font-family: Pridi, serif; font-size: 17px; font-weight: 600">ครัวริมคลอง</div>
+<div style="font-size: 14px; color: #6B5A48">ศ. 12 ก.ย. · 18:00–19:30 · 2 คน</div>
+</div>
+<span style="display: flex; align-items: center; gap: 4px; font-size: 14px; color: #4A3A2C; flex-shrink: 0">รีวิวแล้ว <svg width="15" height="15" viewBox="0 0 24 24" aria-hidden="true" style="flex-shrink: 0"><path d="M12 2.8l2.8 5.9 6.4.8-4.7 4.5 1.2 6.4L12 17.2l-5.7 3.2 1.2-6.4L2.8 9.5l6.4-.8z" fill="#B08326"></path></svg><strong>5</strong></span>
+</div>
+</section>
+</main>
+<nav aria-label="เมนูหลัก" style="margin-top: auto; flex-shrink: 0; display: flex; padding: 6px 8px 24px; background: #FFFBF3; border-top: 1px solid #CDB892; box-shadow: inset 0 3px 0 #1E2B5E"><a href="MSearch.dc.html" style="flex-grow: 1; flex-basis: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 3px; min-height: 54px; text-decoration: none; font-size: 12px; font-weight: 500; color: #4A3A2C"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#4A3A2C" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="flex-shrink: 0"><circle cx="11" cy="11" r="7"></circle><path d="M20 20l-4-4"></path></svg>ค้นหาร้าน</a><a href="MBookings.dc.html" aria-current="page" style="flex-grow: 1; flex-basis: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 3px; min-height: 54px; text-decoration: none; font-size: 12px; font-weight: 700; color: #A8322A"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#A8322A" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="flex-shrink: 0"><rect x="3" y="5" width="18" height="16" rx="2"></rect><path d="M3 10h18M8 3v4M16 3v4"></path></svg>การจองของฉัน</a><a href="MOwner.dc.html" style="flex-grow: 1; flex-basis: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 3px; min-height: 54px; text-decoration: none; font-size: 12px; font-weight: 500; color: #4A3A2C"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#4A3A2C" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="flex-shrink: 0"><path d="M3 10l1.5-5h15L21 10"></path><path d="M3 10h18v2a3 3 0 0 1-6 0 3 3 0 0 1-6 0 3 3 0 0 1-6 0z"></path><path d="M5 14v6h14v-6"></path></svg>ร้านของฉัน</a></nav>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":390,"height":1600}}'>
+class Component extends DCLogic {
+  constructor(props) {
+    super(props);
+    this.state = { confirming: 'b3', cancelled: {} };
+  }
+  renderVals() {
+    const st = this.state;
+    const raw = [
+      { id: 'b1', shop: 'ครัวริมคลอง', dow: 'ศุกร์', day: '25', mon: 'ก.ย. 69', time: '12:00–13:00', party: '7 คน', canCancel: true, stub: '#1E2B5E', deadline: 'ยกเลิกได้ถึง ศ. 25 ก.ย. 11:30 · ร้านกำหนดล่วงหน้า 30 นาที' },
+      { id: 'b2', shop: 'ส้มตำหน้าตลาด', dow: 'วันนี้', day: '24', mon: 'ก.ย. 69', time: '19:30–21:00', party: '4 คน', canCancel: false, stub: '#A8322A', deadline: 'เลยเวลายกเลิกแล้ว · ร้านนี้ให้ยกเลิกล่วงหน้า 1 ชั่วโมง (ถึง 18:30)' },
+      { id: 'b3', shop: 'ก๋วยเตี๋ยวเรือหน้าวัด', dow: 'จันทร์', day: '28', mon: 'ก.ย. 69', time: '11:00–12:00', party: '2 คน', canCancel: true, stub: '#1E2B5E', deadline: 'ยกเลิกได้ถึง จ. 28 ก.ย. 09:00 · ร้านกำหนดล่วงหน้า 2 ชั่วโมง' }
+    ];
+    const bookings = raw.map((b) => {
+      const cancelled = !!st.cancelled[b.id];
+      const confirming = st.confirming === b.id && !cancelled;
+      return {
+        ...b,
+        stubBg: cancelled ? '#8A7A66' : b.stub,
+        status: cancelled ? 'ยกเลิกแล้ว' : 'ยืนยันแล้ว',
+        chipBg: cancelled ? '#EDE3D2' : '#E2EBDA',
+        chipFg: cancelled ? '#6B5A48' : '#2F5A2B',
+        opacity: cancelled ? '0.72' : '1',
+        deadline: cancelled ? 'ยกเลิกเรียบร้อย ร้านได้ที่นั่งคืนแล้ว' : b.deadline,
+        deadlineColor: (!cancelled && !b.canCancel) ? '#A8322A' : '#6B5A48',
+        showActions: !cancelled && !confirming,
+        confirming,
+        cancelOff: !b.canCancel,
+        cancelBorder: b.canCancel ? '#D9A89E' : '#E2D1B5',
+        cancelFg: b.canCancel ? '#A8322A' : '#A89A84',
+        ask: () => this.setState({ confirming: b.id }),
+        keep: () => this.setState({ confirming: null }),
+        confirm: () => this.setState({ confirming: null, cancelled: { ...st.cancelled, [b.id]: true } })
+      };
+    });
+    const upcomingCount = bookings.filter((b) => b.status !== 'ยกเลิกแล้ว').length;
+    return { bookings, upcomingCount };
+  }
+}
+</script>
+</body>
+</html>

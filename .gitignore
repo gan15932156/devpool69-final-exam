@@ -16,8 +16,4 @@ api/uploads/*
 # log ตอนรัน
 *.log
 
-
-# Docs
-docs/*
-
 present.md
