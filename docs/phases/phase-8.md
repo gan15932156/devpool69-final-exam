@@ -5,11 +5,11 @@ Phase นี้**คุณทำเอง** — ไฟล์นี้คือ�
 ## เตรียมก่อนอัด
 
 ```powershell
-docker compose down -v          # ล้างข้อมูล → การจองตัวอย่างนับจากวันนี้ใหม่
-docker compose up --build -d
+docker compose up --build -d    # ครั้งแรก
+docker compose restart api      # ก่อนอัดทุกครั้ง → ล้างแล้ว seed ใหม่ การจองตัวอย่างนับจากตอนนี้
 ```
 - เปิด 2 หน้าต่างเบราว์เซอร์: ปกติ (สมชาย `somchai@example.com`) + incognito (มะลิ `mali@example.com`) · รหัส `toawang123`
-- **seed ช่วง 10:00–21:00** ของวันที่อัด → สมชายจะมีการ์ด "เลยเวลายกเลิกแล้ว" ให้โชว์
+- **restart API ช่วง 10:00–21:30** แล้วอัดภายใน ~2 ชม. → สมชายจะมีการ์ด "เลยเวลายกเลิกแล้ว" ให้โชว์
 - VS Code เปิด `service.go`, `validate.go`, `time.go` (ใน `api/internal/booking/`) และ `api/requests.http` ไว้ · zoom ให้ตัวอักษรใหญ่
 - ปิดแจ้งเตือน Windows (Focus assist)
 

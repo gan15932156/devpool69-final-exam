@@ -140,7 +140,7 @@ func Run(db *gorm.DB, uploadDir string) error {
 		return err
 	}
 	if count > 0 {
-		log.Println("seed: มีข้อมูลอยู่แล้ว ข้าม (ล้างแล้วใส่ใหม่: go run ./cmd/seed -reset)")
+		log.Println("seed: มีข้อมูลอยู่แล้ว ข้าม (ล้างแล้วใส่ใหม่: SEED_ON_START=reset หรือ go run ./cmd/seed -reset)")
 		return nil
 	}
 
@@ -448,7 +448,7 @@ func EnsureImages(uploadDir string) error {
 	return nil
 }
 
-// Reset ลบทุกตารางแล้วสร้างใหม่ (ใช้กับ go run ./cmd/seed -reset)
+// Reset ลบทุกตาราง (ต้อง Migrate ต่อ) · ใช้ตอน SEED_ON_START=reset และ go run ./cmd/seed -reset
 func Reset(db *gorm.DB) error {
 	return db.Migrator().DropTable(&models.Review{}, &models.Booking{}, &models.RestaurantImage{}, &models.Restaurant{}, &models.User{})
 }

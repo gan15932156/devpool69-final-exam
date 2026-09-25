@@ -20,7 +20,7 @@ cd toawang
 docker compose up --build
 ```
 
-เปิด **http://localhost:3000** · ครั้งแรก API สร้างตารางและใส่ข้อมูลตัวอย่างให้เอง (ร้าน 20 ร้าน · รีวิว 1,572 รายการ · การจอง ~1,200 รายการ นับจากวันที่เปิดระบบ)
+เปิด **http://localhost:3000** · API สร้างตารางและใส่ข้อมูลตัวอย่างให้เอง (ร้าน 20 ร้าน · รีวิว 1,572 รายการ · การจอง ~1,200 รายการ นับจากเวลาที่เปิดระบบ)
 
 | บริการ | ที่อยู่ |
 |---|---|
@@ -28,7 +28,7 @@ docker compose up --build
 | Go API | http://localhost:8080/api/v1/health |
 | PostgreSQL | `localhost:5433` (user / pass / db = `toawang`) |
 
-ล้างข้อมูลแล้วเริ่มใหม่ (การจองตัวอย่างนับจากวันนี้ใหม่): `docker compose down -v` แล้ว `docker compose up`
+**ข้อมูลตัวอย่างสดใหม่ทุกครั้งที่ API เริ่ม** (`SEED_ON_START=reset`): ทุกตารางถูกล้างแล้ว seed ใหม่ การจองตัวอย่างนับจากเวลาตอนนั้น · ทิ้งไว้นานจนการจองวันนี้ผ่านไปแล้ว → `docker compose restart api` · ข้อมูลที่สร้างระหว่างทดสอบจะหายเมื่อ restart (อยากเก็บไว้ ดู `SEED_ON_START` ด้านล่าง) · ล็อกอินค้างไว้ได้ เพราะ seed สร้างผู้ใช้ลำดับเดิม id เดิมทุกครั้ง
 
 ## บัญชีทดสอบ
 
@@ -49,8 +49,7 @@ docker compose up --build
 docker compose up -d db              # เปิดแค่ฐานข้อมูล
 
 cd api
-go run ./cmd/seed                    # ข้อมูลตัวอย่าง (ครั้งแรก) · -reset = ล้างแล้วใส่ใหม่
-go run ./cmd/api                     # http://localhost:8080
+go run ./cmd/api                     # http://localhost:8080 · ล้างแล้ว seed ใหม่ทุกครั้งที่รัน
 
 cd web
 cp .env.example .env.local           # แล้วใส่ AUTH_SECRET (คำสั่งสร้างค่าสุ่มอยู่ในไฟล์)
@@ -68,7 +67,7 @@ npm run dev                          # http://localhost:3000
 | `JWT_SECRET` | api | `dev-secret-change-me` | กุญแจเซ็น JWT (HS256) — **เปลี่ยนเมื่อใช้จริง** |
 | `PORT` | api | `8080` | พอร์ตของ Go |
 | `UPLOAD_DIR` | api | `uploads` | โฟลเดอร์เก็บรูปที่อัปโหลด |
-| `SEED_ON_START` | api | ปิด (Docker ตั้ง `true`) | ใส่ข้อมูลตัวอย่างตอนเริ่มถ้า DB ว่าง |
+| `SEED_ON_START` | api | `reset` | `reset` = ล้างทุกตารางแล้ว seed ใหม่ทุกครั้งที่เริ่ม · `true` = seed เฉพาะตอน DB ว่าง (เก็บข้อมูลที่ทดสอบไว้) · `false` = ไม่ seed |
 | `API_URL` | web | `http://localhost:8080` | ที่อยู่ Go สำหรับ rewrites และ NextAuth (ฝั่ง server) |
 | `AUTH_SECRET` | web | — (Docker มีค่า dev ให้) | กุญแจเข้ารหัส session cookie ของ NextAuth |
 | `AUTH_TRUST_HOST` | web | `true` | ให้ NextAuth เชื่อ Host header (จำเป็นเมื่อรันหลัง Docker/proxy) |

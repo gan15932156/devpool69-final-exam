@@ -21,11 +21,18 @@ func main() {
 	if err != nil {
 		log.Fatalf("connect database: %v", err)
 	}
+	// SEED_ON_START=reset (ค่า default) → ล้างทุกตารางแล้ว seed ใหม่ทุกครั้งที่เริ่ม
+	// การจองตัวอย่างนับจาก "ตอนนี้" เสมอ → เปิด dev/Docker เมื่อไหร่ ข้อมูลก็พร้อม present
+	if cfg.SeedOnStart == "reset" {
+		if err := seed.Reset(db); err != nil {
+			log.Fatalf("seed reset: %v", err)
+		}
+	}
 	if err := database.Migrate(db); err != nil {
 		log.Fatalf("migrate: %v", err)
 	}
-	// Docker ตั้ง SEED_ON_START=true → เปิดครั้งแรก (DB ว่าง) มีข้อมูลตัวอย่างทันที · มีข้อมูลแล้วจะข้าม
-	if cfg.SeedOnStart {
+	// "true" = seed เฉพาะตอน DB ว่าง (มีข้อมูลแล้วจะข้าม) · "false" = ไม่แตะข้อมูล
+	if cfg.SeedOnStart == "reset" || cfg.SeedOnStart == "true" {
 		if err := seed.EnsureImages(cfg.UploadDir); err != nil {
 			log.Fatalf("seed images: %v", err)
 		}

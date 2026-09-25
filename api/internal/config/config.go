@@ -9,7 +9,7 @@ type Config struct {
 	DatabaseURL string
 	JWTSecret   string
 	UploadDir   string
-	SeedOnStart bool
+	SeedOnStart string // "reset" = ล้างแล้ว seed ใหม่ทุกครั้งที่เริ่ม · "true" = seed ถ้า DB ว่าง · "false" = ไม่ seed
 }
 
 func Load() Config {
@@ -18,7 +18,7 @@ func Load() Config {
 		DatabaseURL: getenv("DATABASE_URL", "postgres://toawang:toawang@localhost:5433/toawang?sslmode=disable"),
 		JWTSecret:   getenv("JWT_SECRET", "dev-secret-change-me"),
 		UploadDir:   getenv("UPLOAD_DIR", "uploads"),
-		SeedOnStart: os.Getenv("SEED_ON_START") == "true",
+		SeedOnStart: getenv("SEED_ON_START", "reset"),
 	}
 }
 

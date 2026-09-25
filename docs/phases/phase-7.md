@@ -8,7 +8,7 @@
 |---|---|
 | `api/internal/seed/seed.go` | ข้อมูลตัวอย่าง: ผู้ใช้ 411 · ร้าน 20 · รีวิว 1,572 · การจอง ~1,200 |
 | `api/internal/seed/images/` | รูปร้าน (ฝังไว้ในโปรแกรมด้วย `go:embed`) |
-| `api/cmd/seed/main.go` | `go run ./cmd/seed [-reset]` |
+| `api/cmd/seed/main.go` | `go run ./cmd/seed [-reset]` (ปกติไม่ต้องใช้ เพราะ API seed เองตอนเริ่ม) |
 | `api/Dockerfile`, `web/Dockerfile` | multi-stage build |
 | `docker-compose.yml` | db + api + web |
 | `README.md`, `.env.example`, `web/.env.example` | วิธีรัน · บัญชีทดสอบ · env |
@@ -69,10 +69,10 @@
 | การจองที่ผ่านมา | INSERT ตรง | กติกา "ห้ามจองเวลาที่ผ่านไปแล้ว" ทำให้สร้างผ่าน API ไม่ได้ (ตั้งใจ) | — |
 | วันที่ของการจอง | นับจาก**วันที่รัน seed** | เปิดระบบวันไหนก็เห็นการจองที่ยังไม่ถึงเวลา แก้/ยกเลิกได้จริง | วันที่ตายตัว: พ้นวันนั้นแล้วแก้ไม่ได้ทั้งหมด |
 | สุ่ม | `rand.NewPCG(2569, 10)` seed คงที่ | รันกี่ครั้งก็ได้ข้อมูลหน้าตาเดิม (เดโมซ้ำได้) | สุ่มจริง |
-| รันซ้ำ | มี user แล้ว = ข้าม · `-reset` = ลบตารางแล้วใส่ใหม่ | ปลอดภัยเมื่อ restart container · ล้างได้เมื่อต้องการ | — |
+| รันซ้ำ | `SEED_ON_START=reset` (default) = ลบตารางแล้วใส่ใหม่ทุกครั้งที่ API เริ่ม · `true` = มี user แล้วข้าม | การจองตัวอย่าง (วันนี้ · เลยเวลายกเลิก) ขึ้นกับเวลาที่ seed → ทิ้งไว้นานข้อมูลเก่า · restart แล้วพร้อม present ทันที · seed คงที่ → id ผู้ใช้เดิม ล็อกอินค้างไว้ได้ | seed ครั้งเดียว: ต้อง `docker compose down -v` ทุกครั้งก่อนอัด |
 | รูปร้าน | ภาพประกอบที่สร้างเอง (render HTML → JPEG) ~40KB/รูป | ไม่มีปัญหาลิขสิทธิ์ ไม่ต้องพึ่งเว็บภายนอก · เปลี่ยนเป็นรูปจริงได้โดยวางไฟล์ชื่อเดิมทับ | hotlink Unsplash: ลิงก์อาจตาย / ต้องให้เครดิต |
 | รูปใน Docker | `go:embed` ฝังในโปรแกรม + `EnsureImages` เขียนลง uploads ทุกครั้งที่เริ่ม (ถ้ายังไม่มี) | image มีทุกอย่างในตัว · กรณี DB มีข้อมูลแต่ volume uploads ใหม่ รูปไม่หาย (เจอจริงตอนทดสอบ) | COPY โฟลเดอร์รูปใน Dockerfile: ลืมง่าย |
-| `SEED_ON_START` | API seed เองตอนเริ่มถ้า DB ว่าง | ผู้ตรวจไม่ต้องรันคำสั่งเพิ่ม | ให้ผู้ตรวจรัน seed เอง |
+| `SEED_ON_START` | API seed เองตอนเริ่ม (`reset` = ใหม่ทุกครั้ง) | ผู้ตรวจไม่ต้องรันคำสั่งเพิ่ม · ข้อมูลสดเสมอ | ให้ผู้ตรวจรัน seed เอง |
 | Go image | multi-stage: `golang:1.27-alpine` build → `alpine` run (58MB) | image เล็ก ไม่มี compiler ใน production · Go version ต้องตรง `go.mod` (1.27 เพราะ x/crypto ต้องการ) | image golang ทั้งตัว (~300MB) |
 | `CGO_ENABLED=0` | ไฟล์โปรแกรมไม่พึ่ง C library | รันบน alpine เปล่าได้ | — |
 | Next image | `output: "standalone"` + node:22-alpine | ได้เฉพาะไฟล์ที่ใช้จริง ไม่ต้อง copy node_modules ทั้งก้อน | copy ทั้งโปรเจกต์ |

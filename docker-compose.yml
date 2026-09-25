@@ -1,4 +1,4 @@
-# docker compose up --build → เปิด http://localhost:3000 ได้เลย (ครั้งแรก API จะ seed ข้อมูลตัวอย่างให้)
+# docker compose up --build → เปิด http://localhost:3000 ได้เลย (API seed ข้อมูลตัวอย่างใหม่ทุกครั้งที่เริ่ม)
 services:
   db:
     image: postgres:16-alpine
@@ -21,7 +21,7 @@ services:
     environment:
       DATABASE_URL: postgres://toawang:toawang@db:5432/toawang?sslmode=disable
       JWT_SECRET: ${JWT_SECRET:-dev-only-jwt-secret-change-me}
-      SEED_ON_START: "true"
+      SEED_ON_START: "reset" # ทุกครั้งที่ api เริ่ม → ล้างแล้ว seed ใหม่ (เวลาในข้อมูลตัวอย่างนับจากตอนนี้)
     volumes:
       - uploads:/app/uploads # รูปที่อัปโหลดอยู่รอดแม้สร้าง container ใหม่
     ports:
