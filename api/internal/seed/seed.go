@@ -283,9 +283,14 @@ func Run(db *gorm.DB, uploadDir string) error {
 	// วันนี้ (ต้นขั้วสีชาด) — ถ้าเวลาผ่านไปแล้วจะถูกข้ามเอง
 	book("mookata-rim-tang", somchai, day(0), "20:00", "21:30", 4)
 	book("khao-tom-tha-nam", somchai, day(0), "22:00", "23:00", 2)
-	// เลยเวลายกเลิกแล้ว: ร้านทะเลให้ยกเลิกล่วงหน้า 3 ชม. แต่การจองนี้เริ่มในอีกไม่ถึงชั่วโมง → ปุ่มแก้/ยกเลิก disabled
+	// เลยเวลายกเลิกแล้ว: ร้านทะเล (11:00–23:00) ให้ยกเลิกล่วงหน้า 3 ชม. แต่การจองนี้เริ่มในอีกไม่ถึงชั่วโมง → ปุ่มแก้/ยกเลิก disabled
+	// นาน 2 ชม. (ไม่เกินเวลาปิด) → การ์ดอยู่ในแท็บ "กำลังจะถึง" ได้ราว 2 ชม. ครึ่งหลัง seed · มีเมื่อ seed ช่วงราว 10:00–21:30
 	if start := nextHalfHour(today).Add(30 * time.Minute); start.Day() == today.Day() && start.Hour() >= 11 && start.Hour() < 22 {
-		book("talay-chay-le", somchai, day(0), start.Format("15:04"), start.Add(time.Hour).Format("15:04"), 2)
+		end := start.Add(2 * time.Hour)
+		if closeAt := booking.At(today, 23*hm); end.After(closeAt) {
+			end = closeAt
+		}
+		book("talay-chay-le", somchai, day(0), start.Format("15:04"), end.Format("15:04"), 2)
 	}
 	book("khao-tom-tha-nam", somchai, day(1), "23:30", "01:00", 2) // ร้านข้ามเที่ยงคืน
 	book("suki-baan-mai", somchai, day(2), "19:00", "20:30", 4)
