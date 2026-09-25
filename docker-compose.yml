@@ -1,0 +1,51 @@
+# docker compose up --build → เปิด http://localhost:3000 ได้เลย (ครั้งแรก API จะ seed ข้อมูลตัวอย่างให้)
+services:
+  db:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_USER: toawang
+      POSTGRES_PASSWORD: toawang
+      POSTGRES_DB: toawang
+    ports:
+      - "5433:5432" # เครื่อง dev มี Postgres อื่นใช้ 5432 อยู่
+    volumes:
+      - db-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U toawang -d toawang"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+
+  api:
+    build: ./api
+    environment:
+      DATABASE_URL: postgres://toawang:toawang@db:5432/toawang?sslmode=disable
+      JWT_SECRET: ${JWT_SECRET:-dev-only-jwt-secret-change-me}
+      SEED_ON_START: "true"
+    volumes:
+      - uploads:/app/uploads # รูปที่อัปโหลดอยู่รอดแม้สร้าง container ใหม่
+    ports:
+      - "8080:8080" # เปิดไว้ให้ยิง requests.http ตรงได้
+    depends_on:
+      db:
+        condition: service_healthy # รอจน DB พร้อมรับคำสั่งจริง ไม่ใช่แค่ container เปิด
+
+  web:
+    build:
+      context: ./web
+      args:
+        API_URL: http://api:8080
+    environment:
+      API_URL: http://api:8080 # ใช้ตอน runtime ใน NextAuth authorize() (เรียก Go ฝั่ง server)
+      AUTH_SECRET: ${AUTH_SECRET:-dev-only-auth-secret-change-me-please-32chars}
+      AUTH_TRUST_HOST: "true"
+      # ที่อยู่ที่เบราว์เซอร์เปิด · ไม่ตั้ง NextAuth จะใช้ 0.0.0.0:3000 (ค่า HOSTNAME ใน container) ตอน redirect หลัง logout
+      AUTH_URL: ${AUTH_URL:-http://localhost:3000}
+    ports:
+      - "3000:3000"
+    depends_on:
+      - api
+
+volumes:
+  db-data:
+  uploads:

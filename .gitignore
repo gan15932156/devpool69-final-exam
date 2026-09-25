@@ -1,0 +1,23 @@
+# Node / Next.js
+node_modules/
+.next/
+
+# ไฟล์ความลับ (เก็บเฉพาะตัวอย่าง)
+.env
+.env*.local
+!.env.example
+
+# Go
+api/tmp/
+api/uploads/*
+!api/uploads/.gitkeep
+*.exe
+
+# log ตอนรัน
+*.log
+
+
+# Docs
+docs/*
+
+present.md
