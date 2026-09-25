@@ -1,0 +1,12 @@
+import type { DefaultSession } from "next-auth";
+
+// บอก TypeScript ว่า session มี accessToken และ user.id เพิ่มมา
+declare module "next-auth" {
+  interface Session {
+    accessToken: string;
+    user: { id: string } & DefaultSession["user"];
+  }
+  interface User {
+    accessToken?: string;
+  }
+}
