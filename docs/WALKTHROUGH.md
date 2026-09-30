@@ -192,7 +192,7 @@ db.Transaction(func(tx *gorm.DB) error {
 
 **API**
 - [ ] `GET /restaurants/:id/availability?date=&excludeBookingId=` → `[{ "start": "11:00", "used": 7 }, ...]` (query เดียวกับข้อ ③)
-- [ ] `POST /restaurants/:id/bookings` → ที่นั่งไม่พอตอบ **409** `SEATS_EXCEEDED` + details (หน้าเว็บเขียนข้อความเอง เช่น "ช่วง 12:00–12:30 จองแล้ว 7 + คุณ 4 = 11 เกิน 10 ที่")
+- [ ] `POST /restaurants/:id/bookings` → ที่นั่งไม่พอตอบ **409** `SEATS_EXCEEDED` + details (หน้าเว็บเขียนข้อความเองที่ `seatsExceededText` ใน `web/lib/booking.ts`)
 - [ ] response ส่ง `serviceDate`, `start`, `end` เป็นสตริงเวลาไทยด้วย (หน้าเว็บไม่ต้องจัดการ timezone)
 
 **หน้าเว็บ — ใบจองโต๊ะ**
