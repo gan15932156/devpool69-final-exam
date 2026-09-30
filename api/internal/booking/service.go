@@ -22,8 +22,7 @@ var (
 	errBookingMissing    = apperr.NotFound("การจอง")
 )
 
-// SeatsExceededDetails บอกช่วงแรกที่เกิน → หน้าเว็บเขียนข้อความเองได้
-// "ช่วง 12:00–12:30 จองแล้ว 7 + คุณ 4 = 11 เกิน 10 ที่"
+// SeatsExceededDetails บอกช่วงแรกที่เกิน → หน้าเว็บเขียนข้อความเอง (seatsExceededText ใน web/lib/booking.ts)
 type SeatsExceededDetails struct {
 	SlotStart string `json:"slotStart"`
 	SlotEnd   string `json:"slotEnd"`

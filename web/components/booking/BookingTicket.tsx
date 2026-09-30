@@ -74,7 +74,7 @@ export function BookingTicket({ restaurant: r }: { restaurant: RestaurantDetail 
     },
     onError: (e) => {
       // แสดงสิ่งที่ Go ตอบเสมอ — เช่นมีคนจองตัดหน้าไปก่อนเสี้ยววินาที
-      setServerError(bookingErrorText(e));
+      setServerError(bookingErrorText(e, "new"));
       queryClient.invalidateQueries({ queryKey: ["availability", r.id, date] });
     },
   });
@@ -168,7 +168,7 @@ export function BookingTicket({ restaurant: r }: { restaurant: RestaurantDetail 
                 ok: notPast,
                 text: notPast ? "ไม่ใช่เวลาที่ผ่านไปแล้ว" : `เวลาเริ่มผ่านไปแล้ว (ตอนนี้ ${toHHMM(now.getHours() * 60 + now.getMinutes())})`,
               },
-              { ok: seatsOk, text: check ? seatText(check, party, r.seats) : "กำลังตรวจที่นั่ง…" },
+              { ok: seatsOk, text: check ? seatText(check, party, "new") : "กำลังตรวจที่นั่ง…" },
             ]}
           />
         </div>

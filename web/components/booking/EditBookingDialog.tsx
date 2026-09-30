@@ -11,6 +11,7 @@ import {
   checkSeats,
   invalidateBookingQueries,
   nextDays,
+  seatText,
   serviceRange,
   thaiDate,
   type Availability,
@@ -102,7 +103,7 @@ function EditForm({ booking: b, restaurant: r, close }: { booking: Booking; rest
       close();
     },
     onError: (e) => {
-      setError(bookingErrorText(e));
+      setError(bookingErrorText(e, "edit"));
       queryClient.invalidateQueries({ queryKey: ["availability", r.id, date, b.id] });
     },
   });
@@ -110,15 +111,12 @@ function EditForm({ booking: b, restaurant: r, close }: { booking: Booking; rest
   const check = av ? checkSeats(av, open, party, start, end) : null;
   const others = check?.peak ?? 0; // คนอื่นจองไว้ (ช่วงที่แน่นที่สุด) — ไม่รวมของเรา
   const need = others + party;
+  const seats = check?.seats ?? r.seats; // ใช้ตัวเดียวกับที่ตัดสินว่าเกิน (availability) · ระหว่างโหลดใช้ของร้าน
   const seatsOk = !!check && !check.firstOver;
   const notPast = atMinutes(date, start) > new Date();
   const ok = seatsOk && notPast && end > start;
 
-  const msg = !check
-    ? "กำลังตรวจที่นั่ง…"
-    : seatsOk
-      ? `ที่นั่งพอ — คนอื่น ${others} + คุณ ${party} = ${need} ที่${need < r.seats ? ` เหลือว่าง ${r.seats - need} ที่` : " เต็มพอดี"}`
-      : `ที่นั่งไม่พอ — คนอื่น ${check.firstOver!.used} + คุณ ${party} = ${check.firstOver!.used + party} ที่ เกิน ${r.seats} ที่`;
+  const msg = check ? seatText(check, party, "edit") : "กำลังตรวจที่นั่ง…";
 
   return (
     <div className="flex max-h-[75vh] flex-col gap-5 overflow-y-auto px-5 pt-5 pb-7 md:px-7">
@@ -148,7 +146,7 @@ function EditForm({ booking: b, restaurant: r, close }: { booking: Booking; rest
             <button
               type="button"
               aria-label="เพิ่มจำนวนคน"
-              disabled={party >= r.seats}
+              disabled={party >= seats}
               onClick={() => setParty(party + 1)}
               className="flex size-11 items-center justify-center rounded-full bg-paper text-xl disabled:text-line-strong"
             >
@@ -194,10 +192,10 @@ function EditForm({ booking: b, restaurant: r, close }: { booking: Booking; rest
             ที่นั่งช่วง {toHHMM(start)}–{toHHMM(end)}
           </span>
           <span className={cn("font-heading text-lg", seatsOk ? "text-success" : "text-vermilion")}>
-            {need} / {r.seats} ที่
+            {need} / {seats} ที่
           </span>
         </div>
-        <SeatDots seats={r.seats} others={others} mine={party} />
+        <SeatDots seats={seats} others={others} mine={party} />
         <div className="flex flex-wrap gap-4 text-sm text-ink-2">
           <Dot className="bg-seat-booked">คนอื่นจองไว้ {others}</Dot>
           <Dot className="bg-indigo">การจองของคุณ {party}</Dot>
