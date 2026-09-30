@@ -59,6 +59,20 @@ npm run dev                          # http://localhost:3000
 
 > ถ้าเปิดทั้ง Docker ครบชุดอยู่ ต้อง `docker compose stop api web` ก่อน เพราะพอร์ต 8080/3000 จะชนกัน
 
+### รันหน้าเว็บอย่างเดียวด้วย mock API (ไม่ต้องเปิด Go / PostgreSQL)
+
+```bash
+cd web
+npm install
+npm run dev:mock                     # http://localhost:3000 (เปลี่ยนพอร์ต: PORT=3001 npm run dev:mock)
+```
+
+- ใช้ข้อมูลชุดเดียวกับ seed ของ Go (20 ร้าน · รีวิว · การจองนับจากเวลาที่เริ่ม) และ**บัญชีทดสอบเดิม** (`somchai@` / `mali@` … รหัส `toawang123`)
+- จอง · แก้ไข · ยกเลิก · รีวิว · สร้าง/แก้/ลบร้าน · อัปโหลดรูป ใช้ได้หมด ด้วยกติกาและ error code เดียวกับ Go (`web/mock/booking.ts` แปลงมาจาก `api/internal/booking`)
+- ข้อมูลอยู่ในหน่วยความจำ → ปิด/เปิด dev server ใหม่ = เริ่มจากข้อมูลตัวอย่างใหม่ · แก้โค้ดแล้ว hot reload ข้อมูลไม่หาย
+- สลับระหว่าง mock กับ Go จริงแล้วเว็บจะพาไปหน้า login ใหม่ (token ของสองฝั่งใช้แทนกันไม่ได้)
+- เป็นแค่ตัวช่วยทดสอบหน้าเว็บ — กติกาจริงอยู่ที่ Go · แก้กติกาใน `api/internal/booking` แล้วต้องแก้ `web/mock/booking.ts` ตามด้วย
+
 ## Environment variables
 
 | ตัวแปร | ใช้ที่ | ค่า default | ความหมาย |
