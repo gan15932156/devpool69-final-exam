@@ -166,8 +166,8 @@ func (in *restaurantInput) validate() (open, close int, err error) {
 	if utf8.RuneCountInString(in.Description) > 2000 {
 		fields["description"] = "รายละเอียดยาวเกินไป (ไม่เกิน 2,000 ตัวอักษร)"
 	}
-	if in.Seats < 1 {
-		fields["seats"] = "ต้องมีอย่างน้อย 1 ที่นั่ง"
+	if in.Seats < 1 || in.Seats > MaxSeats {
+		fields["seats"] = fmt.Sprintf("จำนวนที่นั่งต้องอยู่ระหว่าง 1–%d", MaxSeats)
 	}
 
 	open, openErr := booking.ParseHHMM(in.OpenTime)
@@ -187,8 +187,8 @@ func (in *restaurantInput) validate() (open, close int, err error) {
 		fields["closeTime"] = "เวลาเปิดและปิดต้องไม่ตรงกัน"
 	}
 
-	if in.CancelLeadMinutes < 30 {
-		fields["cancelLeadMinutes"] = "ยกเลิกล่วงหน้าอย่างน้อย 30 นาที"
+	if in.CancelLeadMinutes < 30 || in.CancelLeadMinutes > MaxCancelLeadMinutes {
+		fields["cancelLeadMinutes"] = "ยกเลิกล่วงหน้าได้ตั้งแต่ 30 นาทีถึง 7 วัน"
 	}
 
 	if len(in.Images) == 0 || len(in.Images) > 8 {

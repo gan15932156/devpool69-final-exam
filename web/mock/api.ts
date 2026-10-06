@@ -144,6 +144,11 @@ const normalizeEmail = (v: unknown) => (typeof v === "string" ? v.trim().toLower
 const str = (v: unknown) => (typeof v === "string" ? v.trim() : "");
 const runes = (v: string) => [...v].length;
 
+// เพดานเดียวกับ api/internal/handlers/limits.go (rate limit ไม่ได้ทำใน mock)
+const MAX_NAME_LENGTH = 100;
+const MAX_SEATS = 1000;
+const MAX_CANCEL_LEAD_MINUTES = 7 * 24 * 60;
+
 // ---------- ร้าน ----------
 
 type RestaurantInput = {
@@ -172,13 +177,15 @@ function validateRestaurant(input: RestaurantInput) {
   if (!name || runes(name) > 100) fields.name = "กรุณากรอกชื่อร้าน (ไม่เกิน 100 ตัวอักษร)";
   if (runes(cuisine) > 100) fields.cuisine = "ประเภทอาหารยาวเกินไป";
   if (runes(description) > 2000) fields.description = "รายละเอียดยาวเกินไป (ไม่เกิน 2,000 ตัวอักษร)";
-  if (!Number.isInteger(seats) || seats < 1) fields.seats = "ต้องมีอย่างน้อย 1 ที่นั่ง";
+  if (!Number.isInteger(seats) || seats < 1 || seats > MAX_SEATS) fields.seats = `จำนวนที่นั่งต้องอยู่ระหว่าง 1–${MAX_SEATS}`;
   if (open === null) fields.openTime = "กรุณาใส่เวลาเปิด";
   else if (!onHalfHour(open)) fields.openTime = "เวลาต้องลงที่ :00 หรือ :30";
   if (close === null) fields.closeTime = "กรุณาใส่เวลาปิด";
   else if (!onHalfHour(close)) fields.closeTime = "เวลาต้องลงที่ :00 หรือ :30";
   else if (open !== null && open === close) fields.closeTime = "เวลาเปิดและปิดต้องไม่ตรงกัน";
-  if (!Number.isInteger(lead) || lead < 30) fields.cancelLeadMinutes = "ยกเลิกล่วงหน้าอย่างน้อย 30 นาที";
+  if (!Number.isInteger(lead) || lead < 30 || lead > MAX_CANCEL_LEAD_MINUTES) {
+    fields.cancelLeadMinutes = "ยกเลิกล่วงหน้าได้ตั้งแต่ 30 นาทีถึง 7 วัน";
+  }
   if (images.length === 0 || images.length > 8) fields.images = "ต้องมีรูป 1–8 รูป";
   if (images.some((u) => !u.startsWith("/uploads/") || u.includes(".."))) fields.images = "รูปไม่ถูกต้อง กรุณาอัปโหลดใหม่";
   if (Object.keys(fields).length) throw validation(fields);
@@ -320,7 +327,7 @@ async function register(c: Ctx) {
   const email = normalizeEmail(input.email);
   const password = typeof input.password === "string" ? input.password : "";
   const fields: Record<string, string> = {};
-  if (!name) fields.name = "กรุณากรอกชื่อที่แสดง";
+  if (!name || runes(name) > MAX_NAME_LENGTH) fields.name = `กรุณากรอกชื่อที่แสดง (ไม่เกิน ${MAX_NAME_LENGTH} ตัวอักษร)`;
   if (!/^[^\s@<>()]+@[^\s@<>()]+\.[^\s@<>()]+$/.test(email)) fields.email = "รูปแบบอีเมลไม่ถูกต้อง";
   if (runes(password) < 8 || !/\d/.test(password)) fields.password = "รหัสผ่านต้องมีอย่างน้อย 8 ตัวและมีตัวเลข";
   else if (new TextEncoder().encode(password).length > 72) fields.password = "รหัสผ่านยาวเกินไป";

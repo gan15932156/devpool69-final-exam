@@ -10,7 +10,7 @@ export const loginSchema = z.object({
 
 export const registerSchema = z
   .object({
-    name: z.string().trim().min(1, "กรุณากรอกชื่อที่แสดง"),
+    name: z.string().trim().min(1, "กรุณากรอกชื่อที่แสดง").max(100, "ชื่อยาวเกินไป (ไม่เกิน 100 ตัวอักษร)"),
     email: z.email("รูปแบบอีเมลไม่ถูกต้อง"),
     password: z.string().min(8, "อย่างน้อย 8 ตัว").regex(/[0-9]/, "ต้องมีตัวเลข"),
     confirm: z.string(),

@@ -2,6 +2,7 @@ package handlers
 
 import (
 	"errors"
+	"fmt"
 	"net/http"
 	"net/mail"
 	"strconv"
@@ -56,8 +57,8 @@ func (h *Handler) Register(c fiber.Ctx) error {
 	req.Email = normalizeEmail(req.Email)
 
 	fields := map[string]string{}
-	if req.Name == "" {
-		fields["name"] = "กรุณากรอกชื่อที่แสดง"
+	if req.Name == "" || utf8.RuneCountInString(req.Name) > MaxNameLength {
+		fields["name"] = fmt.Sprintf("กรุณากรอกชื่อที่แสดง (ไม่เกิน %d ตัวอักษร)", MaxNameLength)
 	}
 	if addr, err := mail.ParseAddress(req.Email); err != nil || addr.Address != req.Email {
 		fields["email"] = "รูปแบบอีเมลไม่ถูกต้อง"

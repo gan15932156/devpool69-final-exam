@@ -14,7 +14,7 @@ import { Stepper } from "@/components/ui/Stepper";
 import { ApiError } from "@/lib/api";
 import { cn } from "@/lib/cn";
 import { durationText, HALF_HOURS, toHHMM, toMinutes } from "@/lib/format";
-import { restaurantSchema, type RestaurantValues } from "@/lib/schemas/restaurant";
+import { MAX_CANCEL_LEAD_MINUTES, MAX_SEATS, restaurantSchema, type RestaurantValues } from "@/lib/schemas/restaurant";
 import type { RestaurantDetail } from "@/lib/types";
 import { useApi } from "@/lib/use-api";
 import { RestaurantCard } from "./RestaurantCard";
@@ -180,7 +180,15 @@ export function RestaurantForm({ initial, ownerId }: { initial?: RestaurantDetai
         <Section n="๓" title="ที่นั่งและเวลาเปิด–ปิด">
           <div className="grid gap-4 sm:grid-cols-3">
             <Field label="จำนวนที่นั่ง" htmlFor="seats" error={errors.seats?.message}>
-              <Input id="seats" type="number" min={1} inputMode="numeric" invalid={!!errors.seats} {...register("seats", { valueAsNumber: true })} />
+              <Input
+                id="seats"
+                type="number"
+                min={1}
+                max={MAX_SEATS}
+                inputMode="numeric"
+                invalid={!!errors.seats}
+                {...register("seats", { valueAsNumber: true })}
+              />
             </Field>
             <Field label="เวลาเปิด" htmlFor="openTime" error={errors.openTime?.message}>
               <select id="openTime" className={inputClass(!!errors.openTime)} {...register("openTime")}>
@@ -213,12 +221,13 @@ export function RestaurantForm({ initial, ownerId }: { initial?: RestaurantDetai
 
         <Section n="๔" title="ยกเลิกล่วงหน้า">
           <p className="-mt-1.5 text-[15px] text-muted">
-            ลูกค้าต้องยกเลิกก่อนเวลาจองอย่างน้อยเท่านี้ · ค่าเริ่มต้น 30 นาที ตั้งมากขึ้นได้ แต่ต่ำกว่า 30 นาทีไม่ได้
+            ลูกค้าต้องยกเลิกก่อนเวลาจองอย่างน้อยเท่านี้ · ค่าเริ่มต้น 30 นาที ตั้งมากขึ้นได้ถึง 7 วัน แต่ต่ำกว่า 30 นาทีไม่ได้
           </p>
           <div className="flex flex-wrap items-center gap-5">
             <Stepper
               value={lead}
               min={30}
+              max={MAX_CANCEL_LEAD_MINUTES}
               step={15}
               format={durationText}
               onChange={(n) => setValue("cancelLeadMinutes", n, { shouldValidate: true })}
