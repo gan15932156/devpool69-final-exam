@@ -22,7 +22,11 @@ export function LoginForm({ callbackUrl }: { callbackUrl: string }) {
     // redirect: false → ไม่ให้ NextAuth พาไปหน้าอื่นเอง เราจะเช็กผลก่อน
     const res = await signIn("credentials", { ...values, redirect: false });
     if (res?.error) {
-      setFormError("อีเมลหรือรหัสผ่านไม่ถูกต้อง");
+      setFormError(
+        res.code === "too_many_attempts" // ตั้งใน auth.ts ตอน Go ตอบ 429
+          ? "ใส่รหัสผ่านผิดหลายครั้งเกินไป กรุณารอ 15 นาทีแล้วลองใหม่"
+          : "อีเมลหรือรหัสผ่านไม่ถูกต้อง",
+      );
       return;
     }
     // โหลดหน้าใหม่ทั้งหน้า → header และ session อัปเดตครบทุกส่วน

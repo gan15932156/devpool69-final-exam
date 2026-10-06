@@ -44,6 +44,12 @@ func main() {
 	app := fiber.New(fiber.Config{
 		BodyLimit:    10 * 1024 * 1024, // 10MB — default 4MB ไม่พอสำหรับอัปโหลดรูป
 		ErrorHandler: apperr.Handler,   // ทุก error ตอบรูปแบบเดียวกัน
+		// คำขอจากหน้าเว็บผ่าน server ของ Next ก่อนถึง Go → IP ผู้ใช้อยู่ใน X-Forwarded-For
+		// เชื่อ header นี้เฉพาะคำขอจากเครื่องเดียวกัน/เครือข่ายภายใน (Next ใน Docker) · ใช้แค่นับ rate limit
+		ProxyHeader:        fiber.HeaderXForwardedFor,
+		TrustProxy:         true,
+		TrustProxyConfig:   fiber.TrustProxyConfig{Loopback: true, Private: true},
+		EnableIPValidation: true,
 	})
 	app.Use(recoverer.New()) // handler panic → กลายเป็น 500 แทนที่ server จะล่ม
 

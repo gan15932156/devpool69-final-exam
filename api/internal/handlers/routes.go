@@ -11,6 +11,7 @@ import (
 // Routes ผูก URL เข้ากับ handler ทั้งหมด
 func (h *Handler) Routes(app *fiber.App) {
 	auth := middleware.RequireAuth(h.JWTSecret)
+	limit := newLimits() // rate limit · ค่าอยู่ใน limits.go
 
 	api := app.Group("/api/v1")
 	api.Get("/health", func(c fiber.Ctx) error {
@@ -18,32 +19,32 @@ func (h *Handler) Routes(app *fiber.App) {
 	})
 
 	// บัญชี
-	api.Post("/auth/register", h.Register)
-	api.Post("/auth/login", h.Login)
+	api.Post("/auth/register", limit.register, limit.registerAll, h.Register)
+	api.Post("/auth/login", limit.login, h.Login)
 	api.Get("/me", auth, h.Me)
 
 	// ร้าน
 	api.Get("/restaurants", h.ListRestaurants)
 	api.Get("/restaurants/:id", h.GetRestaurant)
-	api.Post("/restaurants", auth, h.CreateRestaurant)
-	api.Put("/restaurants/:id", auth, h.UpdateRestaurant)
-	api.Delete("/restaurants/:id", auth, h.DeleteRestaurant)
+	api.Post("/restaurants", auth, limit.write, h.CreateRestaurant)
+	api.Put("/restaurants/:id", auth, limit.write, h.UpdateRestaurant)
+	api.Delete("/restaurants/:id", auth, limit.write, h.DeleteRestaurant)
 	api.Get("/me/restaurants", auth, h.MyRestaurants)
-	api.Post("/uploads", auth, h.Upload)
+	api.Post("/uploads", auth, limit.upload, h.Upload)
 
 	// การจอง
 	optionalAuth := middleware.OptionalAuth(h.JWTSecret)
 	api.Get("/restaurants/:id/availability", optionalAuth, h.Availability)
-	api.Post("/restaurants/:id/bookings", auth, h.CreateBooking)
+	api.Post("/restaurants/:id/bookings", auth, limit.write, h.CreateBooking)
 
 	// การจองของฉัน
 	api.Get("/me/bookings", auth, h.MyBookings)
-	api.Put("/bookings/:id", auth, h.UpdateBooking)
-	api.Post("/bookings/:id/cancel", auth, h.CancelBooking)
+	api.Put("/bookings/:id", auth, limit.write, h.UpdateBooking)
+	api.Post("/bookings/:id/cancel", auth, limit.write, h.CancelBooking)
 
 	// รีวิว
 	api.Get("/restaurants/:id/reviews", optionalAuth, h.ListReviews)
-	api.Put("/restaurants/:id/reviews/me", auth, h.UpsertMyReview)
+	api.Put("/restaurants/:id/reviews/me", auth, limit.write, h.UpsertMyReview)
 
 	// Dashboard เจ้าของร้าน
 	api.Get("/restaurants/:id/bookings", auth, h.RestaurantBookings)

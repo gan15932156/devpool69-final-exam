@@ -1,5 +1,10 @@
-import NextAuth from "next-auth";
+import NextAuth, { CredentialsSignin } from "next-auth";
 import Credentials from "next-auth/providers/credentials";
+
+// Go ตอบ 429 (login ผิดถี่เกินไป) → หน้า login ได้ code นี้ไปบอกให้รอ แทนที่จะบอกว่ารหัสผิด
+class TooManyAttempts extends CredentialsSignin {
+  code = "too_many_attempts";
+}
 
 // NextAuth ไม่ได้เก็บ user เอง — แค่ส่งอีเมล/รหัสไปให้ Go ตรวจ แล้วเก็บ token ที่ Go เซ็นไว้ใน session
 export const { handlers, auth } = NextAuth({
@@ -15,6 +20,7 @@ export const { handlers, auth } = NextAuth({
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ email: credentials.email, password: credentials.password }),
         });
+        if (res.status === 429) throw new TooManyAttempts();
         if (!res.ok) return null; // null = login ไม่ผ่าน
         const data = await res.json();
         return {

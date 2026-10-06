@@ -19,6 +19,16 @@ type Error struct {
 
 func (e *Error) Error() string { return e.Code + ": " + e.Message }
 
+// As ให้ middleware ของ Fiber ที่หา *fiber.Error (เช่น limiter ที่นับเฉพาะคำขอที่ไม่ผ่าน) เห็น status จริงของ error นี้
+// ไม่มี = Fiber เห็นเป็น 200 เพราะ status ถูกเขียนลง response ทีหลังใน Handler
+func (e *Error) As(target any) bool {
+	fe, ok := target.(**fiber.Error)
+	if ok {
+		*fe = fiber.NewError(e.Status, e.Message)
+	}
+	return ok
+}
+
 func New(status int, code, message string) *Error {
 	return &Error{Status: status, Code: code, Message: message}
 }
