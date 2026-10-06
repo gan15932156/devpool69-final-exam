@@ -26,6 +26,7 @@ docker compose up --build
 |---|---|
 | เว็บ | http://localhost:3000 |
 | Go API | http://localhost:8080/api/v1/health |
+| API docs (Swagger UI) | http://localhost:8080/docs |
 | PostgreSQL | `localhost:5433` (user / pass / db = `toawang`) |
 
 **ข้อมูลตัวอย่างสดใหม่ทุกครั้งที่ API เริ่ม** (`SEED_ON_START=reset`): ทุกตารางถูกล้างแล้ว seed ใหม่ การจองตัวอย่างนับจากเวลาตอนนั้น · ทิ้งไว้นานจนการจองวันนี้ผ่านไปแล้ว → `docker compose restart api` · ข้อมูลที่สร้างระหว่างทดสอบจะหายเมื่อ restart (อยากเก็บไว้ ดู `SEED_ON_START` ด้านล่าง) · ล็อกอินค้างไว้ได้ เพราะ seed สร้างผู้ใช้ลำดับเดิม id เดิมทุกครั้ง
@@ -106,6 +107,7 @@ api/                         Go · Fiber v3 · GORM
     ├── middleware/          ตรวจ JWT
     ├── models/              ตาราง
     ├── apperr/              รูปแบบ error กลาง { error: { code, message, details } }
+    ├── apidocs/             Swagger UI ที่ /docs + openapi.yaml
     └── seed/                ข้อมูลตัวอย่าง + รูป
 web/                         Next.js 16 · Tailwind v4 · NextAuth v5 · TanStack Query
 ├── app/(auth)/              เข้าสู่ระบบ · สมัคร

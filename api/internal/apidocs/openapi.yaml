@@ -1,0 +1,739 @@
+openapi: 3.0.3
+info:
+  title: ตึกตึกโต๊ะ API
+  version: "1.0"
+  description: |
+    API ระบบจองโต๊ะร้านอาหาร + รีวิวร้าน (DevPool Final Exam 2569)
+
+    - **เวลาไทย (Asia/Bangkok) ทุกจุด** · วันที่ `YYYY-MM-DD` · เวลา `HH:MM`
+    - Error ทุกตัวตอบรูปแบบ `{ "error": { "code", "message", "details" } }` · ตัดสินจาก `code`
+    - ลองยิง: `POST /auth/login` ด้วยบัญชีตัวอย่าง → คัดลอก `accessToken` → กดปุ่ม **Authorize** ด้านบน
+    - บัญชีตัวอย่าง (รหัสผ่าน `toawang123`): `somchai@example.com` (ลูกค้า) · `mali@example.com` (เจ้าของร้าน 4, 7, 20) · `nid@example.com` (เจ้าของร้าน 1)
+
+    คำอธิบายฉบับเต็ม: `docs/API.md`
+servers:
+  - url: /api/v1
+tags:
+  - name: บัญชี
+  - name: ร้าน
+  - name: การจอง
+  - name: รีวิว
+  - name: เจ้าของร้าน
+  - name: ระบบ
+
+paths:
+  /health:
+    get:
+      tags: [ระบบ]
+      operationId: health
+      summary: เช็กว่า API ทำงาน
+      security: []
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status: { type: string, example: ok }
+
+  # ---------------- บัญชี ----------------
+  /auth/register:
+    post:
+      tags: [บัญชี]
+      operationId: register
+      summary: สมัครสมาชิก
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/RegisterInput" }
+      responses:
+        "201":
+          description: สมัครสำเร็จ
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/AuthResponse" }
+        "400": { $ref: "#/components/responses/Validation" }
+        "409":
+          description: "`EMAIL_TAKEN` อีเมลนี้มีบัญชีแล้ว"
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Error" }
+
+  /auth/login:
+    post:
+      tags: [บัญชี]
+      operationId: login
+      summary: เข้าสู่ระบบ
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/LoginInput" }
+      responses:
+        "200":
+          description: สำเร็จ
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/AuthResponse" }
+        "401":
+          description: "`UNAUTHORIZED` อีเมลหรือรหัสผ่านไม่ถูกต้อง (ไม่บอกว่าผิดช่องไหน)"
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Error" }
+
+  /me:
+    get:
+      tags: [บัญชี]
+      operationId: me
+      summary: ข้อมูลผู้ใช้ที่ login
+      security: [{ bearerAuth: [] }]
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/User" }
+        "401": { $ref: "#/components/responses/Unauthorized" }
+
+  # ---------------- ร้าน ----------------
+  /restaurants:
+    get:
+      tags: [ร้าน]
+      operationId: listRestaurants
+      summary: ค้นหา/เรียงร้าน
+      security: []
+      description: |
+        - `rating`: ร้านที่รีวิวถึง 5 ขึ้นก่อน → คะแนนสูง → รีวิวเยอะ (5.0 จาก 1 รีวิว ไม่แซง 4.8 จาก 126 รีวิว)
+        - `reviews`: จำนวนรีวิวมาก → คะแนนสูง
+        - ไม่แบ่งหน้า
+      parameters:
+        - name: q
+          in: query
+          description: ค้นในชื่อร้านและประเภทอาหาร (ไม่สนตัวพิมพ์เล็ก/ใหญ่)
+          schema: { type: string }
+        - name: sort
+          in: query
+          schema: { type: string, enum: [rating, reviews], default: rating }
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: array
+                items: { $ref: "#/components/schemas/Restaurant" }
+        "400": { $ref: "#/components/responses/Validation" }
+    post:
+      tags: [ร้าน]
+      operationId: createRestaurant
+      summary: สร้างร้าน (คนสร้าง = เจ้าของ)
+      security: [{ bearerAuth: [] }]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/RestaurantInput" }
+      responses:
+        "201":
+          description: สร้างสำเร็จ
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/RestaurantDetail" }
+        "400": { $ref: "#/components/responses/Validation" }
+        "401": { $ref: "#/components/responses/Unauthorized" }
+
+  /restaurants/{id}:
+    parameters:
+      - $ref: "#/components/parameters/RestaurantId"
+    get:
+      tags: [ร้าน]
+      operationId: getRestaurant
+      summary: รายละเอียดร้าน + การกระจายดาว
+      security: []
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/RestaurantDetail" }
+        "404": { $ref: "#/components/responses/NotFound" }
+    put:
+      tags: [ร้าน]
+      operationId: updateRestaurant
+      summary: แก้ร้าน (เจ้าของเท่านั้น)
+      description: |
+        แทนที่ทั้งก้อน ต้องส่งทุกช่อง · รูปถูกแทนด้วยชุดใหม่ตามลำดับที่ส่ง
+        · แก้ที่นั่ง/เวลาเปิดไม่กระทบการจองที่มีอยู่ (ใช้กับการจอง/แก้ไขครั้งถัดไป)
+      security: [{ bearerAuth: [] }]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/RestaurantInput" }
+      responses:
+        "200":
+          description: แก้สำเร็จ
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/RestaurantDetail" }
+        "400": { $ref: "#/components/responses/Validation" }
+        "401": { $ref: "#/components/responses/Unauthorized" }
+        "403": { $ref: "#/components/responses/Forbidden" }
+        "404": { $ref: "#/components/responses/NotFound" }
+    delete:
+      tags: [ร้าน]
+      operationId: deleteRestaurant
+      summary: ลบร้าน (เจ้าของเท่านั้น)
+      description: รูป การจองเก่า และรีวิวของร้านถูกลบตามด้วย
+      security: [{ bearerAuth: [] }]
+      responses:
+        "204":
+          description: ลบสำเร็จ (ไม่มี body)
+        "401": { $ref: "#/components/responses/Unauthorized" }
+        "403": { $ref: "#/components/responses/Forbidden" }
+        "404": { $ref: "#/components/responses/NotFound" }
+        "409":
+          description: "`HAS_FUTURE_BOOKINGS` ยังมีการจองที่ยืนยันแล้วและยังไม่จบ · `details: { count }`"
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Error" }
+              example:
+                error: { code: HAS_FUTURE_BOOKINGS, message: ลบไม่ได้ เพราะยังมีการจองที่ยังไม่ถึงเวลา, details: { count: 3 } }
+
+  /me/restaurants:
+    get:
+      tags: [ร้าน]
+      operationId: myRestaurants
+      summary: ร้านของฉัน
+      security: [{ bearerAuth: [] }]
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: array
+                items: { $ref: "#/components/schemas/Restaurant" }
+        "401": { $ref: "#/components/responses/Unauthorized" }
+
+  /uploads:
+    post:
+      tags: [ร้าน]
+      operationId: upload
+      summary: อัปโหลดรูปร้าน
+      description: |
+        รับ JPG / PNG / WEBP ไม่เกิน 5MB · ตรวจชนิดจากเนื้อไฟล์ ไม่ดูนามสกุล · ตั้งชื่อไฟล์ใหม่แบบสุ่ม
+        · ไฟล์เปิดดูได้ที่ `GET /uploads/<ชื่อไฟล์>` (path อยู่นอก `/api/v1`)
+      security: [{ bearerAuth: [] }]
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              required: [file]
+              properties:
+                file: { type: string, format: binary }
+      responses:
+        "201":
+          description: อัปโหลดสำเร็จ · ใช้ `url` ใส่ใน `images` ของร้าน
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  url: { type: string, example: /uploads/3f9a0b7e4c2d1a6f8e5b9c0d7a1e2f3c.jpg }
+        "400":
+          description: "`VALIDATION` ไม่ได้แนบไฟล์ · `UNSUPPORTED_FILE` ชนิดไฟล์/ขนาดไม่ผ่าน"
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Error" }
+        "401": { $ref: "#/components/responses/Unauthorized" }
+
+  # ---------------- การจอง ----------------
+  /restaurants/{id}/availability:
+    parameters:
+      - $ref: "#/components/parameters/RestaurantId"
+    get:
+      tags: [การจอง]
+      operationId: availability
+      summary: ที่นั่งที่ถูกจองทีละช่อง 30 นาที
+      description: ใช้ฟังก์ชันนับเดียวกับตอนตัดสินการจอง ตัวเลขจึงตรงกันเสมอ
+      security: [{}, { bearerAuth: [] }]
+      parameters:
+        - name: date
+          in: query
+          description: วันของรอบ · ไม่ส่ง = วันนี้ (เวลาไทย)
+          schema: { type: string, format: date, example: "2026-10-07" }
+        - name: excludeBookingId
+          in: query
+          description: ใช้ตอนแก้ไข · ไม่นับที่นั่งของการจองนี้ · มีผลเฉพาะการจองของคนที่ login อยู่ (ไม่ใช่ → ถูกเมิน)
+          schema: { type: integer }
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Availability" }
+        "400": { $ref: "#/components/responses/Validation" }
+        "404": { $ref: "#/components/responses/NotFound" }
+
+  /restaurants/{id}/bookings:
+    parameters:
+      - $ref: "#/components/parameters/RestaurantId"
+    post:
+      tags: [การจอง]
+      operationId: createBooking
+      summary: จองโต๊ะ
+      description: |
+        ตรวจตามลำดับ เจอข้อแรกที่ผิดก็ตอบเลย:
+        1. `date` เป็น `YYYY-MM-DD` → `VALIDATION`
+        2. `start`/`end` เป็น `HH:MM` → `VALIDATION`
+        3. ลงที่ :00/:30 → `INVALID_SLOT`
+        4. สิ้นสุดอยู่หลังเริ่ม → `INVALID_RANGE`
+        5. อยู่ในเวลาเปิดของรอบ → `OUTSIDE_HOURS`
+        6. เวลาเริ่มยังไม่ผ่าน → `IN_PAST`
+        7. `partySize` ≥ 1 → `VALIDATION`
+        8. ที่นั่งพอทุกช่อง 30 นาที → `SEATS_EXCEEDED` (409)
+
+        สองคนจองที่นั่งสุดท้ายพร้อมกัน: คนหนึ่งได้ 201 อีกคนได้ 409 เสมอ (ล็อกแถวร้านด้วย `SELECT … FOR UPDATE`)
+      security: [{ bearerAuth: [] }]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/BookingInput" }
+      responses:
+        "201":
+          description: จองสำเร็จ
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Booking" }
+        "400": { $ref: "#/components/responses/BookingInvalid" }
+        "401": { $ref: "#/components/responses/Unauthorized" }
+        "404": { $ref: "#/components/responses/NotFound" }
+        "409": { $ref: "#/components/responses/SeatsExceeded" }
+    get:
+      tags: [เจ้าของร้าน]
+      operationId: restaurantBookings
+      summary: รายการจองของร้านในวันหนึ่ง (dashboard เจ้าของ)
+      description: |
+        กรองตามวันของรอบ → ร้านโต้รุ่ง การจอง 01:00 ของคืนวันที่ 25 อยู่ในรายการวันที่ 25
+        · รวมทั้งที่ยืนยันและยกเลิกแล้ว เรียงตามเวลาเริ่ม
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - name: date
+          in: query
+          required: true
+          schema: { type: string, format: date, example: "2026-10-07" }
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: array
+                items: { $ref: "#/components/schemas/OwnerBooking" }
+        "400": { $ref: "#/components/responses/Validation" }
+        "401": { $ref: "#/components/responses/Unauthorized" }
+        "403": { $ref: "#/components/responses/Forbidden" }
+        "404": { $ref: "#/components/responses/NotFound" }
+
+  /me/bookings:
+    get:
+      tags: [การจอง]
+      operationId: myBookings
+      summary: การจองของฉัน
+      security: [{ bearerAuth: [] }]
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/MyBookings" }
+        "401": { $ref: "#/components/responses/Unauthorized" }
+
+  /bookings/{id}:
+    parameters:
+      - $ref: "#/components/parameters/BookingId"
+    put:
+      tags: [การจอง]
+      operationId: updateBooking
+      summary: แก้ไขการจอง
+      description: |
+        กติกาเดียวกับจองใหม่ แต่ไม่นับที่นั่งเดิมของการจองนี้ซ้ำ
+        · ร้าน 10 ที่ · A จอง 7 · B จอง 3 → A แก้เป็น 8: 3 + 8 = 11 ✕ · A แก้เป็น 5: 3 + 5 = 8 ✓
+
+        ตรวจก่อนกติกาการจอง: ไม่พบ → 404 · ไม่ใช่ของฉัน → 403 · ยกเลิกแล้ว → `BOOKING_CANCELLED` · เลยเวลา → `CANCEL_WINDOW_PASSED`
+      security: [{ bearerAuth: [] }]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/BookingInput" }
+      responses:
+        "200":
+          description: แก้สำเร็จ
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Booking" }
+        "400": { $ref: "#/components/responses/BookingInvalid" }
+        "401": { $ref: "#/components/responses/Unauthorized" }
+        "403": { $ref: "#/components/responses/Forbidden" }
+        "404": { $ref: "#/components/responses/NotFound" }
+        "409":
+          description: "`SEATS_EXCEEDED` · `BOOKING_CANCELLED` · `CANCEL_WINDOW_PASSED`"
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Error" }
+
+  /bookings/{id}/cancel:
+    parameters:
+      - $ref: "#/components/parameters/BookingId"
+    post:
+      tags: [การจอง]
+      operationId: cancelBooking
+      summary: ยกเลิกการจอง
+      description: ยกเลิกได้ถึง `เวลาเริ่ม − cancelLeadMinutes` ของร้าน · ที่นั่งคืนให้ร้านทันที
+      security: [{ bearerAuth: [] }]
+      responses:
+        "200":
+          description: ยกเลิกสำเร็จ (`status` = `cancelled`)
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Booking" }
+        "401": { $ref: "#/components/responses/Unauthorized" }
+        "403": { $ref: "#/components/responses/Forbidden" }
+        "404": { $ref: "#/components/responses/NotFound" }
+        "409":
+          description: "`BOOKING_CANCELLED` · `CANCEL_WINDOW_PASSED`"
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Error" }
+
+  # ---------------- รีวิว ----------------
+  /restaurants/{id}/reviews:
+    parameters:
+      - $ref: "#/components/parameters/RestaurantId"
+    get:
+      tags: [รีวิว]
+      operationId: listReviews
+      summary: รีวิวของร้าน (ทีละ 20 · แก้ล่าสุดก่อน)
+      security: [{}, { bearerAuth: [] }]
+      parameters:
+        - name: offset
+          in: query
+          schema: { type: integer, default: 0, minimum: 0 }
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/ReviewList" }
+        "404": { $ref: "#/components/responses/NotFound" }
+
+  /restaurants/{id}/reviews/me:
+    parameters:
+      - $ref: "#/components/parameters/RestaurantId"
+    put:
+      tags: [รีวิว]
+      operationId: upsertMyReview
+      summary: เขียน/แก้รีวิวของฉัน
+      description: 1 คน 1 รีวิวต่อร้าน · ส่งซ้ำ = แก้รีวิวเดิม · ไม่ต้องเคยจองมาก่อน · เจ้าของรีวิวร้านตัวเองไม่ได้
+      security: [{ bearerAuth: [] }]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/ReviewInput" }
+      responses:
+        "200":
+          description: บันทึกสำเร็จ
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Review" }
+        "400": { $ref: "#/components/responses/Validation" }
+        "401": { $ref: "#/components/responses/Unauthorized" }
+        "403":
+          description: "`OWN_RESTAURANT` รีวิวร้านของตัวเองไม่ได้"
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Error" }
+        "404": { $ref: "#/components/responses/NotFound" }
+
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+      description: "`accessToken` จาก `/auth/login` หรือ `/auth/register` · อายุ 7 วัน"
+
+  parameters:
+    RestaurantId:
+      name: id
+      in: path
+      required: true
+      schema: { type: integer, example: 1 }
+    BookingId:
+      name: id
+      in: path
+      required: true
+      schema: { type: integer }
+
+  responses:
+    Validation:
+      description: "`VALIDATION` ข้อมูลผิด · `details` = { ชื่อช่อง: ข้อความ } (JSON อ่านไม่ได้ → `details: null`)"
+      content:
+        application/json:
+          schema: { $ref: "#/components/schemas/Error" }
+          example:
+            error: { code: VALIDATION, message: ข้อมูลไม่ถูกต้อง, details: { date: รูปแบบวันที่ต้องเป็น YYYY-MM-DD } }
+    BookingInvalid:
+      description: "`VALIDATION` · `INVALID_SLOT` · `INVALID_RANGE` · `OUTSIDE_HOURS` (`details: { open, close }`) · `IN_PAST`"
+      content:
+        application/json:
+          schema: { $ref: "#/components/schemas/Error" }
+          example:
+            error: { code: OUTSIDE_HOURS, message: อยู่นอกเวลาเปิดร้าน, details: { open: "11:00", close: "22:00" } }
+    SeatsExceeded:
+      description: "`SEATS_EXCEEDED` ที่นั่งไม่พอ · `details` บอกช่องแรกที่เกิน"
+      content:
+        application/json:
+          schema: { $ref: "#/components/schemas/Error" }
+          example:
+            error:
+              code: SEATS_EXCEEDED
+              message: ที่นั่งไม่พอ
+              details: { slotStart: "12:00", slotEnd: "12:30", used: 10, party: 2, seats: 10 }
+    Unauthorized:
+      description: "`UNAUTHORIZED` ไม่ได้ login หรือ token ผิด/หมดอายุ"
+      content:
+        application/json:
+          schema: { $ref: "#/components/schemas/Error" }
+          example:
+            error: { code: UNAUTHORIZED, message: กรุณาเข้าสู่ระบบ, details: null }
+    Forbidden:
+      description: "`FORBIDDEN` ไม่ใช่เจ้าของร้าน/เจ้าของการจอง"
+      content:
+        application/json:
+          schema: { $ref: "#/components/schemas/Error" }
+          example:
+            error: { code: FORBIDDEN, message: คุณไม่มีสิทธิ์ทำรายการนี้, details: null }
+    NotFound:
+      description: "`NOT_FOUND` ไม่พบร้าน/การจอง (รวม `id` ที่ไม่ใช่ตัวเลข)"
+      content:
+        application/json:
+          schema: { $ref: "#/components/schemas/Error" }
+          example:
+            error: { code: NOT_FOUND, message: ไม่พบร้าน, details: null }
+
+  schemas:
+    Error:
+      type: object
+      properties:
+        error:
+          type: object
+          properties:
+            code:
+              type: string
+              enum:
+                - VALIDATION
+                - INVALID_SLOT
+                - INVALID_RANGE
+                - OUTSIDE_HOURS
+                - IN_PAST
+                - UNSUPPORTED_FILE
+                - UNAUTHORIZED
+                - FORBIDDEN
+                - OWN_RESTAURANT
+                - NOT_FOUND
+                - METHOD_NOT_ALLOWED
+                - EMAIL_TAKEN
+                - SEATS_EXCEEDED
+                - CANCEL_WINDOW_PASSED
+                - BOOKING_CANCELLED
+                - HAS_FUTURE_BOOKINGS
+                - PAYLOAD_TOO_LARGE
+                - INTERNAL
+            message: { type: string, description: ข้อความภาษาไทยพร้อมแสดง }
+            details: { type: object, nullable: true, description: ข้อมูลเพิ่มตาม code · ไม่มี = null }
+
+    # ----- บัญชี -----
+    RegisterInput:
+      type: object
+      required: [name, email, password]
+      properties:
+        name: { type: string, description: ห้ามว่าง, example: ทดลอง ใช้งาน }
+        email: { type: string, format: email, description: เก็บเป็นตัวพิมพ์เล็ก, example: test@example.com }
+        password: { type: string, description: อย่างน้อย 8 ตัว มีตัวเลข ไม่เกิน 72 byte, example: toawang123 }
+    LoginInput:
+      type: object
+      required: [email, password]
+      properties:
+        email: { type: string, format: email, example: somchai@example.com }
+        password: { type: string, example: toawang123 }
+    User:
+      type: object
+      properties:
+        id: { type: integer, example: 2 }
+        name: { type: string, example: สมชาย ใจดี }
+        email: { type: string, example: somchai@example.com }
+        createdAt: { type: string, format: date-time }
+    AuthResponse:
+      type: object
+      properties:
+        user: { $ref: "#/components/schemas/User" }
+        accessToken: { type: string, description: JWT HS256 อายุ 7 วัน }
+
+    # ----- ร้าน -----
+    Restaurant:
+      type: object
+      properties:
+        id: { type: integer, example: 4 }
+        ownerId: { type: integer, example: 1 }
+        name: { type: string, example: ข้าวต้มโต้รุ่งท่าน้ำ }
+        cuisine: { type: string, example: ข้าวต้ม กับข้าว · โต้รุ่ง }
+        description: { type: string }
+        seats: { type: integer, example: 20 }
+        openTime: { type: string, example: "18:00" }
+        closeTime: { type: string, example: "02:00" }
+        crossesMidnight: { type: boolean, description: "closeTime <= openTime = ปิดหลังเที่ยงคืน", example: true }
+        cancelLeadMinutes: { type: integer, example: 60 }
+        images:
+          type: array
+          items: { type: string }
+          example: [/uploads/seed-khao-tom-tha-nam-1.jpg, /uploads/seed-khao-tom-tha-nam-2.jpg]
+        avgRating: { type: number, nullable: true, description: ทศนิยม 1 ตำแหน่ง · null = ยังไม่มีรีวิว, example: 4.5 }
+        reviewCount: { type: integer, example: 42 }
+        hasEnoughReviews: { type: boolean, description: "reviewCount >= 5 · ไม่ถึง = ป้าย \"รีวิวยังน้อย\"", example: true }
+    RestaurantDetail:
+      allOf:
+        - $ref: "#/components/schemas/Restaurant"
+        - type: object
+          properties:
+            distribution:
+              type: object
+              description: จำนวนรีวิวแต่ละดาว มีครบ 1–5 เสมอ
+              additionalProperties: { type: integer }
+              example: { "1": 0, "2": 1, "3": 3, "4": 11, "5": 27 }
+    RestaurantInput:
+      type: object
+      required: [name, seats, openTime, closeTime, cancelLeadMinutes, images]
+      properties:
+        name: { type: string, description: 1–100 ตัวอักษร, example: ร้านทดลอง }
+        cuisine: { type: string, description: ไม่เกิน 100 ตัวอักษร, example: อาหารไทย }
+        description: { type: string, description: "ไม่เกิน 2,000 ตัวอักษร" }
+        seats: { type: integer, minimum: 1, example: 10 }
+        openTime: { type: string, description: "HH:MM ลงที่ :00/:30", example: "11:00" }
+        closeTime: { type: string, description: "HH:MM ลงที่ :00/:30 · ห้ามเท่าเวลาเปิด · น้อยกว่า = ข้ามเที่ยงคืน", example: "22:00" }
+        cancelLeadMinutes: { type: integer, minimum: 30, example: 60 }
+        images:
+          type: array
+          description: 1–8 รูป · ต้องเป็น url จาก POST /uploads
+          minItems: 1
+          maxItems: 8
+          items: { type: string }
+          example: [/uploads/seed-krua-rim-klong-1.jpg]
+
+    # ----- การจอง -----
+    BookingInput:
+      type: object
+      required: [date, start, end, partySize]
+      description: |
+        `date` คือวันของรอบ · ร้านข้ามเที่ยงคืน เวลาที่ ≤ เวลาปิดนับเป็นวันถัดไป
+        (ร้าน 18:00–02:00 · date 25 · 23:00–01:30 = 25 23:00 ถึง 26 01:30)
+      properties:
+        date: { type: string, format: date, example: "2026-10-07" }
+        start: { type: string, description: "HH:MM ลงที่ :00/:30", example: "14:00" }
+        end: { type: string, description: "HH:MM ลงที่ :00/:30", example: "15:00" }
+        partySize: { type: integer, minimum: 1, example: 2 }
+    Booking:
+      type: object
+      properties:
+        id: { type: integer, example: 12 }
+        restaurantId: { type: integer, example: 1 }
+        restaurantName: { type: string, example: ครัวริมคลอง }
+        partySize: { type: integer, example: 2 }
+        serviceDate: { type: string, format: date, description: วันของรอบ, example: "2026-10-07" }
+        start: { type: string, example: "14:00" }
+        end: { type: string, example: "15:00" }
+        status: { type: string, enum: [confirmed, cancelled] }
+        cancelDeadline: { type: string, description: เวลาสุดท้ายที่ยังแก้ไข/ยกเลิกได้, example: "13:00" }
+        cancelDeadlineDate: { type: string, format: date, example: "2026-10-07" }
+        cancelLeadMinutes: { type: integer, example: 60 }
+        canCancel: { type: boolean, description: ตอนนี้ยังแก้ไข/ยกเลิกได้ไหม (กติกาเดียวกับที่ API ตัดสิน) }
+        hasReviewed: { type: boolean, description: "เคยรีวิวร้านนี้แล้วไหม · มีค่าจริงเฉพาะใน GET /me/bookings ที่อื่นเป็น false เสมอ" }
+    MyBookings:
+      type: object
+      properties:
+        upcoming:
+          type: array
+          description: ยืนยันแล้ว ยังไม่จบ · ใกล้ → ไกล
+          items: { $ref: "#/components/schemas/Booking" }
+        past:
+          type: array
+          description: ยืนยันแล้ว จบแล้ว · ล่าสุดก่อน
+          items: { $ref: "#/components/schemas/Booking" }
+        cancelled:
+          type: array
+          description: ยกเลิกแล้ว · ล่าสุดก่อน
+          items: { $ref: "#/components/schemas/Booking" }
+    Availability:
+      type: object
+      properties:
+        date: { type: string, format: date, example: "2026-10-07" }
+        seats: { type: integer, example: 10 }
+        slots:
+          type: array
+          items: { $ref: "#/components/schemas/SlotUsage" }
+    SlotUsage:
+      type: object
+      properties:
+        start: { type: string, example: "11:30" }
+        used: { type: integer, description: จองแล้วกี่ที่, example: 4 }
+        past: { type: boolean, description: ช่องนี้จบไปแล้ว }
+    OwnerBooking:
+      type: object
+      properties:
+        id: { type: integer, example: 31 }
+        customerName: { type: string, example: สมชาย ใจดี }
+        partySize: { type: integer, example: 7 }
+        start: { type: string, example: "12:00" }
+        end: { type: string, example: "13:00" }
+        status: { type: string, enum: [confirmed, cancelled] }
+
+    # ----- รีวิว -----
+    Review:
+      type: object
+      properties:
+        id: { type: integer, example: 501 }
+        rating: { type: integer, minimum: 1, maximum: 5, example: 5 }
+        comment: { type: string, example: อร่อยมาก }
+        userName: { type: string, example: สมชาย ใจดี }
+        isMine: { type: boolean }
+        createdAt: { type: string, format: date-time }
+        updatedAt: { type: string, format: date-time }
+    ReviewList:
+      type: object
+      properties:
+        total: { type: integer, example: 126 }
+        items:
+          type: array
+          items: { $ref: "#/components/schemas/Review" }
+        mine:
+          type: object
+          allOf: [{ $ref: "#/components/schemas/Review" }]
+          nullable: true
+          description: รีวิวของคนที่ login · ส่งเฉพาะ offset=0 · ไม่มี = null
+    ReviewInput:
+      type: object
+      required: [rating]
+      properties:
+        rating: { type: integer, minimum: 1, maximum: 5, description: จำนวนเต็มเท่านั้น (3.5 → VALIDATION), example: 4 }
+        comment: { type: string, description: "ไม่เกิน 1,000 ตัวอักษร", example: บรรยากาศดี }

@@ -4,6 +4,7 @@ import (
 	"github.com/gofiber/fiber/v3"
 	"github.com/gofiber/fiber/v3/middleware/static"
 
+	"toawang/internal/apidocs"
 	"toawang/internal/middleware"
 )
 
@@ -49,4 +50,7 @@ func (h *Handler) Routes(app *fiber.App) {
 
 	// ไฟล์รูปที่อัปโหลด: GET /uploads/<ชื่อไฟล์>
 	app.Use("/uploads", static.New(h.UploadDir))
+
+	// Swagger UI: GET /docs
+	apidocs.Routes(app)
 }
