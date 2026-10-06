@@ -22,4 +22,5 @@ COPY --from=build /app/.next/standalone ./
 COPY --from=build /app/.next/static ./.next/static
 COPY --from=build /app/public ./public
 EXPOSE 3000
-CMD ["node", "server.js"]
+# ไม่ได้ตั้ง AUTH_SECRET → สุ่มใหม่ตอน container เริ่ม (ไม่มีค่า default ที่ใครก็รู้) · ผลคือสร้าง container ใหม่แล้วต้อง login ใหม่
+CMD ["sh", "-c", "export AUTH_SECRET=\"${AUTH_SECRET:-$(head -c 32 /dev/urandom | base64)}\"; exec node server.js"]

@@ -1,4 +1,5 @@
 # docker compose up --build → เปิด http://localhost:3000 ได้เลย (API seed ข้อมูลตัวอย่างใหม่ทุกครั้งที่เริ่ม)
+# ไม่ต้องมีไฟล์ .env: กุญแจ JWT สุ่มเก็บไว้ใน DB · AUTH_SECRET สุ่มตอน web เริ่ม (ไม่มีค่าลับที่เขียนไว้ใน repo)
 services:
   db:
     image: postgres:16-alpine
@@ -20,7 +21,7 @@ services:
     build: ./api
     environment:
       DATABASE_URL: postgres://toawang:toawang@db:5432/toawang?sslmode=disable
-      JWT_SECRET: ${JWT_SECRET:-dev-only-jwt-secret-change-me}
+      JWT_SECRET: ${JWT_SECRET:-} # ไม่ตั้ง = API สุ่มกุญแจแล้วเก็บไว้ใน DB เอง
       SEED_ON_START: "reset" # ทุกครั้งที่ api เริ่ม → ล้างแล้ว seed ใหม่ (เวลาในข้อมูลตัวอย่างนับจากตอนนี้)
     volumes:
       - uploads:/app/uploads # รูปที่อัปโหลดอยู่รอดแม้สร้าง container ใหม่
@@ -37,7 +38,7 @@ services:
         API_URL: http://api:8080
     environment:
       API_URL: http://api:8080 # ใช้ตอน runtime ใน NextAuth authorize() และ /api/v1/* (เรียก Go ฝั่ง server)
-      AUTH_SECRET: ${AUTH_SECRET:-dev-only-auth-secret-change-me-please-32chars}
+      AUTH_SECRET: ${AUTH_SECRET:-} # ไม่ตั้ง = สุ่มใหม่ตอน container เริ่ม
       AUTH_TRUST_HOST: "true"
       # ที่อยู่ที่เบราว์เซอร์เปิด · ไม่ตั้ง NextAuth จะใช้ 0.0.0.0:3000 (ค่า HOSTNAME ใน container) ตอน redirect หลัง logout
       AUTH_URL: ${AUTH_URL:-http://localhost:3000}

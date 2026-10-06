@@ -41,6 +41,18 @@ func main() {
 		}
 	}
 
+	// กุญแจเซ็น JWT: ตั้ง JWT_SECRET เอง (≥ 32 ตัวอักษร) หรือไม่ตั้ง → ใช้กุญแจที่สุ่มเก็บไว้ใน DB
+	// ไม่มีค่า default ที่เขียนไว้ใน repo อีกแล้ว เพราะใครอ่าน repo ก็ปลอม token เป็นผู้ใช้คนไหนก็ได้
+	secret := []byte(cfg.JWTSecret)
+	switch {
+	case len(secret) == 0:
+		if secret, err = database.JWTSecret(db); err != nil {
+			log.Fatalf("jwt secret: %v", err)
+		}
+	case len(secret) < 32:
+		log.Fatal("JWT_SECRET สั้นเกินไป ต้องยาวอย่างน้อย 32 ตัวอักษร (หรือไม่ต้องตั้ง แล้วระบบจะสุ่มเก็บไว้ใน DB)")
+	}
+
 	app := fiber.New(fiber.Config{
 		BodyLimit:    10 * 1024 * 1024, // 10MB — default 4MB ไม่พอสำหรับอัปโหลดรูป
 		ErrorHandler: apperr.Handler,   // ทุก error ตอบรูปแบบเดียวกัน
@@ -55,7 +67,7 @@ func main() {
 
 	h := &handlers.Handler{
 		DB:        db,
-		JWTSecret: []byte(cfg.JWTSecret),
+		JWTSecret: secret,
 		UploadDir: cfg.UploadDir,
 		Now:       time.Now,
 	}

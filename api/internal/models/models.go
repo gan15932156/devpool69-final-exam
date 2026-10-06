@@ -12,6 +12,13 @@ type User struct {
 	UpdatedAt    time.Time `json:"-"`
 }
 
+// AppSecret = ค่าลับที่ระบบสุ่มเองครั้งแรกแล้วเก็บไว้ เช่น กุญแจเซ็น JWT ตอนไม่ได้ตั้ง JWT_SECRET
+// seed.Reset ไม่ลบตารางนี้ → ล้างข้อมูลตัวอย่างแล้ว login เดิมยังใช้ได้
+type AppSecret struct {
+	Name  string `gorm:"primaryKey"`
+	Value string `gorm:"not null"`
+}
+
 type Restaurant struct {
 	ID                uint              `gorm:"primaryKey"`
 	OwnerID           uint              `gorm:"not null;index"`

@@ -7,7 +7,7 @@ import "os"
 type Config struct {
 	Port        string
 	DatabaseURL string
-	JWTSecret   string
+	JWTSecret   string // ว่าง = ใช้กุญแจที่สุ่มเก็บไว้ใน DB (database.JWTSecret) · ไม่มีค่า default ที่ใครก็รู้
 	UploadDir   string
 	SeedOnStart string // "reset" = ล้างแล้ว seed ใหม่ทุกครั้งที่เริ่ม · "true" = seed ถ้า DB ว่าง · "false" = ไม่ seed
 }
@@ -16,7 +16,7 @@ func Load() Config {
 	return Config{
 		Port:        getenv("PORT", "8080"),
 		DatabaseURL: getenv("DATABASE_URL", "postgres://toawang:toawang@localhost:5433/toawang?sslmode=disable"),
-		JWTSecret:   getenv("JWT_SECRET", "dev-secret-change-me"),
+		JWTSecret:   os.Getenv("JWT_SECRET"),
 		UploadDir:   getenv("UPLOAD_DIR", "uploads"),
 		SeedOnStart: getenv("SEED_ON_START", "reset"),
 	}
