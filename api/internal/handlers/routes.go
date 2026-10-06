@@ -10,7 +10,8 @@ import (
 
 // Routes ผูก URL เข้ากับ handler ทั้งหมด
 func (h *Handler) Routes(app *fiber.App) {
-	auth := middleware.RequireAuth(h.JWTSecret)
+	auth := middleware.RequireAuth(h.JWTSecret, h.DB)
+	optionalAuth := middleware.OptionalAuth(h.JWTSecret, h.DB)
 	limit := newLimits() // rate limit · ค่าอยู่ใน limits.go
 
 	api := app.Group("/api/v1")
@@ -21,6 +22,7 @@ func (h *Handler) Routes(app *fiber.App) {
 	// บัญชี
 	api.Post("/auth/register", limit.register, limit.registerAll, h.Register)
 	api.Post("/auth/login", limit.login, h.Login)
+	api.Post("/auth/logout", auth, h.Logout)
 	api.Get("/me", auth, h.Me)
 
 	// ร้าน
@@ -33,7 +35,6 @@ func (h *Handler) Routes(app *fiber.App) {
 	api.Post("/uploads", auth, limit.upload, h.Upload)
 
 	// การจอง
-	optionalAuth := middleware.OptionalAuth(h.JWTSecret)
 	api.Get("/restaurants/:id/availability", optionalAuth, h.Availability)
 	api.Post("/restaurants/:id/bookings", auth, limit.write, h.CreateBooking)
 

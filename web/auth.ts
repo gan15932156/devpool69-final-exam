@@ -48,4 +48,15 @@ export const { handlers, auth } = NextAuth({
       return session;
     },
   },
+  events: {
+    // ออกจากระบบ → บอก Go ให้ยกเลิก token ด้วย ไม่งั้น token ที่เคยหลุดไปยังใช้ได้จนหมดอายุ 7 วัน
+    async signOut(message) {
+      const token = "token" in message ? message.token?.accessToken : undefined;
+      if (!token) return;
+      await fetch(`${process.env.API_URL}/api/v1/auth/logout`, {
+        method: "POST",
+        headers: { Authorization: `Bearer ${token}` },
+      }).catch(() => {}); // Go ล่มอยู่ก็ยังออกจากระบบฝั่งเว็บได้
+    },
+  },
 });

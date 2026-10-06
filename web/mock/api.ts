@@ -382,6 +382,11 @@ const routes: [string, string, Handler][] = [
   ["GET", "health", () => json({ status: "ok", mock: true })],
   ["POST", "auth/register", register],
   ["POST", "auth/login", login],
+  // token ของ mock ("mock.<id>") ยกเลิกไม่ได้ · ตอบเหมือน Go ให้ตอน logout ไม่ error เท่านั้น
+  ["POST", "auth/logout", (c) => {
+    requireAuth(c);
+    return new Response(null, { status: 204 });
+  }],
   ["GET", "me", (c) => json(userDTO(c.s.users.find((u) => u.id === requireAuth(c))!))],
   ["GET", "restaurants", listRestaurants],
   ["GET", "restaurants/:", (c, i) => json(restaurantDetailDTO(c.s, findRestaurant(c, i)))],

@@ -6,7 +6,8 @@ type User struct {
 	ID           uint      `gorm:"primaryKey" json:"id"`
 	Name         string    `gorm:"not null" json:"name"`
 	Email        string    `gorm:"not null;uniqueIndex" json:"email"`
-	PasswordHash string    `gorm:"not null" json:"-"` // json:"-" = ไม่มีวันถูกส่งออกไปใน response
+	PasswordHash string    `gorm:"not null" json:"-"`           // json:"-" = ไม่มีวันถูกส่งออกไปใน response
+	TokenVersion int       `gorm:"not null;default:0" json:"-"` // ฝังใน token · logout → +1 → token เก่าทุกตัวใช้ไม่ได้
 	CreatedAt    time.Time `json:"createdAt"`
 	UpdatedAt    time.Time `json:"-"`
 }

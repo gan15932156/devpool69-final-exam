@@ -86,7 +86,7 @@ func (h *Handler) Register(c fiber.Ctx) error {
 		return err
 	}
 
-	token, err := h.signToken(user.ID)
+	token, err := h.signToken(&user)
 	if err != nil {
 		return err
 	}
@@ -111,11 +111,22 @@ func (h *Handler) Login(c fiber.Ctx) error {
 		return errInvalidLogin
 	}
 
-	token, err := h.signToken(user.ID)
+	token, err := h.signToken(&user)
 	if err != nil {
 		return err
 	}
 	return c.JSON(authResponse{User: user, AccessToken: token})
+}
+
+// POST /auth/logout — ยกเลิก token ทุกตัวของบัญชีนี้ทันที (เลขเวอร์ชันใน DB ขยับ → ไม่ตรงกับใน token เก่า)
+// หน้าเว็บเรียกตอนกดออกจากระบบ · ไม่งั้น token ที่หลุดไปยังใช้ได้จนหมดอายุ 7 วัน
+func (h *Handler) Logout(c fiber.Ctx) error {
+	err := h.DB.Model(&models.User{}).Where("id = ?", middleware.UserID(c)).
+		Update("token_version", gorm.Expr("token_version + 1")).Error
+	if err != nil {
+		return err
+	}
+	return c.SendStatus(http.StatusNoContent)
 }
 
 func (h *Handler) Me(c fiber.Ctx) error {
@@ -129,12 +140,15 @@ func (h *Handler) Me(c fiber.Ctx) error {
 	return c.JSON(user)
 }
 
-func (h *Handler) signToken(userID uint) (string, error) {
+func (h *Handler) signToken(user *models.User) (string, error) {
 	now := h.Now()
-	claims := jwt.RegisteredClaims{
-		Subject:   strconv.FormatUint(uint64(userID), 10),
-		IssuedAt:  jwt.NewNumericDate(now),
-		ExpiresAt: jwt.NewNumericDate(now.Add(tokenTTL)),
+	claims := middleware.Claims{
+		RegisteredClaims: jwt.RegisteredClaims{
+			Subject:   strconv.FormatUint(uint64(user.ID), 10),
+			IssuedAt:  jwt.NewNumericDate(now),
+			ExpiresAt: jwt.NewNumericDate(now.Add(tokenTTL)),
+		},
+		Ver: user.TokenVersion,
 	}
 	return jwt.NewWithClaims(jwt.SigningMethodHS256, claims).SignedString(h.JWTSecret)
 }
