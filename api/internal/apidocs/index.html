@@ -4,11 +4,17 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>ตึกตึกโต๊ะ API</title>
-  <link rel="stylesheet" href="https://unpkg.com/swagger-ui-dist@5/swagger-ui.css">
+  <!-- ล็อกเวอร์ชันตรงตัว + integrity (SRI): ถ้าไฟล์บน CDN ถูกเปลี่ยน เบราว์เซอร์จะไม่รัน
+       สำคัญเพราะหน้านี้เก็บ token ที่กด Authorize ไว้ (persistAuthorization)
+       อัปเดตเวอร์ชัน: เปลี่ยนเลข แล้วคำนวณ hash ใหม่
+       curl -sL https://unpkg.com/swagger-ui-dist@<เวอร์ชัน>/<ไฟล์> | openssl dgst -sha384 -binary | openssl base64 -A -->
+  <link rel="stylesheet" href="https://unpkg.com/swagger-ui-dist@5.33.1/swagger-ui.css"
+    integrity="sha384-Ov4/wv3j2bmct8cDc5X4ngJZohVPzEmc6uDPH8WeljUxO5vtoykvMEfbu9Vh6RaW" crossorigin="anonymous">
 </head>
 <body>
   <div id="swagger-ui"></div>
-  <script src="https://unpkg.com/swagger-ui-dist@5/swagger-ui-bundle.js" crossorigin></script>
+  <script src="https://unpkg.com/swagger-ui-dist@5.33.1/swagger-ui-bundle.js"
+    integrity="sha384-ZPehFMQommnnuaZ4rpxgkgTT2DKFVp4hZC/7pLit+9Lek9T1YGSo23eHFbvNkXkw" crossorigin="anonymous"></script>
   <script>
     window.ui = SwaggerUIBundle({
       url: "/docs/openapi.yaml",
