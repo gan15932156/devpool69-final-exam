@@ -21,7 +21,7 @@ func main() {
 	if err != nil {
 		log.Fatalf("connect database: %v", err)
 	}
-	// SEED_ON_START=reset (ค่า default) → ล้างทุกตารางแล้ว seed ใหม่ทุกครั้งที่เริ่ม
+	// SEED_ON_START=reset (ค่า default ของ DB dev) → ล้างทุกตารางแล้ว seed ใหม่ทุกครั้งที่เริ่ม
 	// การจองตัวอย่างนับจาก "ตอนนี้" เสมอ → เปิด dev/Docker เมื่อไหร่ ข้อมูลก็พร้อม present
 	if cfg.SeedOnStart == "reset" {
 		if err := seed.Reset(db); err != nil {

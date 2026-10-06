@@ -3,7 +3,7 @@ package config
 import "os"
 
 // Config เก็บค่าที่อ่านจาก environment variable
-// ถ้าไม่ได้ตั้งไว้จะใช้ค่า default ที่ตรงกับ docker-compose.yml (รันแบบ dev ได้เลยไม่ต้องตั้ง env)
+// ไม่ได้ตั้ง DATABASE_URL = รันแบบ dev ในเครื่อง → ใช้ DB ตาม docker-compose.yml ได้เลยไม่ต้องตั้ง env
 type Config struct {
 	Port        string
 	DatabaseURL string
@@ -12,14 +12,23 @@ type Config struct {
 	SeedOnStart string // "reset" = ล้างแล้ว seed ใหม่ทุกครั้งที่เริ่ม · "true" = seed ถ้า DB ว่าง · "false" = ไม่ seed
 }
 
+const devDatabaseURL = "postgres://toawang:toawang@localhost:5433/toawang?sslmode=disable"
+
 func Load() Config {
-	return Config{
+	cfg := Config{
 		Port:        getenv("PORT", "8080"),
-		DatabaseURL: getenv("DATABASE_URL", "postgres://toawang:toawang@localhost:5433/toawang?sslmode=disable"),
+		DatabaseURL: os.Getenv("DATABASE_URL"),
 		JWTSecret:   os.Getenv("JWT_SECRET"),
 		UploadDir:   getenv("UPLOAD_DIR", "uploads"),
-		SeedOnStart: getenv("SEED_ON_START", "reset"),
 	}
+	// ล้างข้อมูลเองโดยไม่ต้องสั่ง ได้เฉพาะ DB dev ในเครื่อง · ชี้ไป DB อื่นแล้วต้องตั้ง SEED_ON_START=reset เอง
+	seedDefault := "false"
+	if cfg.DatabaseURL == "" {
+		cfg.DatabaseURL = devDatabaseURL
+		seedDefault = "reset"
+	}
+	cfg.SeedOnStart = getenv("SEED_ON_START", seedDefault)
+	return cfg
 }
 
 func getenv(key, fallback string) string {
