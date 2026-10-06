@@ -209,7 +209,12 @@ export function seedStore(now = Date.now()): Store {
     }
   };
   const cancel = (b: ReturnType<typeof book>, user: User) => {
-    if (b) cancelBooking(s, b.id, user.id, now);
+    try {
+      if (b) cancelBooking(s, b.id, user.id, now);
+    } catch {
+      // เลยเวลายกเลิกแล้ว (การจองวันนี้ที่ใกล้ถึงเวลา) → ข้ามเหมือน Go (`_ = booking.Cancel(...)`)
+      // ไม่งั้น seed ล่มทั้งก้อน และ mock ตอบ 500 ทุก request ในบางช่วงเวลาของวัน
+    }
   };
   const { somchai, mali } = users;
 
