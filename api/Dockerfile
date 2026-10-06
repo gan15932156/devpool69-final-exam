@@ -11,8 +11,11 @@ RUN CGO_ENABLED=0 go build -o /out/api ./cmd/api
 # ---------- run: image เล็ก มีแค่ไฟล์โปรแกรม ----------
 FROM alpine:3.22
 WORKDIR /app
+# รันเป็น user ธรรมดา ไม่ใช่ root · โฟลเดอร์รูปต้องเป็นของ user นี้เพราะ API เขียนไฟล์ลงไป
+RUN addgroup -g 10001 app && adduser -D -H -u 10001 -G app app && mkdir -p /app/uploads && chown app:app /app/uploads
 COPY --from=build /out/api /app/api
 # timezone ฝังอยู่ในโปรแกรมแล้ว (import _ "time/tzdata") ไม่ต้องติดตั้ง tzdata
 ENV PORT=8080 UPLOAD_DIR=/app/uploads
+USER app
 EXPOSE 8080
 CMD ["/app/api"]

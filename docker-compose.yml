@@ -8,7 +8,7 @@ services:
       POSTGRES_PASSWORD: toawang
       POSTGRES_DB: toawang
     ports:
-      - "5433:5432" # เครื่อง dev มี Postgres อื่นใช้ 5432 อยู่
+      - "127.0.0.1:5433:5432" # เปิดให้เครื่องนี้เท่านั้น (รหัสผ่านอยู่ในไฟล์นี้) · เครื่อง dev มี Postgres อื่นใช้ 5432 อยู่
     volumes:
       - db-data:/var/lib/postgresql/data
     healthcheck:
@@ -24,9 +24,10 @@ services:
       JWT_SECRET: ${JWT_SECRET:-} # ไม่ตั้ง = API สุ่มกุญแจแล้วเก็บไว้ใน DB เอง
       SEED_ON_START: "reset" # ทุกครั้งที่ api เริ่ม → ล้างแล้ว seed ใหม่ (เวลาในข้อมูลตัวอย่างนับจากตอนนี้)
     volumes:
-      - uploads:/app/uploads # รูปที่อัปโหลดอยู่รอดแม้สร้าง container ใหม่
+      # รูปที่อัปโหลดอยู่รอดแม้สร้าง container ใหม่ · ใช้ชื่อใหม่เพราะ volume เดิมเป็นของ root แต่ตอนนี้ api รันเป็น user ธรรมดา
+      - uploads-data:/app/uploads
     ports:
-      - "8080:8080" # เปิดไว้ให้ยิง requests.http ตรงได้
+      - "127.0.0.1:8080:8080" # ยิง requests.http ได้จากเครื่องนี้ · เครื่องอื่นใน LAN เข้าไม่ได้
     depends_on:
       db:
         condition: service_healthy # รอจน DB พร้อมรับคำสั่งจริง ไม่ใช่แค่ container เปิด
@@ -49,4 +50,4 @@ services:
 
 volumes:
   db-data:
-  uploads:
+  uploads-data:
