@@ -97,17 +97,24 @@ var errBookingLimit = apperr.New(http.StatusConflict, "BOOKING_LIMIT",
 // POST /restaurants/:id/bookings — กติกาการจองทั้งหมดอยู่ใน internal/booking
 // ชั้นนี้เพิ่มแค่เพดานจำนวนการจองต่อคน (กันบัญชีเดียวกวาดที่นั่ง) · seed เรียก booking.Create ตรง จึงไม่โดนเพดานนี้
 func (h *Handler) CreateBooking(c fiber.Ctx) error {
+	// get param value
 	id, err := paramID(c, "id")
 	if err != nil {
 		return err
 	}
+
+	// parse http body to go var
 	var in booking.Input
 	if err := c.Bind().Body(&in); err != nil {
 		return apperr.BadBody()
 	}
 	now := h.Now()
+
+	// get userId from http header
 	userID := middleware.UserID(c)
 	var b *models.Booking
+
+	// query in transaction
 	err = h.DB.Transaction(func(tx *gorm.DB) error {
 		// ล็อกแถว user → คำขอจองของคนเดียวกันต้องต่อคิว นับแล้วค่อยจองจึงไม่หลุดเพดาน
 		if err := tx.Clauses(clause.Locking{Strength: "UPDATE"}).First(&models.User{}, userID).Error; err != nil {
