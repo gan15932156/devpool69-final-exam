@@ -17,7 +17,7 @@ const sarabun = Sarabun({
 });
 
 export const metadata: Metadata = {
-  title: "โต๊ะว่าง — จองโต๊ะ · รีวิวร้าน",
+  title: "ตึกตึกโต๊ะ — จองโต๊ะ · รีวิวร้าน",
   description: "ระบบจองโต๊ะร้านอาหารและรีวิวร้าน",
   icons: { icon: "/design/logo-seal.svg" },
 };

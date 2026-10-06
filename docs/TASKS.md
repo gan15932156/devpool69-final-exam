@@ -1,4 +1,4 @@
-# โต๊ะว่าง — Task Breakdown ตาม Phase
+# ตึกตึกโต๊ะ — Task Breakdown ตาม Phase
 
 แตกจาก [WALKTHROUGH.md](WALKTHROUGH.md) (แผน) + [design/HANDOFF.md](design/HANDOFF.md) (ดีไซน์) เป็น ticket ที่ทำทีละใบได้ · อัปเดตสถานะด้วยการติ๊ก `[ ]` หน้า ID
 

@@ -1,4 +1,4 @@
-# โต๊ะว่าง — Development Walkthrough
+# ตึกตึกโต๊ะ — Development Walkthrough
 
 แผนพัฒนาแบบทำทีละขั้น (25 ก.ย. – 11 ต.ค. 2569) · ดีไซน์อ้างอิง: [design/HANDOFF.md](design/HANDOFF.md)
 
