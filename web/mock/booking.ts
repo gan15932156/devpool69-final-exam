@@ -1,8 +1,9 @@
 // กติกาการจองแบบเดียวกับ api/internal/booking (service.go + validate.go) — แก้ที่ Go แล้วต้องแก้ที่นี่ด้วย
 import { AppError, forbidden, notFound, validation, nextId, type Booking, type Restaurant, type Store } from "./store";
-import { clock, formatHHMM, MIN, onHalfHour, parseDate, parseHHMM, resolve, serviceWindow } from "./time";
+import { addDays, clock, dateOf, formatHHMM, MIN, onHalfHour, parseDate, parseHHMM, resolve, serviceWindow } from "./time";
 
 const SLOT = 30 * MIN;
+const MAX_DAYS_AHEAD = 60; // booking.MaxDaysAhead
 
 export const errSeatsExceeded = new AppError(409, "SEATS_EXCEEDED", "ที่นั่งไม่พอ");
 const errWindowPassed = new AppError(409, "CANCEL_WINDOW_PASSED", "เลยเวลาที่ร้านให้แก้ไขหรือยกเลิกแล้ว");
@@ -11,6 +12,7 @@ const errInvalidSlot = new AppError(400, "INVALID_SLOT", "เวลาต้อ�
 const errInvalidRange = new AppError(400, "INVALID_RANGE", "เวลาสิ้นสุดต้องอยู่หลังเวลาเริ่ม");
 const errOutsideHours = new AppError(400, "OUTSIDE_HOURS", "อยู่นอกเวลาเปิดร้าน");
 const errInPast = new AppError(400, "IN_PAST", "เวลาเริ่มผ่านไปแล้ว");
+const errTooFarAhead = new AppError(400, "TOO_FAR_AHEAD", `จองล่วงหน้าได้ไม่เกิน ${MAX_DAYS_AHEAD} วัน`);
 
 export type Input = { date?: unknown; start?: unknown; end?: unknown; partySize?: unknown };
 type Slot = { serviceDate: string; startAt: number; endAt: number };
@@ -47,6 +49,7 @@ function validate(r: Restaurant, input: Input, now: number): Slot {
     throw errOutsideHours.withDetails({ open: formatHHMM(r.open), close: formatHHMM(r.close) });
   }
   if (startAt <= now) throw errInPast;
+  if (date > addDays(dateOf(now), MAX_DAYS_AHEAD)) throw errTooFarAhead.withDetails({ maxDays: MAX_DAYS_AHEAD });
 
   const party = input.partySize;
   if (typeof party !== "number" || !Number.isInteger(party) || party < 1) {

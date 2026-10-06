@@ -1,11 +1,14 @@
 package handlers
 
 import (
+	"fmt"
 	"net/http"
 	"strconv"
 	"time"
 
 	"github.com/gofiber/fiber/v3"
+	"gorm.io/gorm"
+	"gorm.io/gorm/clause"
 
 	"toawang/internal/apperr"
 	"toawang/internal/booking"
@@ -88,7 +91,11 @@ func (h *Handler) Availability(c fiber.Ctx) error {
 	})
 }
 
-// POST /restaurants/:id/bookings — กติกาทั้งหมดอยู่ใน internal/booking
+var errBookingLimit = apperr.New(http.StatusConflict, "BOOKING_LIMIT",
+	fmt.Sprintf("มีการจองที่ยังไม่ถึงเวลาครบ %d รายการแล้ว ยกเลิกรายการเดิมก่อนจองเพิ่ม", MaxActiveBookings))
+
+// POST /restaurants/:id/bookings — กติกาการจองทั้งหมดอยู่ใน internal/booking
+// ชั้นนี้เพิ่มแค่เพดานจำนวนการจองต่อคน (กันบัญชีเดียวกวาดที่นั่ง) · seed เรียก booking.Create ตรง จึงไม่โดนเพดานนี้
 func (h *Handler) CreateBooking(c fiber.Ctx) error {
 	id, err := paramID(c, "id")
 	if err != nil {
@@ -99,7 +106,26 @@ func (h *Handler) CreateBooking(c fiber.Ctx) error {
 		return apperr.BadBody()
 	}
 	now := h.Now()
-	b, err := booking.Create(h.DB, id, middleware.UserID(c), in, now)
+	userID := middleware.UserID(c)
+	var b *models.Booking
+	err = h.DB.Transaction(func(tx *gorm.DB) error {
+		// ล็อกแถว user → คำขอจองของคนเดียวกันต้องต่อคิว นับแล้วค่อยจองจึงไม่หลุดเพดาน
+		if err := tx.Clauses(clause.Locking{Strength: "UPDATE"}).First(&models.User{}, userID).Error; err != nil {
+			return err
+		}
+		var active int64
+		if err := tx.Model(&models.Booking{}).
+			Where("user_id = ? AND status = ? AND end_at > ?", userID, models.StatusConfirmed, now).
+			Count(&active).Error; err != nil {
+			return err
+		}
+		if active >= MaxActiveBookings {
+			return errBookingLimit.WithDetails(fiber.Map{"limit": MaxActiveBookings})
+		}
+		var err error
+		b, err = booking.Create(tx, id, userID, in, now) // transaction ซ้อน = SAVEPOINT ใน transaction นี้
+		return err
+	})
 	if err != nil {
 		return err
 	}

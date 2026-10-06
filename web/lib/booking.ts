@@ -40,7 +40,7 @@ export function isoDate(d: Date) {
   return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
 }
 
-// วันนี้ + อีก n-1 วัน (ใบจองแสดง 5 วัน) · backend ไม่จำกัดว่าจองล่วงหน้าได้ไกลแค่ไหน
+// วันนี้ + อีก n-1 วัน (ใบจองแสดง 5 วัน) · backend รับจองล่วงหน้าได้ไม่เกิน 60 วัน (booking.MaxDaysAhead)
 export function nextDays(n: number, from = new Date()) {
   return Array.from({ length: n }, (_, i) => {
     const d = new Date(from.getFullYear(), from.getMonth(), from.getDate() + i);

@@ -148,6 +148,7 @@ const runes = (v: string) => [...v].length;
 const MAX_NAME_LENGTH = 100;
 const MAX_SEATS = 1000;
 const MAX_CANCEL_LEAD_MINUTES = 7 * 24 * 60;
+const MAX_ACTIVE_BOOKINGS = 30;
 
 // ---------- ร้าน ----------
 
@@ -394,7 +395,14 @@ const routes: [string, string, Handler][] = [
   ["POST", "uploads", upload],
   ["GET", "restaurants/:/availability", getAvailability],
   ["POST", "restaurants/:/bookings", async (c, i) => {
-    const b = createBooking(c.s, findRestaurant(c, i).id, requireAuth(c), await body(c.req), c.now);
+    const me = requireAuth(c);
+    const active = c.s.bookings.filter((b) => b.userId === me && b.status === "confirmed" && b.endAt > c.now).length;
+    if (active >= MAX_ACTIVE_BOOKINGS) {
+      throw new AppError(409, "BOOKING_LIMIT", `มีการจองที่ยังไม่ถึงเวลาครบ ${MAX_ACTIVE_BOOKINGS} รายการแล้ว ยกเลิกรายการเดิมก่อนจองเพิ่ม`, {
+        limit: MAX_ACTIVE_BOOKINGS,
+      });
+    }
+    const b = createBooking(c.s, findRestaurant(c, i).id, me, await body(c.req), c.now);
     return json(bookingDTO(c.s, b, c.now), 201);
   }],
   ["GET", "me/bookings", myBookings],

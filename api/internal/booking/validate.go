@@ -33,7 +33,7 @@ var (
 )
 
 // Validate ตรวจกติกาที่ไม่ต้องดูการจองของคนอื่น ตามลำดับ (เจอข้อแรกที่ผิดก็หยุด)
-//  1. รูปแบบวันที่/เวลา  2. ลง :00/:30  3. สิ้นสุด > เริ่ม  4. อยู่ในเวลาเปิด  5. ยังไม่ผ่านไป  6. จำนวนคน ≥ 1
+//  1. รูปแบบวันที่/เวลา  2. ลง :00/:30  3. สิ้นสุด > เริ่ม  4. อยู่ในเวลาเปิด  5. ยังไม่ผ่านไป  6. ไม่เกิน 60 วันข้างหน้า  7. จำนวนคน ≥ 1
 //
 // ข้อ "ที่นั่งพอไหม" ตรวจแยกใน CheckSeats เพราะต้องทำใน transaction
 func Validate(r *models.Restaurant, in Input, now time.Time) (Slot, error) {
@@ -67,6 +67,10 @@ func Validate(r *models.Restaurant, in Input, now time.Time) (Slot, error) {
 
 	if !startAt.After(now) {
 		return Slot{}, ErrInPast
+	}
+
+	if date.After(At(now.In(Loc), 0).AddDate(0, 0, MaxDaysAhead)) {
+		return Slot{}, ErrTooFarAhead.WithDetails(map[string]int{"maxDays": MaxDaysAhead})
 	}
 
 	if in.PartySize < 1 {
