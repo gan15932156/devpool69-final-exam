@@ -60,6 +60,7 @@ func main() {
 		Now:       time.Now,
 	}
 	h.Routes(app)
+	go h.CleanUploads(time.Hour) // ลบรูปที่อัปโหลดทิ้งไว้แล้วไม่มีร้านไหนใช้
 
 	log.Fatal(app.Listen(":" + cfg.Port))
 }
