@@ -347,24 +347,31 @@ func (h *Handler) UpdateRestaurant(c fiber.Ctx) error {
 }
 
 // DELETE /restaurants/:id — เจ้าของเท่านั้น · ยังมีการจองที่ยังไม่จบ → 409
+// นับแล้วลบใน transaction ที่ล็อกแถวร้านไว้ (FOR UPDATE แบบเดียวกับตอนจอง) → การจองที่เข้ามาระหว่างนับกับลบ
+// ต้องรอจนลบเสร็จแล้วได้ 404 แทนที่จะได้ 201 แล้วโดนลบตามร้านไปเงียบ ๆ
 func (h *Handler) DeleteRestaurant(c fiber.Ctx) error {
 	r, err := h.ownedRestaurant(c)
 	if err != nil {
 		return err
 	}
 
-	var upcoming int64
-	if err := h.DB.Model(&models.Booking{}).
-		Where("restaurant_id = ? AND status = ? AND end_at > ?", r.ID, models.StatusConfirmed, h.Now()).
-		Count(&upcoming).Error; err != nil {
-		return err
-	}
-	if upcoming > 0 {
-		return errHasFutureBookings.WithDetails(fiber.Map{"count": upcoming})
-	}
-
-	// รูป / การจองเก่า / รีวิว ถูกลบตามด้วย ON DELETE CASCADE ที่ DB
-	if err := h.DB.Delete(r).Error; err != nil {
+	err = h.DB.Transaction(func(tx *gorm.DB) error {
+		if err := lockRestaurantRow(tx, r.ID); err != nil {
+			return err
+		}
+		var upcoming int64
+		if err := tx.Model(&models.Booking{}).
+			Where("restaurant_id = ? AND status = ? AND end_at > ?", r.ID, models.StatusConfirmed, h.Now()).
+			Count(&upcoming).Error; err != nil {
+			return err
+		}
+		if upcoming > 0 {
+			return errHasFutureBookings.WithDetails(fiber.Map{"count": upcoming})
+		}
+		// รูป / การจองเก่า / รีวิว ถูกลบตามด้วย ON DELETE CASCADE ที่ DB
+		return tx.Delete(&models.Restaurant{}, r.ID).Error
+	})
+	if err != nil {
 		return err
 	}
 	return c.SendStatus(http.StatusNoContent)
