@@ -11,7 +11,7 @@
 - Backend: Go · Fiber v3 · GORM · PostgreSQL 16 · JWT (HS256) · bcrypt
 - Infra: Docker Compose · **ไม่มี backend test** · ไม่ใช้ Makefile (เครื่องไม่มี `make`) → คำสั่งอยู่ใน README
 
-**Auth flow:** Login form → `signIn("credentials")` → NextAuth `authorize()` ยิง Go `/api/v1/auth/login` → Go ตรวจ bcrypt แล้วคืน JWT ที่ Go เซ็นเอง → NextAuth เก็บไว้ใน session → หน้าเว็บแนบ `Authorization: Bearer` ตอนเรียก Go
+**Auth flow:** Login form → `signIn("credentials")` → NextAuth `authorize()` ยิง Go `/api/v1/auth/login` → Go ตรวจ bcrypt แล้วคืน JWT ที่ Go เซ็นเอง → NextAuth เก็บไว้ใน session cookie (httpOnly · ไม่ส่งให้หน้าเว็บ) → หน้าเว็บเรียก `/api/v1/*` ของ Next แล้ว `app/api/v1/[...path]/route.ts` แนบ `Authorization: Bearer` ให้ฝั่ง server · logout → NextAuth เรียก Go `/auth/logout` ยกเลิก token
 
 **ข้อ [ต้องคุย] ใน HANDOFF §6**
 | # | เรื่อง | ตัดสินใจ |
@@ -30,7 +30,7 @@
 | ลบร้านที่ยังมีการจองในอนาคต | ห้ามลบ ตอบ 409 |
 | ลดที่นั่ง / เปลี่ยนเวลาเปิด-ปิด ตอนมีการจองอยู่แล้ว | การจองเดิมยังอยู่ กติกาใหม่ใช้กับการจองใหม่หรือการแก้ไขครั้งต่อไป |
 | เจ้าของจองร้านตัวเอง | อนุญาต (โจทย์ห้ามแค่รีวิวร้านตัวเอง) |
-| จองล่วงหน้าได้ไกลสุด | backend ไม่จำกัด · หน้าเว็บแสดง 5 วัน |
+| จองล่วงหน้าได้ไกลสุด | backend 60 วัน (`TOO_FAR_AHEAD`) · หน้าเว็บแสดง 5 วัน |
 | เวลาเปิด/ปิดร้าน | ต้องลงที่ :00 หรือ :30 และเปิด ≠ ปิด |
 | ประเภทร้าน (cuisine) | เพิ่มช่องในฟอร์ม (ไม่บังคับกรอก) เพราะการ์ดแสดง แต่ฟอร์มในดีไซน์ไม่มี |
 

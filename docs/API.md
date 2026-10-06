@@ -21,12 +21,30 @@ API ของ Go ทั้งหมด · โค้ดอยู่ที่ [api
 Authorization: Bearer <accessToken>
 ```
 
-- JWT แบบ HS256 · อายุ 7 วัน · `sub` = id ผู้ใช้
+- JWT แบบ HS256 · อายุ 7 วัน · `sub` = id ผู้ใช้ · `ver` = เวอร์ชัน token ของผู้ใช้
+- `POST /auth/logout` ขยับเวอร์ชัน → token ทุกตัวของบัญชีนั้นใช้ไม่ได้ทันที (`401`) ไม่ต้องรอหมดอายุ
+- กุญแจเซ็น: ตั้ง `JWT_SECRET` (≥ 32 ตัวอักษร) หรือไม่ตั้ง → API สุ่มเก็บไว้ใน DB เอง
+- หน้าเว็บไม่ถือ token เอง: token อยู่ใน session cookie (httpOnly) แล้ว `web/app/api/v1/[...path]/route.ts` แนบให้ฝั่ง server
 - คอลัมน์ **Auth** ในตารางด้านล่าง:
   - **ต้อง** = ไม่มี token หรือ token ผิด/หมดอายุ → `401 UNAUTHORIZED`
   - **ไม่บังคับ** = ไม่ส่งก็ได้ แต่ถ้าส่งมา ผลลัพธ์จะรู้ว่าเป็นใคร (เช่น `isMine`, `mine`)
   - **–** = ไม่ต้องใช้
 - สิทธิ์เจ้าของร้าน/เจ้าของการจองตรวจที่ API ทุกครั้ง ไม่ใช่เจ้าของ → `403 FORBIDDEN`
+
+### Rate limit
+
+เกินแล้วตอบ `429 TOO_MANY_REQUESTS` พร้อม header `Retry-After` (วินาที) · ค่าอยู่ที่ [api/internal/handlers/limits.go](../api/internal/handlers/limits.go)
+
+| route | เพดาน | นับต่อ |
+|---|---|---|
+| `POST /auth/login` | ผิด 10 ครั้ง / 15 นาที (login สำเร็จไม่นับ) | อีเมล |
+| `POST /auth/register` | 10 ครั้ง / ชม. และรวมทั้งระบบ 100 ครั้ง / ชม. | IP |
+| `POST /uploads` | 30 ครั้ง / 10 นาที | บัญชี |
+| route ที่เปลี่ยนข้อมูลอื่น ๆ (จอง แก้ ยกเลิก รีวิว ร้าน) | 60 ครั้ง / นาที | บัญชี |
+
+> login นับต่ออีเมล ไม่ใช่ต่อ IP เพราะ login จากหน้าเว็บผ่าน server ของ Next ทั้งหมด (IP เดียวกัน) · ผลข้างเคียง: คนอื่นใส่รหัสผิดให้อีเมลเราครบ 10 ครั้ง เราต้องรอ 15 นาที
+>
+> IP ของคนสมัครอ่านจาก `X-Forwarded-For` ที่ Next ส่งต่อมา ซึ่ง client ปลอมได้ จึงมีเพดานรวม 100 ครั้ง/ชม. อีกชั้น · รันใน Docker บนเครื่องเดียว เบราว์เซอร์ทุกตัวอาจออกมาเป็น IP เดียวกัน (gateway ของ Docker) → 10 ครั้ง/ชม. กลายเป็นเพดานรวมของเครื่องนั้น
 
 ### รูปแบบ error
 
@@ -52,8 +70,9 @@ Authorization: Bearer <accessToken>
 | 400 | `INVALID_RANGE` | เวลาสิ้นสุดไม่อยู่หลังเวลาเริ่ม |
 | 400 | `OUTSIDE_HOURS` | นอกเวลาเปิดร้าน · `details: { open, close }` |
 | 400 | `IN_PAST` | เวลาเริ่มผ่านไปแล้ว |
+| 400 | `TOO_FAR_AHEAD` | จองล่วงหน้าเกิน 60 วัน · `details: { maxDays }` |
 | 400 | `UNSUPPORTED_FILE` | ไฟล์ไม่ใช่ JPG/PNG/WEBP หรือเกิน 5MB |
-| 401 | `UNAUTHORIZED` | ไม่ได้ login · token ผิด · อีเมล/รหัสผ่านผิด |
+| 401 | `UNAUTHORIZED` | ไม่ได้ login · token ผิด/หมดอายุ/ถูกยกเลิกด้วย logout · อีเมล/รหัสผ่านผิด |
 | 403 | `FORBIDDEN` | ไม่ใช่เจ้าของร้าน/เจ้าของการจอง |
 | 403 | `OWN_RESTAURANT` | รีวิวร้านของตัวเอง |
 | 404 | `NOT_FOUND` | ไม่พบร้าน/การจอง · `:id` ไม่ใช่ตัวเลข · ไม่มี route นี้ |
@@ -63,7 +82,9 @@ Authorization: Bearer <accessToken>
 | 409 | `CANCEL_WINDOW_PASSED` | เลยเวลาที่ร้านให้แก้ไข/ยกเลิก |
 | 409 | `BOOKING_CANCELLED` | การจองถูกยกเลิกไปแล้ว |
 | 409 | `HAS_FUTURE_BOOKINGS` | ลบร้านที่ยังมีการจองไม่จบ · `details: { count }` |
+| 409 | `BOOKING_LIMIT` | มีการจองที่ยังไม่ถึงเวลาครบ 30 รายการแล้ว · `details: { limit }` |
 | 413 | `PAYLOAD_TOO_LARGE` | body เกิน 10MB |
+| 429 | `TOO_MANY_REQUESTS` | เกิน [rate limit](#rate-limit) |
 | 500 | `INTERNAL` | bug ฝั่ง server (รายละเอียดอยู่ใน log ไม่ส่งออกมา) |
 
 ## สรุป endpoint
@@ -73,6 +94,7 @@ Authorization: Bearer <accessToken>
 | GET | `/health` | – | เช็กว่า API ทำงาน |
 | POST | `/auth/register` | – | สมัครสมาชิก |
 | POST | `/auth/login` | – | เข้าสู่ระบบ |
+| POST | `/auth/logout` | ต้อง | ออกจากระบบ (ยกเลิก token ทุกตัวของบัญชี) |
 | GET | `/me` | ต้อง | ข้อมูลผู้ใช้ที่ login |
 | GET | `/restaurants` | – | ค้นหา/เรียงร้าน |
 | GET | `/restaurants/:id` | – | รายละเอียดร้าน + การกระจายดาว |
@@ -103,7 +125,7 @@ Authorization: Bearer <accessToken>
 
 | ช่อง | กติกา |
 |---|---|
-| `name` | ห้ามว่าง (ตัดช่องว่างหน้า-หลัง) |
+| `name` | 1–100 ตัวอักษร (ตัดช่องว่างหน้า-หลัง) |
 | `email` | รูปแบบอีเมลถูกต้อง · เก็บเป็นตัวพิมพ์เล็ก |
 | `password` | อย่างน้อย 8 ตัว · มีตัวเลขอย่างน้อย 1 ตัว · ไม่เกิน 72 byte |
 
@@ -116,7 +138,7 @@ Authorization: Bearer <accessToken>
 }
 ```
 
-Error: `400 VALIDATION` (`name` / `email` / `password`) · `409 EMAIL_TAKEN`
+Error: `400 VALIDATION` (`name` / `email` / `password`) · `409 EMAIL_TAKEN` · `429`
 
 ### `POST /auth/login`
 
@@ -126,13 +148,19 @@ Error: `400 VALIDATION` (`name` / `email` / `password`) · `409 EMAIL_TAKEN`
 
 **200** → `AuthResponse` (หน้าตาเดียวกับ register)
 
-Error: `401 UNAUTHORIZED` "อีเมลหรือรหัสผ่านไม่ถูกต้อง" — ไม่แยกว่าผิดที่อีเมลหรือรหัสผ่าน เพื่อไม่ให้เดาได้ว่าใครมีบัญชี
+Error: `401 UNAUTHORIZED` "อีเมลหรือรหัสผ่านไม่ถูกต้อง" — ไม่แยกว่าผิดที่อีเมลหรือรหัสผ่าน เพื่อไม่ให้เดาได้ว่าใครมีบัญชี · `429` ผิดเกิน 10 ครั้งใน 15 นาที
+
+### `POST /auth/logout`
+
+ไม่มี body · **204** · token ทุกตัวของบัญชีนี้ (ทุกเครื่อง) ใช้ไม่ได้ทันที · หน้าเว็บเรียกให้เองตอนกดออกจากระบบ
+
+Error: `401`
 
 ### `GET /me`
 
 **200** → `User` `{ id, name, email, createdAt }` · ไม่มี password hash ออกมาเด็ดขาด
 
-Error: `401` (รวมกรณี token ถูกแต่ผู้ใช้ถูกลบไปแล้ว)
+Error: `401` (รวมกรณี token ถูกแต่ผู้ใช้ถูกลบไปแล้ว หรือ logout ไปแล้ว)
 
 ---
 
@@ -210,9 +238,9 @@ body เดียวกันทั้งคู่ · `PUT` เป็นกา�
 | `name` | 1–100 ตัวอักษร |
 | `cuisine` | ไม่เกิน 100 ตัวอักษร (ว่างได้) |
 | `description` | ไม่เกิน 2,000 ตัวอักษร (ว่างได้) |
-| `seats` | ≥ 1 |
+| `seats` | 1–1,000 |
 | `openTime`, `closeTime` | `HH:MM` ลงที่ :00 หรือ :30 · ห้ามเท่ากัน · ปิด < เปิด = ข้ามเที่ยงคืน |
-| `cancelLeadMinutes` | ≥ 30 |
+| `cancelLeadMinutes` | 30–10,080 (30 นาทีถึง 7 วัน) |
 | `images` | 1–8 รูป · ต้องเป็น URL ที่ได้จาก `POST /uploads` (ขึ้นต้น `/uploads/`) |
 
 **201** (สร้าง) / **200** (แก้) → `Restaurant` + `distribution`
@@ -227,6 +255,8 @@ Error: `400 VALIDATION` · `403 FORBIDDEN` (PUT ร้านคนอื่น) 
 
 Error: `403` · `404` · `409 HAS_FUTURE_BOOKINGS` `details: { "count": 3 }` เมื่อยังมีการจองที่ยืนยันแล้วและยังไม่จบ
 
+> นับการจองแล้วลบใน transaction ที่ล็อกแถวร้าน (แบบเดียวกับตอนจอง) → การจองที่เข้ามาระหว่างนั้นต้องรอ แล้วได้ `404` แทนที่จะได้ `201` แล้วหายไปพร้อมร้าน
+
 ### `GET /me/restaurants`
 
 **200** → `Restaurant[]` ของร้านที่ฉันเป็นเจ้าของ เรียงตาม id
@@ -237,6 +267,7 @@ Error: `403` · `404` · `409 HAS_FUTURE_BOOKINGS` `details: { "count": 3 }` เ
 
 - รับ JPG / PNG / WEBP ไม่เกิน 5MB · ตรวจชนิดจากเนื้อไฟล์จริง ไม่ดูนามสกุล
 - ตั้งชื่อไฟล์ใหม่แบบสุ่ม ไม่ใช้ชื่อที่ส่งมา
+- รูปที่ไม่มีร้านไหนใช้ (อัปโหลดแล้วไม่บันทึก / เปลี่ยนรูป / ลบร้าน) ถูกลบอัตโนมัติเมื่อเก่าเกิน 24 ชม.
 
 **201**
 
@@ -244,7 +275,7 @@ Error: `403` · `404` · `409 HAS_FUTURE_BOOKINGS` `details: { "count": 3 }` เ
 { "url": "/uploads/3f9a0b7e4c2d1a6f8e5b9c0d7a1e2f3c.jpg" }
 ```
 
-Error: `400 VALIDATION` (`file` ไม่ได้แนบ) · `400 UNSUPPORTED_FILE`
+Error: `400 VALIDATION` (`file` ไม่ได้แนบ) · `400 UNSUPPORTED_FILE` · `429`
 
 ---
 
@@ -252,7 +283,7 @@ Error: `400 VALIDATION` (`file` ไม่ได้แนบ) · `400 UNSUPPORTED
 
 ### หลักเรื่องเวลา
 
-- ลูกค้ากรอก **วันที่ของรอบ + เวลาเริ่ม + เวลาสิ้นสุด + จำนวนคน** · ไม่มีระยะเวลาตายตัว
+- ลูกค้ากรอก **วันที่ของรอบ + เวลาเริ่ม + เวลาสิ้นสุด + จำนวนคน** · ไม่มีระยะเวลาตายตัว · จองล่วงหน้าได้ไม่เกิน 60 วัน
 - เวลาต้องลงที่ :00 / :30 · ที่นั่งนับทีละช่อง 30 นาที ทุกช่องในช่วงที่จองต้อง `จองแล้ว + คนที่ขอ ≤ seats`
 - **ร้านข้ามเที่ยงคืน**: `date` คือวันของรอบ · เวลาที่ ≤ `closeTime` นับเป็นของวันถัดไป
   ตัวอย่าง ร้าน 18:00–02:00 `{ "date": "2026-09-25", "start": "23:00", "end": "01:30" }` = 25 ก.ย. 23:00 ถึง 26 ก.ย. 01:30
@@ -301,8 +332,11 @@ Error: `400 VALIDATION` (`file` ไม่ได้แนบ) · `400 UNSUPPORTED
 | 4 | สิ้นสุดอยู่หลังเริ่ม | `400 INVALID_RANGE` |
 | 5 | อยู่ในเวลาเปิดของรอบนั้น | `400 OUTSIDE_HOURS` `{ open, close }` |
 | 6 | เวลาเริ่มยังไม่ผ่านไป | `400 IN_PAST` |
-| 7 | `partySize` ≥ 1 | `400 VALIDATION` `{ partySize }` |
-| 8 | ที่นั่งพอทุกช่อง 30 นาที | `409 SEATS_EXCEEDED` |
+| 7 | `date` ไม่เกิน 60 วันจากวันนี้ | `400 TOO_FAR_AHEAD` `{ maxDays }` |
+| 8 | `partySize` ≥ 1 | `400 VALIDATION` `{ partySize }` |
+| 9 | ที่นั่งพอทุกช่อง 30 นาที | `409 SEATS_EXCEEDED` |
+
+> ข้อ 9 เทียบเป็น `partySize > seats − used` ไม่ใช่ `used + partySize > seats` (ความหมายเดียวกัน) · ถ้าบวก `partySize` ที่ส่งมาก้อนใหญ่มาก เช่น `9223372036854775807` ตัวเลขจะล้นเป็นค่าติดลบแล้วผ่าน ทั้งที่ร้านเต็ม
 
 <a id="seats_exceeded"></a>`SEATS_EXCEEDED` บอกช่องแรกที่เกิน ให้หน้าเว็บเขียนข้อความเอง:
 
@@ -346,7 +380,7 @@ Error: `400 VALIDATION` `{ date }` · `404`
 
 body: `BookingInput` · **201** → `Booking`
 
-Error: ตามตาราง BookingInput · `404`
+Error: ตามตาราง BookingInput · `404` · `409 BOOKING_LIMIT` มีการจองที่ยังไม่ถึงเวลาครบ 30 รายการแล้ว (กันบัญชีเดียวกวาดที่นั่ง)
 
 > สองคนจองที่นั่งสุดท้ายพร้อมกัน: API ล็อกแถวร้าน (`SELECT … FOR UPDATE`) คนหนึ่งได้ `201` อีกคนได้ `409 SEATS_EXCEEDED` เสมอ · ทดสอบด้วย `bash api/scripts/race.sh`
 

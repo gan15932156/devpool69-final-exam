@@ -25,11 +25,11 @@ docker compose up --build
 | บริการ | ที่อยู่ |
 |---|---|
 | เว็บ | http://localhost:3000 |
-| Go API | http://localhost:8080/api/v1/health |
+| Go API | http://localhost:8080/api/v1/health (เปิดให้เครื่องนี้เท่านั้น) |
 | API docs (Swagger UI) | http://localhost:8080/docs |
-| PostgreSQL | `localhost:5433` (user / pass / db = `toawang`) |
+| PostgreSQL | `localhost:5433` (user / pass / db = `toawang` · เปิดให้เครื่องนี้เท่านั้น) |
 
-**ข้อมูลตัวอย่างสดใหม่ทุกครั้งที่ API เริ่ม** (`SEED_ON_START=reset`): ทุกตารางถูกล้างแล้ว seed ใหม่ การจองตัวอย่างนับจากเวลาตอนนั้น · ทิ้งไว้นานจนการจองวันนี้ผ่านไปแล้ว → `docker compose restart api` · ข้อมูลที่สร้างระหว่างทดสอบจะหายเมื่อ restart (อยากเก็บไว้ ดู `SEED_ON_START` ด้านล่าง) · ล็อกอินค้างไว้ได้ เพราะ seed สร้างผู้ใช้ลำดับเดิม id เดิมทุกครั้ง
+**ข้อมูลตัวอย่างสดใหม่ทุกครั้งที่ API เริ่ม** (`SEED_ON_START=reset`): ทุกตารางถูกล้างแล้ว seed ใหม่ การจองตัวอย่างนับจากเวลาตอนนั้น · ทิ้งไว้นานจนการจองวันนี้ผ่านไปแล้ว → `docker compose restart api` · ข้อมูลที่สร้างระหว่างทดสอบจะหายเมื่อ restart (อยากเก็บไว้ ดู `SEED_ON_START` ด้านล่าง) · ล็อกอินค้างไว้ได้ เพราะ seed สร้างผู้ใช้ลำดับเดิม id เดิมทุกครั้ง และกุญแจ JWT เก็บในตารางที่ไม่ถูกล้าง · สร้าง container `web` ใหม่ (เช่น `up --build`) ต้อง login ใหม่ เพราะ `AUTH_SECRET` สุ่มใหม่ (ตั้งค่าเองใน `.env` ได้)
 
 ## บัญชีทดสอบ
 
@@ -79,16 +79,29 @@ npm run dev:mock                     # http://localhost:3000 (เปลี่ย
 | ตัวแปร | ใช้ที่ | ค่า default | ความหมาย |
 |---|---|---|---|
 | `DATABASE_URL` | api | `postgres://toawang:toawang@localhost:5433/toawang?sslmode=disable` | ที่อยู่ PostgreSQL |
-| `JWT_SECRET` | api | `dev-secret-change-me` | กุญแจเซ็น JWT (HS256) — **เปลี่ยนเมื่อใช้จริง** |
+| `JWT_SECRET` | api | — (สุ่มเก็บใน DB) | กุญแจเซ็น JWT (HS256) · ถ้าตั้งต้องยาวอย่างน้อย 32 ตัวอักษร · ไม่ตั้ง = API สุ่มครั้งแรกแล้วเก็บในตาราง `app_secrets` |
 | `PORT` | api | `8080` | พอร์ตของ Go |
 | `UPLOAD_DIR` | api | `uploads` | โฟลเดอร์เก็บรูปที่อัปโหลด |
-| `SEED_ON_START` | api | `reset` | `reset` = ล้างทุกตารางแล้ว seed ใหม่ทุกครั้งที่เริ่ม · `true` = seed เฉพาะตอน DB ว่าง (เก็บข้อมูลที่ทดสอบไว้) · `false` = ไม่ seed |
-| `API_URL` | web | `http://localhost:8080` | ที่อยู่ Go สำหรับ rewrites และ NextAuth (ฝั่ง server) |
-| `AUTH_SECRET` | web | — (Docker มีค่า dev ให้) | กุญแจเข้ารหัส session cookie ของ NextAuth |
+| `SEED_ON_START` | api | `reset` ถ้าไม่ได้ตั้ง `DATABASE_URL` · ไม่งั้น `false` | `reset` = ล้างทุกตารางแล้ว seed ใหม่ทุกครั้งที่เริ่ม · `true` = seed เฉพาะตอน DB ว่าง (เก็บข้อมูลที่ทดสอบไว้) · `false` = ไม่ seed · ชี้ไป DB อื่นแล้วไม่มีการล้างข้อมูลเอง ต้องสั่งเอง |
+| `API_URL` | web | `http://localhost:8080` | ที่อยู่ Go สำหรับ `/api/v1/*` (route ของ Next ที่แนบ token) · rewrite รูป · NextAuth (ฝั่ง server ทั้งหมด) |
+| `AUTH_SECRET` | web | — (Docker สุ่มให้ตอนเริ่ม) | กุญแจเข้ารหัส session cookie ของ NextAuth |
 | `AUTH_TRUST_HOST` | web | `true` | ให้ NextAuth เชื่อ Host header (จำเป็นเมื่อรันหลัง Docker/proxy) |
 | `AUTH_URL` | web | `http://localhost:3000` (Docker) | ที่อยู่ที่เบราว์เซอร์เปิด ใช้ตอน redirect หลัง logout |
 
-ค่าลับสำหรับ Docker ใส่ในไฟล์ `.env` ที่ root ได้ (ดู `.env.example`)
+ไม่มีไฟล์ `.env` ก็รันได้ · อยากกำหนดค่าลับเองสำหรับ Docker ใส่ในไฟล์ `.env` ที่ root (ดู `.env.example`)
+
+## ความปลอดภัย
+
+| เรื่อง | ทำอะไรไว้ |
+|---|---|
+| ตรวจที่นั่ง | เทียบ `partySize > seats − used` แทน `used + partySize > seats` → ส่งจำนวนคนมหาศาล (เช่น `9223372036854775807`) ก็ไม่ล้น int จนจองเกินได้ |
+| ใช้งานในทางผิด | rate limit (login ผิดต่ออีเมล · สมัครต่อ IP · การเขียนต่อบัญชี) · จองล่วงหน้าได้ไม่เกิน 60 วัน · การจองที่ยังไม่ถึงเวลาไม่เกิน 30 รายการต่อคน · จำกัดความยาวชื่อ/ที่นั่ง/เวลายกเลิก · ลบรูปที่ไม่มีร้านใช้ ([รายละเอียด](docs/API.md#rate-limit)) |
+| Token | หน้าเว็บอ่าน token ของ Go ไม่ได้ (อยู่ใน cookie httpOnly · `web/app/api/v1/[...path]/route.ts` แนบให้ฝั่ง server และกัน CSRF ด้วย `Sec-Fetch-Site`) · logout แล้ว token เดิมใช้ไม่ได้ทันที |
+| ค่าลับ | ไม่มีค่า default ที่เขียนไว้ใน repo · ไม่ตั้ง `JWT_SECRET` = สุ่มเก็บใน DB · `AUTH_SECRET` ใน Docker สุ่มตอนเริ่ม |
+| Redirect หลัง login | `callbackUrl` ต้องเป็น path ในเว็บเรา ตรวจด้วย URL parser (กัน `/\evil.com`) |
+| Docker | container รันเป็น user ธรรมดา · DB และ API เปิดให้เครื่องนี้เท่านั้น · Swagger UI ล็อกเวอร์ชันพร้อม integrity hash |
+
+> โหมด `SEED_ON_START=reset` สร้างตาราง users ใหม่ทุกครั้ง → token ที่ logout ไปแล้วก่อน restart กลับมาใช้ได้ถ้ายังไม่หมดอายุ · ใช้โหมดนี้กับข้อมูลเดโมเท่านั้น
 
 ## ทดสอบกติกาการจอง
 
@@ -104,7 +117,7 @@ api/                         Go · Fiber v3 · GORM
 └── internal/
     ├── booking/             ★ กติกาการจองทั้งหมด (แปลงเวลา · ตรวจ · lock · ตรวจที่นั่งทีละช่อง)
     ├── handlers/            HTTP endpoints
-    ├── middleware/          ตรวจ JWT
+    ├── middleware/          ตรวจ JWT + เวอร์ชัน token (logout แล้วใช้ไม่ได้)
     ├── models/              ตาราง
     ├── apperr/              รูปแบบ error กลาง { error: { code, message, details } }
     ├── apidocs/             Swagger UI ที่ /docs + openapi.yaml
@@ -112,6 +125,7 @@ api/                         Go · Fiber v3 · GORM
 web/                         Next.js 16 · Tailwind v4 · NextAuth v5 · TanStack Query
 ├── app/(auth)/              เข้าสู่ระบบ · สมัคร
 ├── app/(main)/              ค้นหาร้าน · หน้าร้าน · การจองของฉัน · ร้านของฉัน · ฟอร์มร้าน
+├── app/api/v1/              ส่งต่อคำขอไป Go พร้อมแนบ token จาก session cookie (ฝั่ง server)
 ├── components/              booking/ · restaurant/ · review/ · layout/ · ui/
 └── lib/                     เรียก API · คำนวณใบจองฝั่งหน้าเว็บ · schema ฟอร์ม
 docs/
@@ -131,7 +145,7 @@ docs/
 | แก้ไขหลังเลยเวลายกเลิก | ไม่ได้ |
 | รีวิว | 1 คน 1 ร้าน (แก้ได้) · ไม่ต้องเคยจอง · ค่าเฉลี่ยคำนวณสด |
 | เรียงตามคะแนน | ร้านที่รีวิวน้อยกว่า 5 ไปท้าย + ป้าย "รีวิวยังน้อย" |
-| Auth | Go ตรวจรหัส (bcrypt) และเซ็น JWT · NextAuth ถือ token ไว้ใน session cookie |
+| Auth | Go ตรวจรหัส (bcrypt) และเซ็น JWT · NextAuth ถือ token ไว้ใน session cookie (httpOnly) · route `/api/v1/*` ของ Next แนบ token ให้ · logout ยกเลิก token ที่ Go |
 
 รายละเอียดเหตุผลทุกข้อ: [docs/phases/](docs/phases/README.md)
 

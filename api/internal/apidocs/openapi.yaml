@@ -7,6 +7,7 @@ info:
 
     - **เวลาไทย (Asia/Bangkok) ทุกจุด** · วันที่ `YYYY-MM-DD` · เวลา `HH:MM`
     - Error ทุกตัวตอบรูปแบบ `{ "error": { "code", "message", "details" } }` · ตัดสินจาก `code`
+    - Rate limit: login ผิด 10 ครั้ง/15 นาทีต่ออีเมล · สมัคร 10 ครั้ง/ชม.ต่อ IP · อัปโหลด 30 ครั้ง/10 นาที · route ที่เปลี่ยนข้อมูล 60 ครั้ง/นาทีต่อบัญชี → `429 TOO_MANY_REQUESTS`
     - ลองยิง: `POST /auth/login` ด้วยบัญชีตัวอย่าง → คัดลอก `accessToken` → กดปุ่ม **Authorize** ด้านบน
     - บัญชีตัวอย่าง (รหัสผ่าน `toawang123`): `somchai@example.com` (ลูกค้า) · `mali@example.com` (เจ้าของร้าน 4, 7, 20) · `nid@example.com` (เจ้าของร้าน 1)
 
@@ -62,6 +63,7 @@ paths:
           content:
             application/json:
               schema: { $ref: "#/components/schemas/Error" }
+        "429": { $ref: "#/components/responses/TooManyRequests" }
 
   /auth/login:
     post:
@@ -85,6 +87,18 @@ paths:
           content:
             application/json:
               schema: { $ref: "#/components/schemas/Error" }
+        "429": { $ref: "#/components/responses/TooManyRequests" }
+
+  /auth/logout:
+    post:
+      tags: [บัญชี]
+      operationId: logout
+      summary: ออกจากระบบ
+      description: token ทุกตัวของบัญชีนี้ (ทุกเครื่อง) ใช้ไม่ได้ทันที ไม่ต้องรอหมดอายุ 7 วัน
+      security: [{ bearerAuth: [] }]
+      responses:
+        "204": { description: ออกจากระบบแล้ว }
+        "401": { $ref: "#/components/responses/Unauthorized" }
 
   /me:
     get:
@@ -146,6 +160,7 @@ paths:
               schema: { $ref: "#/components/schemas/RestaurantDetail" }
         "400": { $ref: "#/components/responses/Validation" }
         "401": { $ref: "#/components/responses/Unauthorized" }
+        "429": { $ref: "#/components/responses/TooManyRequests" }
 
   /restaurants/{id}:
     parameters:
@@ -185,6 +200,7 @@ paths:
         "401": { $ref: "#/components/responses/Unauthorized" }
         "403": { $ref: "#/components/responses/Forbidden" }
         "404": { $ref: "#/components/responses/NotFound" }
+        "429": { $ref: "#/components/responses/TooManyRequests" }
     delete:
       tags: [ร้าน]
       operationId: deleteRestaurant
@@ -204,6 +220,7 @@ paths:
               schema: { $ref: "#/components/schemas/Error" }
               example:
                 error: { code: HAS_FUTURE_BOOKINGS, message: ลบไม่ได้ เพราะยังมีการจองที่ยังไม่ถึงเวลา, details: { count: 3 } }
+        "429": { $ref: "#/components/responses/TooManyRequests" }
 
   /me/restaurants:
     get:
@@ -229,6 +246,7 @@ paths:
       description: |
         รับ JPG / PNG / WEBP ไม่เกิน 5MB · ตรวจชนิดจากเนื้อไฟล์ ไม่ดูนามสกุล · ตั้งชื่อไฟล์ใหม่แบบสุ่ม
         · ไฟล์เปิดดูได้ที่ `GET /uploads/<ชื่อไฟล์>` (path อยู่นอก `/api/v1`)
+        · รูปที่ไม่มีร้านไหนใช้ถูกลบอัตโนมัติเมื่อเก่าเกิน 24 ชม.
       security: [{ bearerAuth: [] }]
       requestBody:
         required: true
@@ -254,6 +272,7 @@ paths:
             application/json:
               schema: { $ref: "#/components/schemas/Error" }
         "401": { $ref: "#/components/responses/Unauthorized" }
+        "429": { $ref: "#/components/responses/TooManyRequests" }
 
   # ---------------- การจอง ----------------
   /restaurants/{id}/availability:
@@ -298,10 +317,12 @@ paths:
         4. สิ้นสุดอยู่หลังเริ่ม → `INVALID_RANGE`
         5. อยู่ในเวลาเปิดของรอบ → `OUTSIDE_HOURS`
         6. เวลาเริ่มยังไม่ผ่าน → `IN_PAST`
-        7. `partySize` ≥ 1 → `VALIDATION`
-        8. ที่นั่งพอทุกช่อง 30 นาที → `SEATS_EXCEEDED` (409)
+        7. `date` ไม่เกิน 60 วันจากวันนี้ → `TOO_FAR_AHEAD`
+        8. `partySize` ≥ 1 → `VALIDATION`
+        9. ที่นั่งพอทุกช่อง 30 นาที (`partySize ≤ seats − used`) → `SEATS_EXCEEDED` (409)
 
         สองคนจองที่นั่งสุดท้ายพร้อมกัน: คนหนึ่งได้ 201 อีกคนได้ 409 เสมอ (ล็อกแถวร้านด้วย `SELECT … FOR UPDATE`)
+        · มีการจองที่ยังไม่ถึงเวลาครบ 30 รายการแล้ว → `BOOKING_LIMIT` (409)
       security: [{ bearerAuth: [] }]
       requestBody:
         required: true
@@ -318,6 +339,7 @@ paths:
         "401": { $ref: "#/components/responses/Unauthorized" }
         "404": { $ref: "#/components/responses/NotFound" }
         "409": { $ref: "#/components/responses/SeatsExceeded" }
+        "429": { $ref: "#/components/responses/TooManyRequests" }
     get:
       tags: [เจ้าของร้าน]
       operationId: restaurantBookings
@@ -391,6 +413,7 @@ paths:
           content:
             application/json:
               schema: { $ref: "#/components/schemas/Error" }
+        "429": { $ref: "#/components/responses/TooManyRequests" }
 
   /bookings/{id}/cancel:
     parameters:
@@ -415,6 +438,7 @@ paths:
           content:
             application/json:
               schema: { $ref: "#/components/schemas/Error" }
+        "429": { $ref: "#/components/responses/TooManyRequests" }
 
   # ---------------- รีวิว ----------------
   /restaurants/{id}/reviews:
@@ -465,6 +489,7 @@ paths:
             application/json:
               schema: { $ref: "#/components/schemas/Error" }
         "404": { $ref: "#/components/responses/NotFound" }
+        "429": { $ref: "#/components/responses/TooManyRequests" }
 
 components:
   securitySchemes:
@@ -472,7 +497,7 @@ components:
       type: http
       scheme: bearer
       bearerFormat: JWT
-      description: "`accessToken` จาก `/auth/login` หรือ `/auth/register` · อายุ 7 วัน"
+      description: "`accessToken` จาก `/auth/login` หรือ `/auth/register` · อายุ 7 วัน · `/auth/logout` แล้วใช้ไม่ได้"
 
   parameters:
     RestaurantId:
@@ -495,14 +520,14 @@ components:
           example:
             error: { code: VALIDATION, message: ข้อมูลไม่ถูกต้อง, details: { date: รูปแบบวันที่ต้องเป็น YYYY-MM-DD } }
     BookingInvalid:
-      description: "`VALIDATION` · `INVALID_SLOT` · `INVALID_RANGE` · `OUTSIDE_HOURS` (`details: { open, close }`) · `IN_PAST`"
+      description: "`VALIDATION` · `INVALID_SLOT` · `INVALID_RANGE` · `OUTSIDE_HOURS` (`details: { open, close }`) · `IN_PAST` · `TOO_FAR_AHEAD` (`details: { maxDays }`)"
       content:
         application/json:
           schema: { $ref: "#/components/schemas/Error" }
           example:
             error: { code: OUTSIDE_HOURS, message: อยู่นอกเวลาเปิดร้าน, details: { open: "11:00", close: "22:00" } }
     SeatsExceeded:
-      description: "`SEATS_EXCEEDED` ที่นั่งไม่พอ · `details` บอกช่องแรกที่เกิน"
+      description: "`SEATS_EXCEEDED` ที่นั่งไม่พอ · `details` บอกช่องแรกที่เกิน · `BOOKING_LIMIT` มีการจองที่ยังไม่ถึงเวลาครบ 30 รายการ (`details: { limit }`)"
       content:
         application/json:
           schema: { $ref: "#/components/schemas/Error" }
@@ -511,8 +536,15 @@ components:
               code: SEATS_EXCEEDED
               message: ที่นั่งไม่พอ
               details: { slotStart: "12:00", slotEnd: "12:30", used: 10, party: 2, seats: 10 }
+    TooManyRequests:
+      description: "`TOO_MANY_REQUESTS` เกิน rate limit · header `Retry-After` บอกว่าต้องรอกี่วินาที"
+      content:
+        application/json:
+          schema: { $ref: "#/components/schemas/Error" }
+          example:
+            error: { code: TOO_MANY_REQUESTS, message: ทำรายการถี่เกินไป กรุณารอสักครู่แล้วลองใหม่, details: null }
     Unauthorized:
-      description: "`UNAUTHORIZED` ไม่ได้ login หรือ token ผิด/หมดอายุ"
+      description: "`UNAUTHORIZED` ไม่ได้ login หรือ token ผิด/หมดอายุ/ถูกยกเลิกด้วย logout"
       content:
         application/json:
           schema: { $ref: "#/components/schemas/Error" }
@@ -548,6 +580,7 @@ components:
                 - INVALID_RANGE
                 - OUTSIDE_HOURS
                 - IN_PAST
+                - TOO_FAR_AHEAD
                 - UNSUPPORTED_FILE
                 - UNAUTHORIZED
                 - FORBIDDEN
@@ -559,7 +592,9 @@ components:
                 - CANCEL_WINDOW_PASSED
                 - BOOKING_CANCELLED
                 - HAS_FUTURE_BOOKINGS
+                - BOOKING_LIMIT
                 - PAYLOAD_TOO_LARGE
+                - TOO_MANY_REQUESTS
                 - INTERNAL
             message: { type: string, description: ข้อความภาษาไทยพร้อมแสดง }
             details: { type: object, nullable: true, description: ข้อมูลเพิ่มตาม code · ไม่มี = null }
@@ -569,7 +604,7 @@ components:
       type: object
       required: [name, email, password]
       properties:
-        name: { type: string, description: ห้ามว่าง, example: ทดลอง ใช้งาน }
+        name: { type: string, minLength: 1, maxLength: 100, description: 1–100 ตัวอักษร, example: ทดลอง ใช้งาน }
         email: { type: string, format: email, description: เก็บเป็นตัวพิมพ์เล็ก, example: test@example.com }
         password: { type: string, description: อย่างน้อย 8 ตัว มีตัวเลข ไม่เกิน 72 byte, example: toawang123 }
     LoginInput:
@@ -629,10 +664,10 @@ components:
         name: { type: string, description: 1–100 ตัวอักษร, example: ร้านทดลอง }
         cuisine: { type: string, description: ไม่เกิน 100 ตัวอักษร, example: อาหารไทย }
         description: { type: string, description: "ไม่เกิน 2,000 ตัวอักษร" }
-        seats: { type: integer, minimum: 1, example: 10 }
+        seats: { type: integer, minimum: 1, maximum: 1000, example: 10 }
         openTime: { type: string, description: "HH:MM ลงที่ :00/:30", example: "11:00" }
         closeTime: { type: string, description: "HH:MM ลงที่ :00/:30 · ห้ามเท่าเวลาเปิด · น้อยกว่า = ข้ามเที่ยงคืน", example: "22:00" }
-        cancelLeadMinutes: { type: integer, minimum: 30, example: 60 }
+        cancelLeadMinutes: { type: integer, minimum: 30, maximum: 10080, description: 30 นาทีถึง 7 วัน, example: 60 }
         images:
           type: array
           description: 1–8 รูป · ต้องเป็น url จาก POST /uploads

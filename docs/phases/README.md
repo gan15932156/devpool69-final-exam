@@ -13,6 +13,7 @@
 | 6 | [phase-6.md](phase-6.md) | Dashboard เจ้าของร้าน |
 | 7 | [phase-7.md](phase-7.md) | Seed · Docker · README |
 | 8 | [phase-8.md](phase-8.md) | สคริปต์วิดีโอ · checklist ส่งงาน · คำถามกรรมการ |
+| 9 | [phase-9.md](phase-9.md) | ตรวจความปลอดภัย · แก้ช่องโหว่ · rate limit · BFF |
 
 ## วิธีรัน
 
@@ -23,9 +24,9 @@
 ## ภาพรวมสถาปัตยกรรม
 
 ```
-เบราว์เซอร์ ──► Next.js :3000 ──(rewrite /api/v1/*, /uploads/*)──► Go Fiber :8080 ──► PostgreSQL :5433
+เบราว์เซอร์ ──► Next.js :3000 ──(/api/v1/* ผ่าน route ที่แนบ token · rewrite /uploads/*)──► Go Fiber :8080 ──► PostgreSQL :5433
                   │
-                  └─ /api/auth/* = NextAuth (login → เรียก Go /auth/login → เก็บ JWT ของ Go ไว้ใน session cookie)
+                  └─ /api/auth/* = NextAuth (login → เรียก Go /auth/login → เก็บ JWT ของ Go ไว้ใน session cookie แบบ httpOnly)
 ```
 
 - **Next.js** ทำหน้าเว็บอย่างเดียว ไม่มี business logic
