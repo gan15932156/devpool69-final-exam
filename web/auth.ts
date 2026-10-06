@@ -6,14 +6,16 @@ class TooManyAttempts extends CredentialsSignin {
   code = "too_many_attempts";
 }
 
-// NextAuth ไม่ได้เก็บ user เอง — แค่ส่งอีเมล/รหัสไปให้ Go ตรวจ แล้วเก็บ token ที่ Go เซ็นไว้ใน session
+// NextAuth ไม่ได้เก็บ user เอง — แค่ส่งอีเมล/รหัสไปให้ Go ตรวจ แล้วเก็บ token ที่ Go เซ็นไว้ใน session cookie
+// cookie นี้เข้ารหัสและเป็น httpOnly → JavaScript ในหน้าเว็บอ่าน token ไม่ได้ (มี XSS ก็ขโมยออกไปไม่ได้)
+// หน้าเว็บเรียก /api/v1/* ของ Next แล้ว app/api/v1/[...path]/route.ts แนบ token ให้ฝั่ง server
 export const { handlers, auth } = NextAuth({
   session: { strategy: "jwt", maxAge: 7 * 24 * 60 * 60 }, // 7 วัน เท่ากับอายุ token ของ Go
   pages: { signIn: "/login" },
   providers: [
     Credentials({
       credentials: { email: {}, password: {} },
-      // ทำงานฝั่ง server เท่านั้น → ต้องใช้ URL เต็มของ Go (ไม่ผ่าน rewrite)
+      // ทำงานฝั่ง server เท่านั้น → ต้องใช้ URL เต็มของ Go
       async authorize(credentials) {
         const res = await fetch(`${process.env.API_URL}/api/v1/auth/login`, {
           method: "POST",
@@ -41,10 +43,9 @@ export const { handlers, auth } = NextAuth({
       }
       return token;
     },
-    // session: สิ่งที่หน้าเว็บเห็นผ่าน auth() / useSession()
+    // session: สิ่งที่หน้าเว็บเห็นผ่าน auth() / useSession() — ไม่ใส่ accessToken (อยู่ใน cookie เท่านั้น)
     session({ session, token }) {
       session.user.id = token.id as string;
-      session.accessToken = token.accessToken as string;
       return session;
     },
   },

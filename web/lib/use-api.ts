@@ -6,25 +6,25 @@ import { useCallback } from "react";
 import { ApiError, request } from "./api";
 import type { RestaurantDetail } from "./types";
 
-// useApi() คืนฟังก์ชันเรียก API ที่แนบ token ของคนที่ login ให้อัตโนมัติ
-// path เริ่มด้วย /api/v1/... → วิ่งผ่าน rewrite ของ Next ไปหา Go
+// useApi() คืนฟังก์ชันเรียก API · path เริ่มด้วย /api/v1/... → route ของ Next แนบ token จาก session cookie แล้วส่งต่อไป Go
+// หน้าเว็บไม่ต้องถือ token เอง (อ่านไม่ได้ด้วย)
 export function useApi() {
-  const { data: session } = useSession();
-  const token = session?.accessToken;
+  const { status } = useSession();
+  const loggedIn = status === "authenticated";
 
   return useCallback(
     async <T,>(path: string, init?: Parameters<typeof request>[1]) => {
       try {
-        return await request<T>(path, { ...init, token });
+        return await request<T>(path, init);
       } catch (e) {
-        // มี token แต่ Go ตอบ 401 = token หมดอายุ/ใช้ไม่ได้ → ออกจากระบบแล้วไปหน้า login
-        if (e instanceof ApiError && e.status === 401 && token) {
+        // login อยู่แต่ Go ตอบ 401 = token หมดอายุ/ถูกยกเลิก → ออกจากระบบแล้วไปหน้า login
+        if (e instanceof ApiError && e.status === 401 && loggedIn) {
           await signOut({ redirectTo: "/login" });
         }
         throw e;
       }
     },
-    [token],
+    [loggedIn],
   );
 }
 

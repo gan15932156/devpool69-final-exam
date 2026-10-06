@@ -36,7 +36,7 @@ services:
       args:
         API_URL: http://api:8080
     environment:
-      API_URL: http://api:8080 # ใช้ตอน runtime ใน NextAuth authorize() (เรียก Go ฝั่ง server)
+      API_URL: http://api:8080 # ใช้ตอน runtime ใน NextAuth authorize() และ /api/v1/* (เรียก Go ฝั่ง server)
       AUTH_SECRET: ${AUTH_SECRET:-dev-only-auth-secret-change-me-please-32chars}
       AUTH_TRUST_HOST: "true"
       # ที่อยู่ที่เบราว์เซอร์เปิด · ไม่ตั้ง NextAuth จะใช้ 0.0.0.0:3000 (ค่า HOSTNAME ใน container) ตอน redirect หลัง logout

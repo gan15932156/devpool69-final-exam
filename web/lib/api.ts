@@ -1,4 +1,4 @@
-// ตัวกลางเรียก Go API — ใช้ได้ทั้งฝั่ง server และ browser
+// ตัวกลางเรียก Go API ผ่าน /api/v1/* ของ Next (app/api/v1/[...path]/route.ts แนบ token ให้ฝั่ง server)
 
 export class ApiError extends Error {
   constructor(
@@ -19,14 +19,12 @@ export class ApiError extends Error {
 }
 
 type RequestOptions = Omit<RequestInit, "body"> & {
-  token?: string;
   json?: unknown; // ส่ง object มา จะแปลงเป็น JSON ให้
   body?: BodyInit;
 };
 
-export async function request<T>(url: string, { token, json, ...init }: RequestOptions = {}): Promise<T> {
+export async function request<T>(url: string, { json, ...init }: RequestOptions = {}): Promise<T> {
   const headers = new Headers(init.headers);
-  if (token) headers.set("Authorization", `Bearer ${token}`);
   if (json !== undefined) {
     headers.set("Content-Type", "application/json");
     init.body = JSON.stringify(json);

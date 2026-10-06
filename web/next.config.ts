@@ -8,8 +8,8 @@ const nextConfig: NextConfig = {
   output: "standalone",
   async rewrites() {
     return [
-      // ใช้ /api/v1 ไม่ใช่ /api เพราะ /api/auth/* เป็นของ NextAuth
-      { source: "/api/v1/:path*", destination: `${API_URL}/api/v1/:path*` },
+      // /api/v1/* ไม่ใช้ rewrite แล้ว → ผ่าน app/api/v1/[...path]/route.ts ที่แนบ token ให้ฝั่ง server
+      // รูปเป็นไฟล์สาธารณะ ไม่ต้องใช้ token → ส่งต่อตรง ๆ
       { source: "/uploads/:path*", destination: `${API_URL}/uploads/:path*` },
     ];
   },
