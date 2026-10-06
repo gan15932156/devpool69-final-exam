@@ -117,6 +117,7 @@ web/                         Next.js 16 · Tailwind v4 · NextAuth v5 · TanStac
 docs/
 ├── phases/                  สรุปแต่ละ phase: ทำอะไร ทำไม เลือกอะไร
 ├── design/                  design handoff + tokens + assets
+├── API.md                   ★ API reference ของ Go ทุก endpoint + error code
 └── WALKTHROUGH.md           แผนพัฒนาและข้อตกลง
 ```
 
