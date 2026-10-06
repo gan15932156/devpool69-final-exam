@@ -291,3 +291,51 @@ Authorization: Bearer {{maliToken}}
 ### สมชายดูการจองของร้านมะลิ — คาดหวัง: 403 FORBIDDEN
 GET {{api}}/restaurants/4/bookings?date={{tomorrow}}
 Authorization: Bearer {{somchaiToken}}
+
+###############################################################################
+# Phase 9 — ความปลอดภัย (ต้องกด login 3 ตัวบนสุดก่อน)
+###############################################################################
+
+@in70days = {{$localDatetime "YYYY-MM-DD" 70 d}}
+
+### จำนวนคนเท่าค่า int สูงสุด — คาดหวัง: 409 SEATS_EXCEEDED (ก่อนแก้: used + party ล้นเป็นค่าติดลบ → จองผ่านทั้งที่ร้านเต็ม)
+POST {{api}}/restaurants/1/bookings
+Authorization: Bearer {{somchaiToken}}
+Content-Type: application/json
+
+{ "date": "{{tomorrow}}", "start": "12:00", "end": "13:00", "partySize": 9223372036854775807 }
+
+### จองล่วงหน้าเกิน 60 วัน — คาดหวัง: 400 TOO_FAR_AHEAD details.maxDays = 60
+POST {{api}}/restaurants/1/bookings
+Authorization: Bearer {{somchaiToken}}
+Content-Type: application/json
+
+{ "date": "{{in70days}}", "start": "12:00", "end": "13:00", "partySize": 2 }
+
+### ชื่อยาว 101 ตัวอักษร — คาดหวัง: 400 VALIDATION details.name
+POST {{api}}/auth/register
+Content-Type: application/json
+
+{ "name": "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx", "email": "long-name@example.com", "password": "abcdefg1" }
+
+### ที่นั่ง 1,001 — คาดหวัง: 400 VALIDATION details.seats
+POST {{api}}/restaurants
+Authorization: Bearer {{maliToken}}
+Content-Type: application/json
+
+{ "name": "ร้านใหญ่เกิน", "seats": 1001, "openTime": "10:00", "closeTime": "20:00", "cancelLeadMinutes": 30, "images": ["/uploads/x.png"] }
+
+### logout: login บัญชีผู้รีวิว (ไม่กระทบบัญชีเดโม) — คาดหวัง: 200
+# @name reviewer
+POST {{api}}/auth/login
+Content-Type: application/json
+
+{ "email": "reviewer001@example.com", "password": "{{password}}" }
+
+### logout — คาดหวัง: 204
+POST {{api}}/auth/logout
+Authorization: Bearer {{reviewer.response.body.accessToken}}
+
+### ใช้ token ที่ logout แล้ว — คาดหวัง: 401 UNAUTHORIZED (ไม่ต้องรอหมดอายุ 7 วัน)
+GET {{api}}/me
+Authorization: Bearer {{reviewer.response.body.accessToken}}
