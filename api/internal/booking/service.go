@@ -83,7 +83,7 @@ func CheckSeats(tx *gorm.DB, r *models.Restaurant, slot Slot, party int, exclude
 	// วนตามช่วงที่ลูกค้าขอ ขยับทีละ 30 นาที
 	for t := slot.StartAt; t.Before(slot.EndAt); t = t.Add(slotLength) {
 		used := usedIn(bookings, t, t.Add(slotLength))
-		if used+party > r.Seats {
+		if party > r.Seats-used { // = used+party > Seats แต่ไม่บวก party ที่ลูกค้าส่งมา (เลขใหญ่มาก บวกแล้วล้น int กลายเป็นติดลบ → ผ่าน)
 			return ErrSeatsExceeded.WithDetails(SeatsExceededDetails{
 				SlotStart: Clock(t),
 				SlotEnd:   Clock(t.Add(slotLength)),

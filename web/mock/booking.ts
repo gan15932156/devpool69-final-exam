@@ -69,7 +69,7 @@ function checkSeats(s: Store, r: Restaurant, slot: Slot, party: number, excludeI
   const bookings = overlapping(s, r.id, slot.startAt, slot.endAt, excludeId);
   for (let t = slot.startAt; t < slot.endAt; t += SLOT) {
     const used = usedIn(bookings, t, t + SLOT);
-    if (used + party > r.seats) {
+    if (party > r.seats - used) {
       throw errSeatsExceeded.withDetails({ slotStart: clock(t), slotEnd: clock(t + SLOT), used, party, seats: r.seats });
     }
   }
