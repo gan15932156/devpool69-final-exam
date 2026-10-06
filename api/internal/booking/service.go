@@ -80,6 +80,7 @@ func CheckSeats(tx *gorm.DB, r *models.Restaurant, slot Slot, party int, exclude
 	if err != nil {
 		return err
 	}
+	// วนตามช่วงที่ลูกค้าขอ ขยับทีละ 30 นาที
 	for t := slot.StartAt; t.Before(slot.EndAt); t = t.Add(slotLength) {
 		used := usedIn(bookings, t, t.Add(slotLength))
 		if used+party > r.Seats {
