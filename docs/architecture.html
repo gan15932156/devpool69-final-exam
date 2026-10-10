@@ -1,0 +1,581 @@
+<!doctype html>
+<html lang="th">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<style>body{margin:0}img{max-width:100%}[hidden]{display:none!important}</style>
+<title>ตึกตึกโต๊ะ Architecture</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Pridi:wght@500;600&family=Sarabun:wght@400;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+/* Layout: เอกสารคอลัมน์เดียวแบบสไลด์ยาว · แต่ละ section = 1 หัวข้อที่พูดตอนนำเสนอ · สี/ฟอนต์ตามดีไซน์ของเว็บจริง (tokens.css) */
+:root {
+  --paper: #F4EADA; --surface: #FFFBF3; --cream: #FBF5EA;
+  --line: #E2D1B5; --line-strong: #CDB892;
+  --ink: #231812; --ink-2: #4A3A2C; --muted: #6B5A48;
+  --indigo: #1E2B5E; --indigo-tint: #E3E5EF;
+  --vermilion: #A8322A; --vermilion-tint: #F6DED7;
+  --gold: #B08326; --gold-tint: #F3E3BC;
+  --success: #2F5A2B; --seat: #C9B48A;
+  --f-head: "Pridi", Georgia, serif;
+  --f-body: "Sarabun", "Leelawadee UI", Tahoma, sans-serif;
+  --f-mono: "IBM Plex Mono", ui-monospace, Consolas, monospace;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --paper: #17110D; --surface: #221A14; --cream: #1C1511;
+    --line: #3A2E24; --line-strong: #5A4836;
+    --ink: #F4EADA; --ink-2: #DCCBB2; --muted: #B3A089;
+    --indigo: #A9B5EA; --indigo-tint: #232A47;
+    --vermilion: #EE8A7E; --vermilion-tint: #3E1F1B;
+    --gold: #E9C77A; --gold-tint: #3A2F16;
+    --success: #9CCB94; --seat: #6E5B3E;
+    color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --paper: #17110D; --surface: #221A14; --cream: #1C1511;
+  --line: #3A2E24; --line-strong: #5A4836;
+  --ink: #F4EADA; --ink-2: #DCCBB2; --muted: #B3A089;
+  --indigo: #A9B5EA; --indigo-tint: #232A47;
+  --vermilion: #EE8A7E; --vermilion-tint: #3E1F1B;
+  --gold: #E9C77A; --gold-tint: #3A2F16;
+  --success: #9CCB94; --seat: #6E5B3E;
+  color-scheme: dark;
+}
+
+body { background: var(--paper); color: var(--ink); font: 17px/1.7 var(--f-body); }
+.wrap { max-width: 1080px; margin: 0 auto; padding-inline: 20px; padding-block: 0 72px; }
+
+header.top { padding-block: 56px 32px; border-bottom: 2px solid var(--ink); display: grid; gap: 14px; }
+.eyebrow { font: 500 13px/1 var(--f-mono); letter-spacing: .08em; text-transform: uppercase; color: var(--vermilion); }
+h1 { font: 600 clamp(36px, 6vw, 60px)/1.15 var(--f-head); margin: 0; text-wrap: balance; }
+h1 small { display: block; font-size: .42em; font-weight: 500; color: var(--muted); margin-top: 6px; }
+.lede { max-width: 66ch; margin: 0; color: var(--ink-2); }
+.stack { display: flex; flex-wrap: wrap; gap: 8px; margin: 6px 0 0; padding: 0; list-style: none; }
+.stack li { font: 500 13px/1 var(--f-mono); padding: 7px 10px; border: 1px solid var(--line-strong); border-radius: 6px; background: var(--surface); }
+.stack li b { color: var(--indigo); font-weight: 500; }
+
+nav.toc { position: sticky; top: env(safe-area-inset-top, 0px); z-index: 2; background: var(--paper); border-bottom: 1px solid var(--line); }
+nav.toc ol { display: flex; gap: 4px 18px; flex-wrap: wrap; margin: 0; padding: 10px 0; list-style: none; counter-reset: s; }
+nav.toc li { counter-increment: s; }
+nav.toc a { font-size: 14.5px; color: var(--ink-2); text-decoration: none; }
+nav.toc a::before { content: counter(s) " "; font-family: var(--f-mono); font-size: 12px; color: var(--vermilion); }
+nav.toc a:hover { color: var(--vermilion); }
+
+section { padding-block: 52px 8px; scroll-margin-top: 56px; display: grid; gap: 18px; }
+section > * { min-width: 0; }
+h2 { font: 600 clamp(26px, 3.6vw, 34px)/1.25 var(--f-head); margin: 0; display: flex; gap: 14px; align-items: baseline; text-wrap: balance; }
+h2 .n { font: 500 15px/1 var(--f-mono); color: var(--vermilion); border: 1.5px solid var(--vermilion); border-radius: 50%; width: 32px; height: 32px; display: inline-grid; place-items: center; flex: none; transform: translateY(-4px); }
+h3 { font: 600 20px/1.35 var(--f-head); margin: 10px 0 0; }
+p { margin: 0; max-width: 72ch; }
+code, .mono { font-family: var(--f-mono); font-size: .86em; }
+p code, li code, td code { background: var(--cream); border: 1px solid var(--line); padding: 1px 5px; border-radius: 4px; }
+
+figure { margin: 0; background: var(--surface); border: 1px solid var(--line); border-radius: 12px; padding: 18px 18px 14px; display: grid; gap: 12px; }
+.scroll { overflow-x: auto; }
+figure svg { display: block; width: 100%; height: auto; min-width: 640px; }
+figcaption { font-size: 15px; color: var(--muted); max-width: 80ch; }
+figcaption b { color: var(--ink-2); }
+
+/* ---- SVG ---- */
+.d-zone { fill: none; stroke: var(--muted); stroke-width: 1.3; stroke-dasharray: 6 5; }
+.d-box { fill: var(--cream); stroke: var(--line-strong); stroke-width: 1.5; }
+.d-sub { fill: var(--surface); stroke: var(--line-strong); stroke-width: 1; }
+.d-key { fill: var(--indigo-tint); stroke: var(--indigo); stroke-width: 1.5; }
+.d-warm { fill: var(--gold-tint); stroke: var(--gold); stroke-width: 1.3; }
+.d-bad { fill: var(--vermilion-tint); stroke: var(--vermilion); stroke-width: 1.3; }
+.d-seat { fill: var(--seat); stroke: var(--line-strong); }
+.d-wait { fill: url(#hatch); stroke: var(--line-strong); stroke-dasharray: 4 3; }
+.d-hatch { stroke: var(--line-strong); stroke-width: 2; }
+.d-t { fill: var(--ink); font: 400 13.5px var(--f-body); }
+.d-tb { fill: var(--ink); font: 700 14.5px var(--f-body); }
+.d-th { fill: var(--ink); font: 600 16px var(--f-head); }
+.d-m { fill: var(--muted); font: 400 11.5px var(--f-mono); }
+.d-mi { fill: var(--ink-2); font: 400 12px var(--f-mono); }
+.d-red { fill: var(--vermilion); }
+.d-blue { fill: var(--indigo); }
+.d-ln { stroke: var(--ink-2); stroke-width: 1.5; fill: none; }
+.d-ret { stroke: var(--ink-2); stroke-width: 1.3; fill: none; stroke-dasharray: 5 4; }
+.d-life { stroke: var(--line-strong); stroke-width: 1.2; stroke-dasharray: 2 4; }
+.d-grid { stroke: var(--line); stroke-width: 1; }
+.d-cap { stroke: var(--vermilion); stroke-width: 2; stroke-dasharray: 7 4; fill: none; }
+.d-head { fill: var(--ink-2); }
+.d-head-r { fill: var(--vermilion); }
+.d-axis { stroke: var(--ink-2); stroke-width: 1.5; }
+
+/* ---- blocks ---- */
+.layers { list-style: none; margin: 0; padding: 0; display: grid; gap: 0; border: 1px solid var(--line); border-radius: 12px; overflow: hidden; background: var(--surface); }
+.layers li { display: grid; grid-template-columns: minmax(170px, 260px) 1fr; gap: 6px 22px; padding: 14px 18px; border-top: 1px solid var(--line); align-items: baseline; }
+.layers li:first-child { border-top: 0; }
+.layers li > * { min-width: 0; }
+.layers .path { font: 500 13.5px/1.5 var(--f-mono); color: var(--indigo); overflow-wrap: anywhere; }
+.layers li.core { background: var(--indigo-tint); }
+.layers li.core .path::after { content: "หัวใจของระบบ"; display: inline-block; margin-left: 8px; font: 600 11px/1 var(--f-body); color: var(--surface); background: var(--indigo); padding: 4px 7px; border-radius: 4px; transform: translateY(-1px); }
+@media (max-width: 640px) { .layers li { grid-template-columns: 1fr; } }
+
+.compare { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 14px; }
+.verdict { border: 1px solid var(--line); border-radius: 10px; padding: 14px 16px; background: var(--surface); display: grid; gap: 4px; }
+.verdict .k { font: 600 13px var(--f-body); letter-spacing: .04em; color: var(--muted); }
+.verdict .v { font: 500 18px/1.4 var(--f-mono); }
+.verdict.no { border-color: var(--vermilion); }
+.verdict.no .v { color: var(--vermilion); }
+.verdict.yes { border-color: var(--success); }
+.verdict.yes .v { color: var(--success); }
+
+.rules { margin: 0; padding-left: 1.4em; display: grid; gap: 4px; max-width: 72ch; }
+.rules li::marker { font-family: var(--f-mono); color: var(--vermilion); }
+
+.tbl { overflow-x: auto; border: 1px solid var(--line); border-radius: 12px; background: var(--surface); }
+table { border-collapse: collapse; width: 100%; min-width: 620px; font-size: 15px; }
+th, td { text-align: left; padding: 9px 14px; border-top: 1px solid var(--line); vertical-align: top; }
+thead th { border-top: 0; font: 600 13px var(--f-body); letter-spacing: .04em; color: var(--muted); background: var(--cream); }
+tbody th { font: 600 13px var(--f-body); color: var(--vermilion); background: var(--cream); letter-spacing: .04em; }
+td.m { font: 500 13px var(--f-mono); white-space: nowrap; }
+.verb { display: inline-block; min-width: 50px; font: 500 12px var(--f-mono); color: var(--indigo); }
+.pill { display: inline-block; font: 600 12px/1 var(--f-body); padding: 4px 8px; border-radius: 999px; white-space: nowrap; }
+.pill.pub { background: var(--cream); color: var(--muted); border: 1px solid var(--line-strong); }
+.pill.opt { background: var(--gold-tint); color: var(--ink-2); }
+.pill.auth { background: var(--indigo-tint); color: var(--indigo); }
+
+.grid2 { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 14px; }
+.card { border: 1px solid var(--line); border-radius: 12px; padding: 16px 18px; background: var(--surface); display: grid; gap: 6px; align-content: start; }
+.card h4 { margin: 0; font: 600 17px/1.35 var(--f-head); }
+.card p { font-size: 15.5px; color: var(--ink-2); }
+.card .where { font: 400 12.5px var(--f-mono); color: var(--muted); overflow-wrap: anywhere; }
+
+.callout { border-left: 3px solid var(--vermilion); padding: 4px 0 4px 16px; max-width: 72ch; }
+footer { margin-top: 56px; padding-top: 18px; border-top: 1px solid var(--line); font-size: 14px; color: var(--muted); }
+a { color: var(--indigo); }
+:focus-visible { outline: 2px solid var(--vermilion); outline-offset: 2px; }
+@media (prefers-reduced-motion: no-preference) { html { scroll-behavior: smooth; } }
+</style>
+
+<div class="wrap">
+
+<header class="top">
+  <div class="eyebrow">DevPool Final Exam 2569 · System architecture</div>
+  <h1>ตึกตึกโต๊ะ<small>ระบบจองโต๊ะร้านอาหาร + รีวิวร้าน</small></h1>
+  <p class="lede">เว็บ Next.js คุยกับ Go API ผ่านตัวกลางฝั่ง server (BFF) ส่วนกติกาการจองทั้งหมดตัดสินใน Go ภายใน transaction เดียวที่ล็อกแถวร้านไว้ จึงไม่มีทางที่สองคนจองที่นั่งสุดท้ายได้พร้อมกัน</p>
+  <ul class="stack" aria-label="เทคโนโลยีที่ใช้">
+    <li><b>Next.js</b> 16.3 · React 19.2</li>
+    <li><b>NextAuth</b> v5</li>
+    <li><b>TanStack Query</b> · zod</li>
+    <li><b>Go</b> 1.27 · Fiber v3</li>
+    <li><b>GORM</b> + pgx</li>
+    <li><b>PostgreSQL</b> 16</li>
+    <li><b>Docker</b> Compose</li>
+  </ul>
+</header>
+
+<nav class="toc" aria-label="หัวข้อ">
+  <ol>
+    <li><a href="#overview">ภาพรวม</a></li>
+    <li><a href="#auth">Login และเส้นทางคำขอ</a></li>
+    <li><a href="#layers">ชั้นของ Go API</a></li>
+    <li><a href="#booking">การจอง</a></li>
+    <li><a href="#data">ฐานข้อมูล</a></li>
+    <li><a href="#api">API</a></li>
+    <li><a href="#security">ความปลอดภัย</a></li>
+    <li><a href="#run">การรันระบบ</a></li>
+  </ol>
+</nav>
+
+<!-- 1 -->
+<section id="overview">
+  <h2><span class="n">1</span>ภาพรวมระบบ</h2>
+  <p>มี 3 service ใน <code>docker compose</code> และเปิดออกนอกเครื่องแค่พอร์ต 3000 ของเว็บ เบราว์เซอร์ไม่ได้คุยกับ Go โดยตรง ทุกคำขอข้อมูลต้องผ่าน server ของ Next ก่อน</p>
+  <figure>
+    <div class="scroll">
+    <svg viewBox="0 0 1000 400" role="img" aria-label="เบราว์เซอร์คุยกับ Next.js เท่านั้น Next.js ส่งต่อคำขอพร้อม Bearer JWT ไปที่ Go API และ Go API เป็นตัวเดียวที่อ่านเขียน PostgreSQL และโฟลเดอร์รูป">
+      <defs>
+        <marker id="a1" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" class="d-head"/></marker>
+      </defs>
+      <!-- browser -->
+      <rect x="16" y="150" width="140" height="96" rx="10" class="d-box"/>
+      <text x="86" y="190" text-anchor="middle" class="d-tb">เบราว์เซอร์</text>
+      <text x="86" y="212" text-anchor="middle" class="d-m">React · Query</text>
+
+      <!-- compose -->
+      <rect x="226" y="14" width="760" height="372" rx="14" class="d-zone"/>
+      <text x="242" y="38" class="d-m">docker compose</text>
+
+      <!-- next -->
+      <rect x="250" y="56" width="240" height="306" rx="12" class="d-box"/>
+      <text x="370" y="84" text-anchor="middle" class="d-th">Next.js (web)</text>
+      <text x="370" y="104" text-anchor="middle" class="d-m">:3000 · เปิดสาธารณะ</text>
+      <rect x="270" y="122" width="200" height="60" rx="8" class="d-sub"/>
+      <text x="370" y="148" text-anchor="middle" class="d-t">หน้าเว็บ (App Router)</text>
+      <text x="370" y="168" text-anchor="middle" class="d-m">SSR + client components</text>
+      <rect x="270" y="198" width="200" height="60" rx="8" class="d-sub"/>
+      <text x="370" y="224" text-anchor="middle" class="d-t">NextAuth (Credentials)</text>
+      <text x="370" y="244" text-anchor="middle" class="d-m">เก็บ token ใน cookie</text>
+      <rect x="270" y="274" width="200" height="60" rx="8" class="d-key"/>
+      <text x="370" y="300" text-anchor="middle" class="d-t">BFF /api/v1/[...path]</text>
+      <text x="370" y="320" text-anchor="middle" class="d-m">แนบ Bearer · กัน CSRF</text>
+
+      <!-- go -->
+      <rect x="566" y="56" width="210" height="306" rx="12" class="d-box"/>
+      <text x="671" y="84" text-anchor="middle" class="d-th">Go API (Fiber)</text>
+      <text x="671" y="104" text-anchor="middle" class="d-m">:8080 · เฉพาะเครื่องนี้</text>
+      <rect x="586" y="122" width="170" height="60" rx="8" class="d-sub"/>
+      <text x="671" y="148" text-anchor="middle" class="d-t">routes + middleware</text>
+      <text x="671" y="168" text-anchor="middle" class="d-m">JWT · rate limit</text>
+      <rect x="586" y="198" width="170" height="60" rx="8" class="d-key"/>
+      <text x="671" y="224" text-anchor="middle" class="d-t">booking service</text>
+      <text x="671" y="244" text-anchor="middle" class="d-m">lock · validate · seats</text>
+      <rect x="586" y="274" width="170" height="60" rx="8" class="d-sub"/>
+      <text x="671" y="300" text-anchor="middle" class="d-t">GORM</text>
+      <text x="671" y="320" text-anchor="middle" class="d-m">migrate · seed</text>
+      <line x1="671" y1="182" x2="671" y2="196" class="d-ln" marker-end="url(#a1)"/>
+      <line x1="671" y1="258" x2="671" y2="272" class="d-ln" marker-end="url(#a1)"/>
+
+      <!-- stores -->
+      <rect x="836" y="92" width="134" height="104" rx="10" class="d-box"/>
+      <text x="903" y="126" text-anchor="middle" class="d-tb">PostgreSQL 16</text>
+      <text x="903" y="148" text-anchor="middle" class="d-m">:5433 · เฉพาะเครื่อง</text>
+      <text x="903" y="170" text-anchor="middle" class="d-m">vol: db-data</text>
+      <rect x="836" y="250" width="134" height="84" rx="10" class="d-box"/>
+      <text x="903" y="284" text-anchor="middle" class="d-tb">uploads/</text>
+      <text x="903" y="306" text-anchor="middle" class="d-m">vol: uploads-data</text>
+
+      <!-- arrows -->
+      <line x1="156" y1="176" x2="268" y2="152" class="d-ln" marker-end="url(#a1)"/>
+      <text x="206" y="150" text-anchor="middle" class="d-mi">หน้าเว็บ</text>
+      <line x1="156" y1="226" x2="268" y2="302" class="d-ln" marker-end="url(#a1)"/>
+      <text x="196" y="282" text-anchor="middle" class="d-mi">/api/v1</text>
+      <text x="196" y="297" text-anchor="middle" class="d-mi">+ cookie</text>
+
+      <line x1="470" y1="228" x2="564" y2="228" class="d-ln" marker-end="url(#a1)"/>
+      <text x="517" y="220" text-anchor="middle" class="d-mi">/auth/login</text>
+      <line x1="470" y1="304" x2="564" y2="304" class="d-ln" marker-end="url(#a1)"/>
+      <text x="517" y="296" text-anchor="middle" class="d-mi">Bearer JWT</text>
+
+      <line x1="776" y1="144" x2="834" y2="144" class="d-ln" marker-end="url(#a1)"/>
+      <text x="805" y="136" text-anchor="middle" class="d-mi">SQL</text>
+      <line x1="776" y1="292" x2="834" y2="292" class="d-ln" marker-end="url(#a1)"/>
+      <text x="805" y="284" text-anchor="middle" class="d-mi">รูป</text>
+    </svg>
+    </div>
+    <figcaption><b>Go เป็นตัวเดียวที่แตะฐานข้อมูลและไฟล์รูป</b> · Next ทำหน้าที่แสดงผล เก็บ session และส่งต่อคำขอเท่านั้น · รูปร้าน (<code>/uploads/*</code>) ไม่ต้องใช้ token จึง rewrite จาก Next ไป Go ตรง ๆ · พอร์ต 8080 และ 5433 ผูกไว้กับ <code>127.0.0.1</code> เครื่องอื่นใน LAN เข้าไม่ได้</figcaption>
+  </figure>
+</section>
+
+<!-- 2 -->
+<section id="auth">
+  <h2><span class="n">2</span>Login และเส้นทางของทุกคำขอ</h2>
+  <p>Go เป็นคนออก JWT แต่ token นั้นไม่เคยถึงมือ JavaScript ในหน้าเว็บ NextAuth เก็บไว้ใน cookie ที่เข้ารหัสและเป็น <code>httpOnly</code> แล้ว route BFF ของ Next จะถอดออกมาแนบให้ทีละคำขอ</p>
+  <figure>
+    <div class="scroll">
+    <svg viewBox="0 0 1000 610" role="img" aria-label="ลำดับการ login: เบราว์เซอร์ส่งรหัสให้ NextAuth, NextAuth ถาม Go, Go ตรวจ bcrypt แล้วออก JWT, Next เก็บ JWT ใน cookie. คำขอถัดไป Next ถอด cookie แล้วแนบ Bearer ส่ง Go ซึ่งเทียบ token_version กับฐานข้อมูล">
+      <defs>
+        <marker id="a2" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" class="d-head"/></marker>
+      </defs>
+      <!-- lanes -->
+      <rect x="30" y="14" width="160" height="40" rx="8" class="d-box"/><text x="110" y="40" text-anchor="middle" class="d-tb">เบราว์เซอร์</text>
+      <rect x="300" y="14" width="160" height="40" rx="8" class="d-key"/><text x="380" y="40" text-anchor="middle" class="d-tb">Next.js</text>
+      <rect x="570" y="14" width="160" height="40" rx="8" class="d-box"/><text x="650" y="40" text-anchor="middle" class="d-tb">Go API</text>
+      <rect x="810" y="14" width="160" height="40" rx="8" class="d-box"/><text x="890" y="40" text-anchor="middle" class="d-tb">PostgreSQL</text>
+      <line x1="110" y1="54" x2="110" y2="596" class="d-life"/>
+      <line x1="380" y1="54" x2="380" y2="596" class="d-life"/>
+      <line x1="650" y1="54" x2="650" y2="596" class="d-life"/>
+      <line x1="890" y1="54" x2="890" y2="596" class="d-life"/>
+
+      <!-- login -->
+      <line x1="110" y1="100" x2="378" y2="100" class="d-ln" marker-end="url(#a2)"/>
+      <text x="245" y="91" text-anchor="middle" class="d-t">1 · อีเมล + รหัสผ่าน</text>
+      <line x1="380" y1="145" x2="648" y2="145" class="d-ln" marker-end="url(#a2)"/>
+      <text x="515" y="136" text-anchor="middle" class="d-t">2 · POST /auth/login</text>
+      <line x1="650" y1="190" x2="888" y2="190" class="d-ln" marker-end="url(#a2)"/>
+      <text x="770" y="181" text-anchor="middle" class="d-t">3 · หา user · bcrypt</text>
+      <line x1="650" y1="235" x2="382" y2="235" class="d-ret" marker-end="url(#a2)"/>
+      <text x="515" y="226" text-anchor="middle" class="d-t">4 · JWT HS256 {sub, ver} 7 วัน</text>
+      <line x1="380" y1="280" x2="112" y2="280" class="d-ret" marker-end="url(#a2)"/>
+      <text x="245" y="271" text-anchor="middle" class="d-t">5 · Set-Cookie เข้ารหัส httpOnly</text>
+
+      <!-- divider -->
+      <line x1="30" y1="318" x2="970" y2="318" class="d-grid"/>
+      <rect x="400" y="306" width="200" height="24" rx="12" class="d-warm"/>
+      <text x="500" y="323" text-anchor="middle" class="d-t">ทุกคำขอหลังจากนี้</text>
+
+      <line x1="110" y1="365" x2="378" y2="365" class="d-ln" marker-end="url(#a2)"/>
+      <text x="245" y="356" text-anchor="middle" class="d-t">6 · fetch /api/v1/… (cookie ไปเอง)</text>
+      <path d="M380 395 h46 v26 h-44" class="d-ln" marker-end="url(#a2)"/>
+      <text x="436" y="406" class="d-t">7 · เช็ก Sec-Fetch-Site</text>
+      <text x="436" y="424" class="d-t">ถอด token จาก cookie</text>
+      <line x1="380" y1="460" x2="648" y2="460" class="d-ln" marker-end="url(#a2)"/>
+      <text x="515" y="451" text-anchor="middle" class="d-t">8 · Authorization: Bearer</text>
+      <line x1="650" y1="505" x2="888" y2="505" class="d-ln" marker-end="url(#a2)"/>
+      <text x="770" y="496" text-anchor="middle" class="d-t">9 · token_version ตรงไหม</text>
+      <line x1="650" y1="545" x2="382" y2="545" class="d-ret" marker-end="url(#a2)"/>
+      <text x="515" y="536" text-anchor="middle" class="d-t">10 · JSON หรือ {error:{code}}</text>
+      <line x1="380" y1="585" x2="112" y2="585" class="d-ret" marker-end="url(#a2)"/>
+      <text x="245" y="576" text-anchor="middle" class="d-t">11 · ส่งต่อ status + body</text>
+    </svg>
+    </div>
+    <figcaption><b>ขั้น 9 ทำให้ logout ใช้ได้จริง</b> · ตอน logout Go จะเพิ่ม <code>users.token_version</code> ทีละ 1 token ทุกตัวที่ออกไปก่อนหน้าจึงใช้ไม่ได้ทันที ไม่ต้องรอหมดอายุ 7 วัน · ถ้า Go ตอบ 401 หน้าเว็บจะ <code>signOut()</code> แล้วพาไปหน้า login เอง</figcaption>
+  </figure>
+  <div class="grid2">
+    <div class="card"><h4>ทำไมต้องผ่าน BFF</h4><p>ถ้าเก็บ token ไว้ใน <code>localStorage</code> แล้วหน้าเว็บโดน XSS token จะถูกขโมยออกไปได้ แต่ cookie ที่เป็น httpOnly สคริปต์ในหน้าเว็บอ่านไม่ได้</p><span class="where">web/auth.ts · web/app/api/v1/[...path]/route.ts</span></div>
+    <div class="card"><h4>หน้าที่ต้อง login</h4><p>server component เรียก <code>requireSession()</code> ก่อน render ถ้ายังไม่มี session จะ redirect ไป <code>/login?callbackUrl=…</code> โดยกรองให้เหลือเฉพาะ path ในเว็บเรา กัน open redirect</p><span class="where">web/lib/require-session.ts</span></div>
+  </div>
+</section>
+
+<!-- 3 -->
+<section id="layers">
+  <h2><span class="n">3</span>ชั้นของ Go API</h2>
+  <p>คำขอไหลจากบนลงล่าง แพ็กเกจ <code>booking</code> ไม่รู้จัก HTTP เลย มันรับ <code>*gorm.DB</code> กับเวลา <code>now</code> เข้ามาเป็นพารามิเตอร์ ตัว seed จึงเรียกใช้ฟังก์ชันชุดเดียวกับ API และทดสอบด้วยเวลาที่กำหนดเองได้</p>
+  <ol class="layers">
+    <li><span class="path">cmd/api/main.go</span><span>โหลด config → ต่อ DB → reset/migrate/seed → เตรียมกุญแจ JWT → สร้าง Fiber พร้อม <code>recover</code> และ error handler กลาง</span></li>
+    <li><span class="path">handlers/routes.go</span><span>ผูก URL กับ middleware ตามลำดับ เช่น <code>auth → limit.write → handler</code></span></li>
+    <li><span class="path">middleware/auth.go</span><span><code>RequireAuth</code> (ไม่มี token ตอบ 401) · <code>OptionalAuth</code> (ไม่บังคับ login แต่ถ้า login อยู่จะรู้ว่าเป็นใคร เช่นหน้าร้านต้องรู้ว่าคนดูเป็นเจ้าของไหม)</span></li>
+    <li><span class="path">handlers/limits.go</span><span>rate limit แยกตามกลุ่ม route และค่าจำกัดที่กันการใช้งานในทางผิด</span></li>
+    <li><span class="path">handlers/*.go</span><span>อ่าน JSON · ตรวจสิทธิ์ (เป็นเจ้าของร้านไหม) · แปลงผลลัพธ์เป็น response</span></li>
+    <li class="core"><span class="path">booking/</span><span><code>validate.go</code> กติกา 7 ข้อ · <code>time.go</code> เวลาไทยและร้านที่เปิดข้ามเที่ยงคืน · <code>service.go</code> ล็อกแถวร้านและนับที่นั่ง</span></li>
+    <li><span class="path">apperr/</span><span>ทุก error ตอบหน้าตาเดียวกัน <code>{"error":{"code","message","details"}}</code> หน้าเว็บจึงแยกได้จาก <code>code</code> ว่าผิดเพราะอะไร</span></li>
+    <li><span class="path">models/ · database/</span><span>GORM struct พร้อม constraint (<code>CHECK</code>, <code>UNIQUE</code>, <code>ON DELETE CASCADE</code>) และ AutoMigrate</span></li>
+  </ol>
+</section>
+
+<!-- 4 -->
+<section id="booking">
+  <h2><span class="n">4</span>หัวใจของระบบ: การจอง</h2>
+  <p>การจอง แก้ไข และยกเลิกทำงานใน transaction เดียวกันเสมอ ขั้นแรกคือ <code>SELECT … FROM restaurants WHERE id = ? FOR UPDATE</code> ดังนั้นคำขอที่แตะร้านเดียวกันจะต้องเข้าคิวรอกัน ส่วนร้านอื่นทำงานคู่ขนานได้ตามปกติ</p>
+
+  <h3>สองคนกดจองที่นั่งสุดท้ายพร้อมกัน</h3>
+  <figure>
+    <div class="scroll">
+    <svg viewBox="0 0 1000 270" role="img" aria-label="คำขอ A ได้ล็อกแถวร้านก่อน จองได้แล้ว commit คำขอ B รอล็อกจน A commit แล้วจึงเห็นว่าเหลือ 2 ที่ จึงได้ 409 SEATS_EXCEEDED">
+      <defs>
+        <pattern id="hatch" width="8" height="8" patternUnits="userSpaceOnUse" patternTransform="rotate(45)"><line x1="0" y1="0" x2="0" y2="8" class="d-hatch"/></pattern>
+        <marker id="a4" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0,0 L10,5 L0,10 z" class="d-head"/></marker>
+      </defs>
+      <text x="16" y="30" class="d-m">ร้านทดสอบ 5 ที่ · ทั้งสองคนขอ 3 ที่ช่วงเวลาเดียวกัน</text>
+
+      <text x="16" y="88" class="d-tb">คำขอ A</text><text x="16" y="108" class="d-m">จอง 3 ที่</text>
+      <rect x="140" y="70" width="76" height="46" rx="6" class="d-sub"/><text x="178" y="98" text-anchor="middle" class="d-t">BEGIN</text>
+      <rect x="222" y="70" width="190" height="46" rx="6" class="d-key"/><text x="317" y="98" text-anchor="middle" class="d-t">FOR UPDATE ✓ ได้ล็อก</text>
+      <rect x="418" y="70" width="210" height="46" rx="6" class="d-sub"/><text x="523" y="98" text-anchor="middle" class="d-t">ว่าง 5 → ขอ 3 ✓</text>
+      <rect x="634" y="70" width="90" height="46" rx="6" class="d-sub"/><text x="679" y="98" text-anchor="middle" class="d-t">INSERT</text>
+      <rect x="730" y="70" width="90" height="46" rx="6" class="d-warm"/><text x="775" y="98" text-anchor="middle" class="d-tb">COMMIT</text>
+
+      <text x="16" y="168" class="d-tb">คำขอ B</text><text x="16" y="188" class="d-m">จอง 3 ที่</text>
+      <rect x="150" y="150" width="76" height="46" rx="6" class="d-sub"/><text x="188" y="178" text-anchor="middle" class="d-t">BEGIN</text>
+      <rect x="232" y="150" width="588" height="46" rx="6" class="d-wait"/>
+      <rect x="420" y="161" width="214" height="24" rx="4" class="d-sub"/>
+      <text x="527" y="178" text-anchor="middle" class="d-t">FOR UPDATE · รอล็อก…</text>
+      <rect x="826" y="150" width="160" height="46" rx="6" class="d-bad"/><text x="906" y="171" text-anchor="middle" class="d-t">ว่าง 2 → ขอ 3 ✕</text><text x="906" y="189" text-anchor="middle" class="d-mi">409 SEATS_EXCEEDED</text>
+
+      <line x1="823" y1="52" x2="823" y2="214" class="d-cap"/>
+      <text x="823" y="46" text-anchor="middle" class="d-t d-red">ปล่อยล็อก</text>
+
+      <line x1="140" y1="238" x2="984" y2="238" class="d-axis" marker-end="url(#a4)"/>
+      <text x="984" y="258" text-anchor="end" class="d-m">เวลา</text>
+    </svg>
+    </div>
+    <figcaption><b>ถ้าไม่มี <code>FOR UPDATE</code></b> ทั้งสองคำขอจะอ่านได้ "ว่าง 5" พร้อมกัน แล้วต่างคน INSERT ไป รวมเป็น 6 ที่ในร้าน 5 ที่ · สคริปต์ <code>api/scripts/race.sh</code> ยิงสองคำขอพร้อมกัน 5 รอบ ทุกรอบต้องได้ 201 หนึ่งตัวกับ 409 หนึ่งตัว</figcaption>
+  </figure>
+
+  <h3>นับที่นั่งทีละช่อง 30 นาที</h3>
+  <p>เราไม่ได้รวมจำนวนคนของทุกการจองที่ซ้อนกับช่วงที่ขอ เพราะการจองสองรายการที่อยู่คนละช่วงกันไม่ได้นั่งพร้อมกันจริง <code>CheckSeats</code> จึงไล่ดูทีละช่อง 30 นาที และทุกช่องต้องผ่านเงื่อนไข <code>ที่จองแล้ว + คนที่ขอ ≤ ที่นั่ง</code></p>
+  <figure>
+    <div class="scroll">
+    <svg viewBox="0 0 860 310" role="img" aria-label="ร้าน 10 ที่ การจอง A 7 คนช่วง 12:00 ถึง 12:30 และการจอง B 7 คนช่วง 12:30 ถึง 13:00 คำขอใหม่ 3 คนช่วง 12:00 ถึง 13:00 แต่ละช่องรวมได้ 10 พอดี จึงจองได้">
+      <line x1="150" y1="270" x2="790" y2="270" class="d-axis"/>
+      <line x1="150" y1="170" x2="790" y2="170" class="d-grid"/>
+      <text x="138" y="274" text-anchor="end" class="d-m">0</text>
+      <text x="138" y="174" text-anchor="end" class="d-m">5</text>
+      <text x="138" y="74" text-anchor="end" class="d-m">10</text>
+      <text x="16" y="174" class="d-m">ที่นั่ง</text>
+
+      <rect x="180" y="130" width="270" height="140" class="d-seat"/>
+      <text x="315" y="205" text-anchor="middle" class="d-tb">A · 7 คน</text>
+      <rect x="180" y="70" width="270" height="60" class="d-key"/>
+      <text x="315" y="105" text-anchor="middle" class="d-t d-blue">คำขอใหม่ 3 คน</text>
+
+      <rect x="490" y="130" width="270" height="140" class="d-seat"/>
+      <text x="625" y="205" text-anchor="middle" class="d-tb">B · 7 คน</text>
+      <rect x="490" y="70" width="270" height="60" class="d-key"/>
+      <text x="625" y="105" text-anchor="middle" class="d-t d-blue">คำขอใหม่ 3 คน</text>
+
+      <line x1="150" y1="70" x2="790" y2="70" class="d-cap"/>
+      <text x="790" y="58" text-anchor="end" class="d-t d-red">ที่นั่งร้าน = 10</text>
+
+      <text x="315" y="294" text-anchor="middle" class="d-mi">ช่อง 12:00–12:30</text>
+      <text x="625" y="294" text-anchor="middle" class="d-mi">ช่อง 12:30–13:00</text>
+    </svg>
+    </div>
+    <figcaption>คำขอใหม่ 3 คน ช่วง 12:00–13:00 ในร้าน 10 ที่ · <b>ทุกช่องรวมได้ 10 พอดี จึงจองได้</b> ถ้าช่องไหนเกิน error ตอบกลับจะบอกด้วยว่าเกินที่ช่องไหน (<code>slotStart</code>, <code>used</code>, <code>seats</code>) หน้าเว็บจึงเขียนข้อความให้ลูกค้าได้ตรงจุด</figcaption>
+  </figure>
+  <div class="compare">
+    <div class="verdict no"><span class="k">รวมทั้งช่วงแบบตรง ๆ</span><span class="v">7 + 7 + 3 = 17 &gt; 10 ✕</span><span>ปฏิเสธคำขอที่จริง ๆ ยังมีที่นั่งให้</span></div>
+    <div class="verdict yes"><span class="k">ดูทีละช่อง 30 นาที (ที่ใช้จริง)</span><span class="v">7 + 3 = 10 ≤ 10 ✓ ทั้งสองช่อง</span><span>ตรงกับจำนวนคนที่นั่งพร้อมกันจริง</span></div>
+  </div>
+
+  <h3>ร้านที่เปิดข้ามเที่ยงคืน</h3>
+  <p>เวลาเปิดและปิดเก็บเป็นนาทีนับจากเที่ยงคืน ถ้า <code>close ≤ open</code> แปลว่าร้านปิดหลังเที่ยงคืน เวลาที่ลูกค้าเลือกในรอบวันที่ 25 ซึ่งตกอยู่หลังเที่ยงคืน จะถูก <code>Resolve()</code> ให้เป็นเวลาของวันที่ 26</p>
+  <figure>
+    <div class="scroll">
+    <svg viewBox="0 0 1000 160" role="img" aria-label="ร้าน 18:00 ถึง 02:00 รอบวันที่ 25 เวลา 01:00 ถูกแปลงเป็นวันที่ 26 01:00 ส่วน 17:30 อยู่นอกเวลาเปิด">
+      <rect x="207" y="62" width="586" height="32" rx="6" class="d-warm"/>
+      <text x="420" y="83" text-anchor="middle" class="d-t">รอบวันที่ 25 · ข้าวต้มโต้รุ่งท่าน้ำ 18:00–02:00</text>
+      <line x1="60" y1="78" x2="940" y2="78" class="d-axis"/>
+      <line x1="647" y1="36" x2="647" y2="110" class="d-cap"/>
+      <text x="653" y="40" class="d-t d-red">เที่ยงคืน → วันที่ 26</text>
+      <g class="d-m" text-anchor="middle">
+        <text x="60" y="114">16:00</text><text x="207" y="114">18:00</text><text x="353" y="114">20:00</text><text x="500" y="114">22:00</text><text x="647" y="114">00:00</text><text x="793" y="114">02:00</text><text x="940" y="114">04:00</text>
+      </g>
+      <circle cx="720" cy="78" r="7" class="d-key"/>
+      <text x="720" y="146" text-anchor="middle" class="d-t d-blue">"01:00" → 26 ต.ค. 01:00 ✓</text>
+      <circle cx="170" cy="78" r="7" class="d-bad"/>
+      <text x="170" y="146" text-anchor="middle" class="d-t d-red">"17:30" → OUTSIDE_HOURS</text>
+    </svg>
+    </div>
+    <figcaption>เวลาทั้งหมดคิดเป็นเวลาไทย (<code>Asia/Bangkok</code> ฝัง tzdata ไว้ในโปรแกรม) และบันทึกลง DB เป็น <code>timestamptz</code> · คอลัมน์ <code>service_date</code> บอกว่าการจองนั้นเป็นของรอบวันไหน ใช้แสดงผลและกรองข้อมูลเท่านั้น</figcaption>
+  </figure>
+
+  <h3>กติกาที่ตรวจก่อนนับที่นั่ง (<code>Validate</code>)</h3>
+  <ol class="rules">
+    <li>วันที่และเวลาอยู่ในรูปแบบ <code>YYYY-MM-DD</code> และ <code>HH:MM</code></li>
+    <li>เวลาลงที่ :00 หรือ :30 เท่านั้น (<code>INVALID_SLOT</code>)</li>
+    <li>เวลาสิ้นสุดอยู่หลังเวลาเริ่ม (<code>INVALID_RANGE</code>)</li>
+    <li>อยู่ในเวลาเปิดของรอบนั้น (<code>OUTSIDE_HOURS</code>)</li>
+    <li>เวลาเริ่มยังไม่ผ่านไป (<code>IN_PAST</code>)</li>
+    <li>ไม่เกิน 60 วันข้างหน้า</li>
+    <li>มีอย่างน้อย 1 คน แล้วจึงไปนับที่นั่ง (<code>SEATS_EXCEEDED</code>, 409)</li>
+  </ol>
+  <p class="callout">การแก้ไขและยกเลิกใช้ <code>CanModify()</code> ตัวเดียวกันทั้งตอนตัดสินจริงและตอนบอกหน้าเว็บว่ากดปุ่มได้ไหม ทำได้ถึงเวลา <code>เวลาเริ่ม − cancel_lead_minutes</code> ของร้าน และตอนแก้ไขจะไม่นับที่นั่งเดิมของตัวเองซ้ำ (<code>excludeID</code>)</p>
+</section>
+
+<!-- 5 -->
+<section id="data">
+  <h2><span class="n">5</span>ฐานข้อมูล</h2>
+  <p>ไม่มีตาราง "role" แยก บัญชีเดียวเป็นได้ทั้งเจ้าของร้าน (ร้านที่ตัวเองสร้าง) และลูกค้า/ผู้รีวิว (ร้านของคนอื่น) ระบบดูสิทธิ์จาก <code>restaurants.owner_id</code></p>
+  <figure>
+    <div class="scroll">
+    <svg viewBox="0 0 1000 480" role="img" aria-label="ER diagram: users เป็นเจ้าของ restaurants, users จอง bookings และเขียน reviews, restaurants มี restaurant_images bookings และ reviews">
+      <!-- users -->
+      <rect x="30" y="120" width="240" height="152" rx="8" class="d-box"/>
+      <rect x="30" y="120" width="240" height="32" rx="8" class="d-key"/>
+      <text x="46" y="142" class="d-tb">users</text>
+      <g class="d-mi"><text x="46" y="174">id PK</text><text x="46" y="196">name</text><text x="46" y="218">email UNIQUE</text><text x="46" y="240">password_hash (bcrypt)</text><text x="46" y="262">token_version</text></g>
+
+      <!-- app_secrets -->
+      <rect x="30" y="340" width="240" height="86" rx="8" class="d-box"/>
+      <rect x="30" y="340" width="240" height="32" rx="8" class="d-sub"/>
+      <text x="46" y="362" class="d-tb">app_secrets</text>
+      <g class="d-mi"><text x="46" y="394">name PK · value</text><text x="46" y="414">กุญแจ JWT ที่สุ่มเอง</text></g>
+
+      <!-- restaurants -->
+      <rect x="380" y="16" width="270" height="174" rx="8" class="d-box"/>
+      <rect x="380" y="16" width="270" height="32" rx="8" class="d-key"/>
+      <text x="396" y="38" class="d-tb">restaurants</text>
+      <g class="d-mi"><text x="396" y="70">id PK · owner_id FK</text><text x="396" y="92">name · cuisine · description</text><text x="396" y="114">seats  CHECK &gt; 0</text><text x="396" y="136">open_minute  0–1439</text><text x="396" y="158">close_minute  0–1439</text><text x="396" y="180">cancel_lead_minutes ≥ 30</text></g>
+
+      <!-- images -->
+      <rect x="730" y="16" width="240" height="108" rx="8" class="d-box"/>
+      <rect x="730" y="16" width="240" height="32" rx="8" class="d-sub"/>
+      <text x="746" y="38" class="d-tb">restaurant_images</text>
+      <g class="d-mi"><text x="746" y="70">id PK · restaurant_id FK</text><text x="746" y="92">url</text><text x="746" y="114">position</text></g>
+
+      <!-- bookings -->
+      <rect x="380" y="236" width="270" height="196" rx="8" class="d-box"/>
+      <rect x="380" y="236" width="270" height="32" rx="8" class="d-key"/>
+      <text x="396" y="258" class="d-tb">bookings</text>
+      <g class="d-mi"><text x="396" y="290">id PK</text><text x="396" y="312">restaurant_id FK · user_id FK</text><text x="396" y="334">party_size  CHECK &gt; 0</text><text x="396" y="356">service_date  date</text><text x="396" y="378">start_at · end_at  timestamptz</text><text x="396" y="400">CHECK end_at &gt; start_at</text><text x="396" y="422">status confirmed | cancelled</text></g>
+
+      <!-- reviews -->
+      <rect x="730" y="236" width="240" height="130" rx="8" class="d-box"/>
+      <rect x="730" y="236" width="240" height="32" rx="8" class="d-key"/>
+      <text x="746" y="258" class="d-tb">reviews</text>
+      <g class="d-mi"><text x="746" y="290">restaurant_id · user_id</text><text x="746" y="312">UNIQUE (คู่นี้) → คนละ 1</text><text x="746" y="334">rating  1–5</text><text x="746" y="356">comment</text></g>
+
+      <!-- relations -->
+      <polyline points="270,160 325,160 325,60 380,60" class="d-ln"/>
+      <text x="330" y="110" class="d-m">เป็นเจ้าของ</text>
+      <text x="330" y="126" class="d-m">1 : N</text>
+      <polyline points="270,230 325,230 325,300 380,300" class="d-ln"/>
+      <text x="330" y="270" class="d-m">จอง 1 : N</text>
+      <polyline points="270,252 300,252 300,462 850,462 850,366" class="d-ln"/>
+      <text x="690" y="456" class="d-m">เขียนรีวิว 1 : N</text>
+      <line x1="650" y1="60" x2="730" y2="60" class="d-ln"/>
+      <text x="690" y="52" text-anchor="middle" class="d-m">1 : N</text>
+      <line x1="515" y1="190" x2="515" y2="236" class="d-ln"/>
+      <text x="522" y="218" class="d-m">1 : N</text>
+      <polyline points="650,160 690,160 690,290 730,290" class="d-ln"/>
+      <text x="696" y="226" class="d-m">1 : N</text>
+    </svg>
+    </div>
+    <figcaption><b>กติกาข้อมูลพื้นฐานบังคับที่ระดับฐานข้อมูลด้วย</b> (<code>CHECK</code>, <code>UNIQUE</code>, FK พร้อม <code>ON DELETE CASCADE</code>) ถ้าโค้ดตรวจหลุดไป Postgres ก็ยังไม่ยอมรับข้อมูลที่ผิด · การยกเลิกเปลี่ยนแค่ <code>status</code> ไม่ได้ลบแถว ประวัติจึงยังอยู่ · <code>app_secrets</code> ไม่ถูกล้างตอน seed ใหม่ ผู้ใช้ที่ login ค้างไว้จึงยังใช้ต่อได้</figcaption>
+  </figure>
+</section>
+
+<!-- 6 -->
+<section id="api">
+  <h2><span class="n">6</span>API <span class="mono" style="font-size:.5em;color:var(--muted)">/api/v1</span></h2>
+  <p>มี 19 endpoint และมีเอกสาร OpenAPI ให้ลองยิงที่ <code>http://localhost:8080/docs</code> (Swagger UI)</p>
+  <div class="tbl">
+    <table>
+      <thead><tr><th>Endpoint</th><th>สิทธิ์</th><th>ทำอะไร</th></tr></thead>
+      <tbody>
+        <tr><th colspan="3">บัญชี</th></tr>
+        <tr><td class="m"><span class="verb">POST</span>/auth/register</td><td><span class="pill pub">ทุกคน</span></td><td>สมัครสมาชิก (จำกัดจำนวนครั้งต่อ IP และรวมทั้งระบบ)</td></tr>
+        <tr><td class="m"><span class="verb">POST</span>/auth/login</td><td><span class="pill pub">ทุกคน</span></td><td>รับ JWT · ใส่รหัสผิดได้ 10 ครั้ง / 15 นาที ต่ออีเมล</td></tr>
+        <tr><td class="m"><span class="verb">POST</span>/auth/logout</td><td><span class="pill auth">login</span></td><td>เพิ่ม token_version → token เก่าใช้ไม่ได้</td></tr>
+        <tr><td class="m"><span class="verb">GET</span>/me</td><td><span class="pill auth">login</span></td><td>ข้อมูลตัวเอง</td></tr>
+        <tr><th colspan="3">ร้าน</th></tr>
+        <tr><td class="m"><span class="verb">GET</span>/restaurants</td><td><span class="pill pub">ทุกคน</span></td><td>ค้นหาและเรียงตามคะแนน</td></tr>
+        <tr><td class="m"><span class="verb">GET</span>/restaurants/:id</td><td><span class="pill pub">ทุกคน</span></td><td>รายละเอียดร้านพร้อมรูป</td></tr>
+        <tr><td class="m"><span class="verb">POST</span>/restaurants</td><td><span class="pill auth">login</span></td><td>สร้างร้าน (ผู้สร้างเป็นเจ้าของ)</td></tr>
+        <tr><td class="m"><span class="verb">PUT</span> <span class="verb">DELETE</span>/restaurants/:id</td><td><span class="pill auth">เจ้าของ</span></td><td>แก้ไข / ลบร้าน</td></tr>
+        <tr><td class="m"><span class="verb">GET</span>/me/restaurants</td><td><span class="pill auth">login</span></td><td>ร้านของฉัน</td></tr>
+        <tr><td class="m"><span class="verb">POST</span>/uploads</td><td><span class="pill auth">login</span></td><td>อัปโหลดรูป (ไฟล์ที่ไม่มีร้านไหนใช้จะถูกลบหลัง 24 ชม.)</td></tr>
+        <tr><th colspan="3">การจอง</th></tr>
+        <tr><td class="m"><span class="verb">GET</span>/restaurants/:id/availability</td><td><span class="pill opt">ไม่บังคับ</span></td><td>ที่นั่งว่างทีละช่อง 30 นาที (ใช้วาดกราฟที่นั่ง)</td></tr>
+        <tr><td class="m"><span class="verb">POST</span>/restaurants/:id/bookings</td><td><span class="pill auth">login</span></td><td>จอง · มีการจองที่ยังไม่ถึงเวลาได้ไม่เกิน 30 รายการต่อคน</td></tr>
+        <tr><td class="m"><span class="verb">GET</span>/me/bookings</td><td><span class="pill auth">login</span></td><td>การจองของฉัน (กำลังจะถึง · ที่ผ่านมา · ยกเลิกแล้ว)</td></tr>
+        <tr><td class="m"><span class="verb">PUT</span>/bookings/:id</td><td><span class="pill auth">ผู้จอง</span></td><td>แก้ไข (ไม่นับที่นั่งเดิมซ้ำ)</td></tr>
+        <tr><td class="m"><span class="verb">POST</span>/bookings/:id/cancel</td><td><span class="pill auth">ผู้จอง</span></td><td>ยกเลิก (ภายในเวลาที่ร้านกำหนด)</td></tr>
+        <tr><td class="m"><span class="verb">GET</span>/restaurants/:id/bookings</td><td><span class="pill auth">เจ้าของ</span></td><td>dashboard การจองของร้าน</td></tr>
+        <tr><th colspan="3">รีวิว</th></tr>
+        <tr><td class="m"><span class="verb">GET</span>/restaurants/:id/reviews</td><td><span class="pill opt">ไม่บังคับ</span></td><td>รีวิวทั้งหมด พร้อมรีวิวของฉัน (ถ้า login อยู่)</td></tr>
+        <tr><td class="m"><span class="verb">PUT</span>/restaurants/:id/reviews/me</td><td><span class="pill auth">ไม่ใช่เจ้าของ</span></td><td>เขียน/แก้รีวิว (คนละ 1 รีวิวต่อร้าน · รีวิวร้านตัวเองไม่ได้)</td></tr>
+      </tbody>
+    </table>
+  </div>
+</section>
+
+<!-- 7 -->
+<section id="security">
+  <h2><span class="n">7</span>ความปลอดภัย</h2>
+  <div class="grid2">
+    <div class="card"><h4>Token ไม่อยู่ใน JavaScript</h4><p>JWT ของ Go อยู่ใน cookie ของ NextAuth ที่เข้ารหัสและเป็น httpOnly ถึงหน้าเว็บโดน XSS ก็ขโมย token ออกไปไม่ได้</p><span class="where">web/auth.ts</span></div>
+    <div class="card"><h4>Logout ยกเลิก token ได้จริง</h4><p>token มีค่า <code>ver</code> ฝังอยู่ และทุกคำขอจะเทียบกับ <code>users.token_version</code> ใน DB ถ้าลบ user ทิ้งหรือ logout ไปแล้ว token จะใช้ไม่ได้ทันที</p><span class="where">middleware/auth.go</span></div>
+    <div class="card"><h4>JWT แบบเข้มงวด</h4><p>รับเฉพาะ HS256 (กัน <code>alg: none</code>) และบังคับว่าต้องมีวันหมดอายุ กุญแจต้องยาว ≥ 32 ตัวอักษร ถ้าไม่ได้ตั้งไว้ ระบบจะสุ่มเก็บลง <code>app_secrets</code> ใน repo จึงไม่มีค่าลับ</p><span class="where">cmd/api/main.go</span></div>
+    <div class="card"><h4>กัน CSRF</h4><p>คำขอที่ไม่ใช่ GET ต้องมี <code>Sec-Fetch-Site: same-origin</code> ซึ่งเบราว์เซอร์ใส่ให้เองและเว็บอื่นปลอมไม่ได้ ซ้อนกับ cookie แบบ SameSite=Lax อีกชั้น</p><span class="where">app/api/v1/[...path]/route.ts</span></div>
+    <div class="card"><h4>Rate limit</h4><p>login ผิด: 10 ครั้ง / 15 นาที ต่ออีเมล · สมัคร: 10 ครั้ง / ชม. ต่อ IP และ 100 ครั้ง / ชม. รวมทั้งระบบ · เขียนข้อมูล: 60 ครั้ง / นาที ต่อคน · อัปโหลด: 30 ครั้ง / 10 นาที</p><span class="where">handlers/limits.go</span></div>
+    <div class="card"><h4>ลดช่องทางโจมตี</h4><p>ใส่รหัสผิดกับใส่อีเมลที่ไม่มีในระบบได้ข้อความตอบกลับเหมือนกันทุกตัวอักษร · <code>password_hash</code> ไม่ถูกส่งออกใน JSON · API และ DB เปิดให้เฉพาะเครื่องนี้ · <code>callbackUrl</code> รับเฉพาะ path ในเว็บเรา</p><span class="where">models.go · docker-compose.yml</span></div>
+  </div>
+</section>
+
+<!-- 8 -->
+<section id="run">
+  <h2><span class="n">8</span>การรันระบบ</h2>
+  <div class="tbl">
+    <table>
+      <thead><tr><th>โหมด</th><th>คำสั่ง</th><th>ใช้เมื่อ</th></tr></thead>
+      <tbody>
+        <tr><td>Docker ครบชุด</td><td class="m">docker compose up --build</td><td>เดโม / ตรวจงาน · seed ข้อมูลใหม่ทุกครั้งที่ API เริ่ม (<code>SEED_ON_START=reset</code>) การจองตัวอย่างจึงนับจาก "ตอนนี้" เสมอ</td></tr>
+        <tr><td>Dev</td><td class="m">go run ./cmd/api · npm run dev</td><td>แก้โค้ดแล้วเห็นผลทันที (เปิดแค่ <code>db</code> ใน Docker)</td></tr>
+        <tr><td>Mock API</td><td class="m">npm run dev:mock</td><td>ทำหน้าเว็บอย่างเดียว ไม่ต้องเปิด Go หรือ Postgres · <code>web/mock/booking.ts</code> แปลงกติกามาจาก Go และใช้ error code เดียวกัน</td></tr>
+      </tbody>
+    </table>
+  </div>
+  <p>ข้อมูลตัวอย่างมีร้าน 20 ร้าน · รีวิว 1,572 รายการ · การจองราว 1,200 รายการ · บัญชีสำหรับเดโมคือ <code>usr1@email.com</code> (มะลิ เจ้าของ 3 ร้าน) และ <code>usr2@email.com</code> (สมชาย ลูกค้า) รหัสผ่าน <code>123456</code></p>
+</section>
+
+<footer>ตึกตึกโต๊ะ · DevPool Final Exam 2569 · ทุก diagram ในหน้านี้วาดจากโค้ดใน repo (<code>api/internal</code>, <code>web/app</code>, <code>docker-compose.yml</code>)</footer>
+</div>
+
+</html>
