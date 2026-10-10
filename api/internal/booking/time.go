@@ -23,7 +23,7 @@ func mustLoad(name string) *time.Location {
 
 var errBadTime = errors.New("รูปแบบเวลาต้องเป็น HH:MM")
 
-// ParseHHMM แปลง "18:30" → 1110 · ต้องเป็นตัวเลข 2 หลัก : 2 หลัก เท่านั้น
+// ParseHHMM แปลง "18:30" → 1110 (นาทีนับจาก 00:00) · ต้องเป็นตัวเลข 2 หลัก : 2 หลัก เท่านั้น
 func ParseHHMM(s string) (int, error) {
 	if len(s) != 5 || s[2] != ':' {
 		return 0, errBadTime
