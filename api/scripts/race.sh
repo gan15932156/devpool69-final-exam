@@ -7,10 +7,10 @@ D=$(date -d tomorrow +%F)
 
 token() {
   curl -s -X POST "$API/auth/login" -H "Content-Type: application/json" \
-    -d "{\"email\":\"$1\",\"password\":\"toawang123\"}" | sed 's/.*"accessToken":"\([^"]*\)".*/\1/'
+    -d "{\"email\":\"$1\",\"password\":\"${2:-toawang123}\"}" | sed 's/.*"accessToken":"\([^"]*\)".*/\1/'
 }
-A=$(token somchai@example.com)
-B=$(token mali@example.com)
+A=$(token usr2@email.com 123456)
+B=$(token usr1@email.com 123456)
 OWNER=$(token nid@example.com)
 
 IMG=$(curl -s -H "Authorization: Bearer $OWNER" -F "file=@$(dirname "$0")/race.png" "$API/uploads" | sed 's/.*"url":"\([^"]*\)".*/\1/')

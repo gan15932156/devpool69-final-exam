@@ -9,6 +9,7 @@
 
 @api = http://localhost:8080/api/v1
 @password = toawang123
+@testPassword = 123456
 
 ###############################################################################
 # Phase 1 — บัญชี
@@ -19,14 +20,14 @@
 POST {{api}}/auth/login
 Content-Type: application/json
 
-{ "email": "mali@example.com", "password": "{{password}}" }
+{ "email": "usr1@email.com", "password": "{{testPassword}}" }
 
 ### login สมชาย (ลูกค้า) — คาดหวัง: 200
 # @name somchai
 POST {{api}}/auth/login
 Content-Type: application/json
 
-{ "email": "somchai@example.com", "password": "{{password}}" }
+{ "email": "usr2@email.com", "password": "{{testPassword}}" }
 
 ### login เชฟนิด (เจ้าของครัวริมคลอง ร้าน 1) — คาดหวัง: 200
 # @name nid
@@ -62,7 +63,7 @@ Content-Type: application/json
 POST {{api}}/auth/login
 Content-Type: application/json
 
-{ "email": "mali@example.com", "password": "wrong-pass1" }
+{ "email": "usr1@email.com", "password": "wrong-pass1" }
 
 ### login อีเมลที่ไม่มี — คาดหวัง: 401 ข้อความเดียวกับข้างบน
 POST {{api}}/auth/login

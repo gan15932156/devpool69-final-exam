@@ -20,8 +20,11 @@ import (
 	"toawang/internal/models"
 )
 
-// Password ของบัญชีทดสอบทุกบัญชี
+// Password ของบัญชีทดสอบทุกบัญชี (ยกเว้น 2 บัญชี present ใช้ TestPassword)
 const Password = "toawang123"
+
+// TestPassword ของบัญชี present: usr1@email.com (มะลิ) · usr2@email.com (สมชาย)
+const TestPassword = "123456"
 
 // รูปร้านฝังไว้ในไฟล์โปรแกรม (ใช้ได้ทั้งตอน go run และใน Docker)
 // อยากใช้รูปจริง: วางไฟล์ images/<slug>-1.jpg, -2.jpg ... ทับของเดิม (jpg/png/webp)
@@ -159,8 +162,8 @@ func Run(db *gorm.DB, uploadDir string) error {
 	err = db.Transaction(func(tx *gorm.DB) error {
 		// ---- บัญชีสำหรับ present 2 บัญชี + เจ้าของร้านอื่น ๆ ----
 		named := []struct{ key, name, email string }{
-			{"mali", "มะลิ ศรีสุข", "mali@example.com"},      // present: เจ้าของ 3 ร้าน + เป็นลูกค้าร้านอื่น
-			{"somchai", "สมชาย ใจดี", "somchai@example.com"}, // present: ลูกค้า
+			{"mali", "มะลิ ศรีสุข", "usr1@email.com"},    // present: เจ้าของ 3 ร้าน + เป็นลูกค้าร้านอื่น
+			{"somchai", "สมชาย ใจดี", "usr2@email.com"}, // present: ลูกค้า
 			{"nid", "เชฟนิด ริมคลอง", "nid@example.com"},
 			{"somsak", "ลุงสมศักดิ์", "somsak@example.com"},
 			{"muay", "เจ๊หมวย", "muay@example.com"},
@@ -171,8 +174,15 @@ func Run(db *gorm.DB, uploadDir string) error {
 			{"noi", "น้อยหน่า", "noi@example.com"},
 			{"ya", "ยาใจ", "ya@example.com"},
 		}
+		testHash, err := bcrypt.GenerateFromPassword([]byte(TestPassword), bcrypt.DefaultCost)
+		if err != nil {
+			return err
+		}
 		for _, n := range named {
 			u := &models.User{Name: n.name, Email: n.email, PasswordHash: string(hash)}
+			if n.key == "mali" || n.key == "somchai" {
+				u.PasswordHash = string(testHash)
+			}
 			if err := tx.Create(u).Error; err != nil {
 				return err
 			}

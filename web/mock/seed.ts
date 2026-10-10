@@ -5,6 +5,7 @@ import { emptyStore, nextId, type Review, type Store, type User } from "./store"
 import { addDays, at, dateOf, formatHHMM } from "./time";
 
 export const SEED_PASSWORD = "toawang123";
+export const TEST_PASSWORD = "123456"; // 2 บัญชี present: usr1@email.com (มะลิ) · usr2@email.com (สมชาย)
 export const MIN_REVIEWS_FOR_RANKING = 5;
 
 const hm = 60;
@@ -93,9 +94,9 @@ const restaurants: Seed[] = [
     owner: "mali", seats: 8, open: 9 * hm, close: 17 * hm, lead: 30, stars: [2, 0, 1, 0, 0] },
 ];
 
-const named = [
-  { key: "mali", name: "มะลิ ศรีสุข" }, // present: เจ้าของ 3 ร้าน + เป็นลูกค้าร้านอื่น
-  { key: "somchai", name: "สมชาย ใจดี" }, // present: ลูกค้า
+const named: { key: string; name: string; email?: string }[] = [
+  { key: "mali", name: "มะลิ ศรีสุข", email: "usr1@email.com" }, // present: เจ้าของ 3 ร้าน + เป็นลูกค้าร้านอื่น
+  { key: "somchai", name: "สมชาย ใจดี", email: "usr2@email.com" }, // present: ลูกค้า
   { key: "nid", name: "เชฟนิด ริมคลอง" },
   { key: "somsak", name: "ลุงสมศักดิ์" },
   { key: "muay", name: "เจ๊หมวย" },
@@ -151,7 +152,9 @@ export function seedStore(now = Date.now()): Store {
   };
 
   const users: Record<string, User> = {};
-  for (const n of named) users[n.key] = addUser(n.name, `${n.key}@example.com`);
+  for (const n of named) users[n.key] = addUser(n.name, n.email ?? `${n.key}@example.com`);
+  // 2 บัญชี present ใช้รหัส 123456 (ตรงกับ TestPassword ใน seed.go)
+  users.mali.password = users.somchai.password = TEST_PASSWORD;
   // ผู้รีวิว 400 คน (1 คนรีวิวได้ครั้งเดียวต่อร้าน → ร้านที่มี 311 รีวิวต้องมีคนอย่างน้อย 311 คน)
   const reviewers = Array.from({ length: 400 }, (_, i) =>
     addUser(
