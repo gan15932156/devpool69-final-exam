@@ -19,7 +19,7 @@
 
 ดู [README.md](../../README.md) ที่ root (Docker: `docker compose up --build` → http://localhost:3000)
 
-บัญชีสำหรับ present (รหัสผ่าน `toawang123`): `somchai@example.com` (ลูกค้า · การจองครบทุกสถานะ) · `mali@example.com` (เจ้าของ 3 ร้าน + เป็นลูกค้าร้านอื่น)
+บัญชีสำหรับ present (รหัสผ่าน `123456`): `usr2@email.com` (สมชาย · ลูกค้า · การจองครบทุกสถานะ) · `usr1@email.com` (มะลิ · (เจ้าของ 3 ร้าน + เป็นลูกค้าร้านอื่น)
 
 ## ภาพรวมสถาปัตยกรรม
 

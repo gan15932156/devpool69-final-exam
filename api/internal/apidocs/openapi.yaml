@@ -9,7 +9,7 @@ info:
     - Error ทุกตัวตอบรูปแบบ `{ "error": { "code", "message", "details" } }` · ตัดสินจาก `code`
     - Rate limit: login ผิด 10 ครั้ง/15 นาทีต่ออีเมล · สมัคร 10 ครั้ง/ชม.ต่อ IP · อัปโหลด 30 ครั้ง/10 นาที · route ที่เปลี่ยนข้อมูล 60 ครั้ง/นาทีต่อบัญชี → `429 TOO_MANY_REQUESTS`
     - ลองยิง: `POST /auth/login` ด้วยบัญชีตัวอย่าง → คัดลอก `accessToken` → กดปุ่ม **Authorize** ด้านบน
-    - บัญชีตัวอย่าง (รหัสผ่าน `toawang123`): `somchai@example.com` (ลูกค้า) · `mali@example.com` (เจ้าของร้าน 4, 7, 20) · `nid@example.com` (เจ้าของร้าน 1)
+    - บัญชีตัวอย่าง: `usr2@email.com` (สมชาย · ลูกค้า) · `usr1@email.com` (มะลิ · เจ้าของร้าน 4, 7, 20) รหัส `123456` · `nid@example.com` (เจ้าของร้าน 1) รหัส `toawang123`
 
     คำอธิบายฉบับเต็ม: `docs/API.md`
 servers:
@@ -611,14 +611,14 @@ components:
       type: object
       required: [email, password]
       properties:
-        email: { type: string, format: email, example: somchai@example.com }
-        password: { type: string, example: toawang123 }
+        email: { type: string, format: email, example: usr2@email.com }
+        password: { type: string, example: "123456" }
     User:
       type: object
       properties:
         id: { type: integer, example: 2 }
         name: { type: string, example: สมชาย ใจดี }
-        email: { type: string, example: somchai@example.com }
+        email: { type: string, example: usr2@email.com }
         createdAt: { type: string, format: date-time }
     AuthResponse:
       type: object
