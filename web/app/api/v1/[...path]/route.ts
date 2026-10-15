@@ -49,8 +49,8 @@ async function handle(req: NextRequest, { params }: { params: Promise<{ path: st
       headers,
       body: req.method === "GET" ? undefined : req.body,
       duplex: "half", // ส่ง body (เช่นรูปที่อัปโหลด) ต่อแบบ stream ไม่ต้องอ่านทั้งก้อนก่อน
-      cache: "no-store",
-      redirect: "manual",
+      cache: "no-store", // ที่นั่ง/การจองต้องสดเสมอ ห้าม Next แคชคำตอบ
+      redirect: "manual", // ไม่ตาม redirect เองฝั่ง server · ส่งคำตอบของ Go กลับไปตามจริง
     } as RequestInit);
   } catch {
     return fail(502, "BAD_GATEWAY", "เชื่อมต่อ API ไม่ได้ ลองใหม่อีกครั้ง");

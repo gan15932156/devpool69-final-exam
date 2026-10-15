@@ -60,6 +60,7 @@ export function RestaurantForm({ initial, ownerId }: { initial?: RestaurantDetai
     if (!files?.length) return;
     setUploading(true);
     setUploadError("");
+    // อัปโหลดทีละรูป · รูปไหนพัง รูปที่ขึ้นไปแล้วยังอยู่ในฟอร์ม (setValue ใน finally) · ตัดที่ 8 รูปตามเพดานของ Go
     const urls = [...images];
     try {
       for (const file of Array.from(files).slice(0, 8 - urls.length)) {

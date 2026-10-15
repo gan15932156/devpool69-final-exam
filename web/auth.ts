@@ -10,7 +10,8 @@ class TooManyAttempts extends CredentialsSignin {
 // cookie นี้เข้ารหัสและเป็น httpOnly → JavaScript ในหน้าเว็บอ่าน token ไม่ได้ (มี XSS ก็ขโมยออกไปไม่ได้)
 // หน้าเว็บเรียก /api/v1/* ของ Next แล้ว app/api/v1/[...path]/route.ts แนบ token ให้ฝั่ง server
 export const { handlers, auth } = NextAuth({
-  session: { strategy: "jwt", maxAge: 7 * 24 * 60 * 60 }, // 7 วัน เท่ากับอายุ token ของ Go
+  // jwt = เก็บ session ไว้ใน cookie ที่เข้ารหัส → ฝั่ง Next ไม่ต้องมี DB · 7 วัน เท่ากับอายุ token ของ Go
+  session: { strategy: "jwt", maxAge: 7 * 24 * 60 * 60 },
   pages: { signIn: "/login" },
   providers: [
     Credentials({

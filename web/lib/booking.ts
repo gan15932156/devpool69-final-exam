@@ -26,6 +26,7 @@ export function timeOptions(from: number, to: number) {
 }
 
 // วันที่ (YYYY-MM-DD) + นาทีในรอบ → Date เวลาเครื่อง (Date จัดการนาทีเกินวันให้เอง)
+// ใช้เวลาเครื่อง = ถือว่าผู้ใช้อยู่เวลาไทย · ถ้าเครื่องตั้งเขตเวลาอื่น ตัวช่วยฝั่งเว็บจะเพี้ยน แต่ Go ตัดสินด้วยเวลาไทยเสมอ
 export function atMinutes(date: string, minutes: number) {
   const [y, m, d] = date.split("-").map(Number);
   return new Date(y, m - 1, d, 0, minutes);

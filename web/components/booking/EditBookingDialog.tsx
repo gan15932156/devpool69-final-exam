@@ -84,9 +84,11 @@ function EditForm({ booking: b, restaurant: r, close }: { booking: Booking; rest
   const [error, setError] = useState("");
 
   const days = nextDays(5);
+  // วันเดิมอยู่นอก 5 วันข้างหน้า (จองไว้ไกล) → ใส่เป็นตัวเลือกแรก ไม่งั้น <select> ไม่มีค่าที่ตรงกับวันเดิม
   const dateOptions = days.some((d) => d.iso === b.serviceDate) ? days.map((d) => d.iso) : [b.serviceDate, ...days.map((d) => d.iso)];
 
   // excludeBookingId → Go ไม่นับที่นั่งเดิมของการจองนี้ในตัวเลข used
+  // ใส่ b.id ใน key ด้วย → แยกแคชจากกราฟของหน้าร้าน (ซึ่งนับการจองนี้รวมอยู่)
   const { data: av } = useQuery({
     queryKey: ["availability", r.id, date, b.id],
     queryFn: () => api<Availability>(`/api/v1/restaurants/${r.id}/availability?date=${date}&excludeBookingId=${b.id}`),

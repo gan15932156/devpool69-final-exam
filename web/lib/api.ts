@@ -33,6 +33,7 @@ export async function request<T>(url: string, { json, ...init }: RequestOptions 
   const res = await fetch(url, { ...init, headers });
   if (res.status === 204) return undefined as T;
 
+  // body ไม่ใช่ JSON (เช่น proxy ตอบหน้า HTML ตอน 502) → ไม่พัง ใช้ข้อความกลางด้านล่างแทน
   const data = await res.json().catch(() => null);
   if (!res.ok) {
     const e = data?.error;

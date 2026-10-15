@@ -46,7 +46,7 @@ export function BookingTicket({ restaurant: r }: { restaurant: RestaurantDetail 
   const { open, close } = serviceRange(r.openTime, r.closeTime);
   const days = nextDays(5);
 
-  const [party, setParty] = useState(Math.min(2, r.seats));
+  const [party, setParty] = useState(Math.min(2, r.seats)); // เริ่ม 2 คน (กรณีที่พบบ่อย) แต่ไม่เกินที่นั่งของร้าน
   // วันแรกที่ยังจองได้: ถ้าวันนี้ร้านปิดไปแล้ว (เช่น เปิดถึง 14:00 แต่ตอนนี้บ่ายสาม) เริ่มที่พรุ่งนี้ · คิดครั้งเดียวตอนเปิดใบจอง
   const [initial] = useState(() => {
     const iso = (days.find((d) => firstFutureStart(d.iso, open, close) !== null) ?? days[0]).iso;
@@ -74,6 +74,7 @@ export function BookingTicket({ restaurant: r }: { restaurant: RestaurantDetail 
     },
     onError: (e) => {
       // แสดงสิ่งที่ Go ตอบเสมอ — เช่นมีคนจองตัดหน้าไปก่อนเสี้ยววินาที
+      // แล้วโหลดกราฟใหม่ → เห็นที่นั่งล่าสุดที่ทำให้จองไม่ผ่าน
       setServerError(bookingErrorText(e, "new"));
       queryClient.invalidateQueries({ queryKey: ["availability", r.id, date] });
     },

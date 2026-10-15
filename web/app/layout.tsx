@@ -4,6 +4,8 @@ import { auth } from "@/auth";
 import Providers from "./providers";
 import "./globals.css";
 
+// next/font โหลดฟอนต์ตอน build แล้วเสิร์ฟจากเว็บเราเอง (ไม่ดึงจาก Google ตอนเปิดหน้า) · ต้องมี subset thai
+// Pridi = หัวข้อ · Sarabun = เนื้อหา (ตามดีไซน์) · ส่งเป็น CSS variable ให้ globals.css ใช้
 const pridi = Pridi({
   variable: "--font-pridi",
   weight: "600",

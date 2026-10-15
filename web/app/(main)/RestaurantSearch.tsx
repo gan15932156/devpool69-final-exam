@@ -29,6 +29,7 @@ export function RestaurantSearch({ initialQ, initialSort }: { initialQ: string; 
   }, [text]);
 
   // เก็บค่าไว้ใน URL → reload / แชร์ลิงก์ แล้วได้ผลเดิม
+  // replace ไม่ใช่ push → ไม่เพิ่มประวัติทุกครั้งที่พิมพ์ (กด back แล้วออกจากหน้าเลย) · ค่า default ไม่ใส่ → ลิงก์สั้น
   useEffect(() => {
     const params = new URLSearchParams();
     if (q) params.set("q", q);

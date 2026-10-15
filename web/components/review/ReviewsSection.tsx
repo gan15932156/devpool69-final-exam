@@ -40,6 +40,7 @@ export function ReviewsSection({ restaurant: r }: { restaurant: RestaurantDetail
     queryKey: ["reviews", r.id],
     queryFn: ({ pageParam }) => api<ReviewPage>(`/api/v1/restaurants/${r.id}/reviews?offset=${pageParam}`),
     initialPageParam: 0,
+    // offset หน้าถัดไป = จำนวนที่โหลดมาแล้ว · ครบ total → undefined = ไม่มีหน้าถัดไป (ซ่อนปุ่ม "ดูเพิ่ม")
     getNextPageParam: (last, pages) => {
       const loaded = pages.reduce((n, p) => n + p.items.length, 0);
       return loaded < last.total ? loaded : undefined;
@@ -143,6 +144,7 @@ function ReviewForm({ restaurantId, mine }: { restaurantId: number; mine: Review
     onSuccess: async () => {
       setDone(true);
       // ค่าเฉลี่ย/จำนวนรีวิวเปลี่ยน → โหลดหน้าร้าน รายการร้าน และรายการรีวิวใหม่
+      // my-bookings ด้วย → ป้าย "รีวิวแล้ว" ในหน้าการจองของฉันอัปเดตตาม
       await Promise.all([
         queryClient.invalidateQueries({ queryKey: ["reviews", restaurantId] }),
         queryClient.invalidateQueries({ queryKey: ["restaurant", restaurantId] }),
