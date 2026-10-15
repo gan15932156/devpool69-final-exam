@@ -16,6 +16,7 @@ const userIDKey = "userID"
 
 // Claims = ข้อมูลใน token · Ver ต้องตรงกับ users.token_version ตอนใช้งาน
 // logout → token_version ขยับ → token ที่ออกไปก่อนหน้าใช้ไม่ได้ทันที ไม่ต้องรอหมดอายุ 7 วัน
+// แลกกับต้องถาม DB ทุกคำขอ (คอลัมน์เดียว) · JWT ล้วน ๆ ไม่ถาม DB เลย แต่ logout แล้ว token ยังใช้ได้จนหมดอายุ
 type Claims struct {
 	jwt.RegisteredClaims
 	Ver int `json:"ver"`

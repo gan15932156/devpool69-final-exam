@@ -25,6 +25,7 @@ type Slot struct {
 }
 
 // error แต่ละข้อมี code ต่างกัน → หน้าเว็บรู้ว่าผิดเพราะอะไร
+// 400 = ข้อมูลที่ส่งมาใช้ไม่ได้เอง ส่งแบบเดิมซ้ำก็ผิดเหมือนเดิม (ต่างจาก 409 ใน service.go)
 var (
 	ErrInvalidSlot  = apperr.New(http.StatusBadRequest, "INVALID_SLOT", "เวลาต้องลงที่ :00 หรือ :30")
 	ErrInvalidRange = apperr.New(http.StatusBadRequest, "INVALID_RANGE", "เวลาสิ้นสุดต้องอยู่หลังเวลาเริ่ม")

@@ -21,6 +21,8 @@ import (
 	"toawang/internal/models"
 )
 
+// tokenTTL 7 วัน → ไม่ต้อง login บ่อย · token หลุดก็ยกเลิกได้ทันทีด้วย logout (TokenVersion)
+// ต้องเท่ากับ session maxAge ใน web/auth.ts ไม่งั้น cookie ยังอยู่แต่ token ข้างในหมดอายุแล้ว
 const tokenTTL = 7 * 24 * time.Hour
 
 var (
@@ -44,6 +46,8 @@ type authResponse struct {
 	AccessToken string      `json:"accessToken"`
 }
 
+// normalizeEmail ตัดช่องว่าง + ทำเป็นตัวเล็ก ก่อนเก็บและก่อนค้น
+// unique index ของ Postgres แยกตัวพิมพ์ใหญ่–เล็ก → ถ้าไม่ทำ A@x.com กับ a@x.com จะสมัครซ้ำกันได้
 func normalizeEmail(s string) string {
 	return strings.ToLower(strings.TrimSpace(s))
 }
@@ -60,9 +64,11 @@ func (h *Handler) Register(c fiber.Ctx) error {
 	if req.Name == "" || utf8.RuneCountInString(req.Name) > MaxNameLength {
 		fields["name"] = fmt.Sprintf("กรุณากรอกชื่อที่แสดง (ไม่เกิน %d ตัวอักษร)", MaxNameLength)
 	}
+	// ParseAddress รับแบบ "ชื่อ <a@b.com>" ด้วย → เทียบผลกับที่พิมพ์มา = รับเฉพาะอีเมลเปล่า ๆ
 	if addr, err := mail.ParseAddress(req.Email); err != nil || addr.Address != req.Email {
 		fields["email"] = "รูปแบบอีเมลไม่ถูกต้อง"
 	}
+	// ขั้นต่ำนับเป็นตัวอักษร (ภาษาไทย 1 ตัว = 3 byte) · เพดานนับเป็น byte เพราะ bcrypt ใช้ได้แค่ 72 byte แรก
 	hasDigit := strings.IndexFunc(req.Password, unicode.IsDigit) >= 0
 	switch {
 	case utf8.RuneCountInString(req.Password) < 8 || !hasDigit:
@@ -74,6 +80,8 @@ func (h *Handler) Register(c fiber.Ctx) error {
 		return apperr.Validation(fields)
 	}
 
+	// bcrypt ไม่ใช่ SHA-256: ตั้งใจให้ช้าและมี salt ในตัว → DB หลุดไปก็ไล่เดารหัสทีละมาก ๆ ไม่ได้
+	// DefaultCost (10) ช้าพอจะกันการเดา แต่ผู้ใช้ไม่รู้สึกตอน login
 	hash, err := bcrypt.GenerateFromPassword([]byte(req.Password), bcrypt.DefaultCost)
 	if err != nil {
 		return err
@@ -140,6 +148,8 @@ func (h *Handler) Me(c fiber.Ctx) error {
 	return c.JSON(user)
 }
 
+// signToken ใช้ HS256 (กุญแจเดียวทั้งเซ็นและตรวจ) เพราะ Go เป็นที่เดียวที่เซ็นและตรวจ token
+// ไม่ต้องใช้คู่กุญแจแบบ RS256 ซึ่งมีไว้ให้ระบบอื่นตรวจ token ได้โดยไม่ต้องรู้กุญแจเซ็น
 func (h *Handler) signToken(user *models.User) (string, error) {
 	now := h.Now()
 	claims := middleware.Claims{

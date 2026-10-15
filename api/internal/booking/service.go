@@ -12,8 +12,12 @@ import (
 	"toawang/internal/models"
 )
 
+// slotLength ช่องละ 30 นาที = ความละเอียดเดียวกับเวลาที่ให้จอง (:00/:30)
+// → ทุกการจองเริ่ม/จบตรงขอบช่องพอดี นับทีละช่องแล้วไม่มีเศษ
 const slotLength = 30 * time.Minute
 
+// 409 Conflict = ข้อมูลที่ส่งมาถูกรูปแบบ แต่ชนกับสถานะตอนนี้ (ที่นั่งเต็ม/เลยเวลา/ยกเลิกไปแล้ว)
+// ต่างจาก 400 ใน validate.go ที่ข้อมูลผิดเอง
 var (
 	ErrSeatsExceeded     = apperr.New(http.StatusConflict, "SEATS_EXCEEDED", "ที่นั่งไม่พอ")
 	ErrWindowPassed      = apperr.New(http.StatusConflict, "CANCEL_WINDOW_PASSED", "เลยเวลาที่ร้านให้แก้ไขหรือยกเลิกแล้ว")
@@ -39,6 +43,10 @@ func CancelDeadline(b *models.Booking, r *models.Restaurant) time.Time {
 // lockRestaurant = SELECT ... FROM restaurants WHERE id = ? FOR UPDATE
 // ทุกคำสั่งที่จะเปลี่ยนการจองของร้านเดียวกัน (จอง/แก้/ยกเลิก) ต้องล็อกแถวร้านก่อน
 // → ธุรกรรมที่มาทีหลังต้องรอคนแรกจบ จึงไม่มีทางที่สองคนเห็น "ที่ว่าง" ชุดเดียวกันแล้วจองทับกัน
+//
+// ทำไมล็อกแถวร้าน: ช่องที่ยังว่างไม่มีแถวการจองให้ล็อก · แถวร้านคือจุดเดียวที่ทุกการจองของร้านนั้นต้องผ่าน
+// ทำไมไม่ใช้ SERIALIZABLE: Postgres จะยกเลิก transaction ที่ชนกันแล้วเราต้องเขียน retry เอง · ล็อกแถวแค่ให้รอคิว
+// ราคาที่จ่าย: คำขอที่เปลี่ยนการจองของร้านเดียวกันต้องต่อคิวทีละคำขอ (คนละร้านไม่ต้องรอกัน)
 func lockRestaurant(tx *gorm.DB, id uint) (*models.Restaurant, error) {
 	var r models.Restaurant
 	err := tx.Clauses(clause.Locking{Strength: "UPDATE"}).First(&r, id).Error
@@ -213,6 +221,7 @@ type SlotUsage struct {
 
 // Availability ที่นั่งที่ถูกจองในแต่ละช่อง 30 นาทีตลอดเวลาเปิดของรอบวันที่ date
 // ใช้ overlapping + usedIn ตัวเดียวกับ CheckSeats → ตัวเลขในกราฟตรงกับที่ Go ใช้ตัดสินเสมอ
+// อ่านเพื่อแสดงผลเฉย ๆ จึงไม่ล็อก → ตัวเลขอาจช้าไปเสี้ยววินาที แต่ตอนกดจองจริง CheckSeats ตรวจซ้ำใน transaction
 func Availability(db *gorm.DB, r *models.Restaurant, date time.Time, excludeID uint, now time.Time) ([]SlotUsage, error) {
 	from, to := ServiceWindow(date, r.OpenMinute, r.CloseMinute)
 	bookings, err := overlapping(db, r.ID, from, to, excludeID)

@@ -63,13 +63,15 @@ func (h *Handler) Availability(c fiber.Ctx) error {
 		return err
 	}
 	now := h.Now()
-	date := now.In(booking.Loc)
+	date := now.In(booking.Loc) // ไม่ส่ง date = รอบของวันนี้ (เวลาไทย)
 	if s := c.Query("date"); s != "" {
 		if date, err = booking.ParseDateParam(s); err != nil {
 			return err
 		}
 	}
 
+	// excludeBookingId ที่ไม่ใช่การจองของตัวเอง → เมินเฉย (นับครบทุกการจอง) แทนการตอบ error
+	// endpoint นี้ใครก็เรียกได้ ถ้าตอบ 403/404 ต่างกันจะกลายเป็นช่องให้เดาว่าการจองเลขไหนมีอยู่
 	var excludeID uint
 	if raw := c.Query("excludeBookingId"); raw != "" {
 		if n, err := strconv.ParseUint(raw, 10, 64); err == nil {

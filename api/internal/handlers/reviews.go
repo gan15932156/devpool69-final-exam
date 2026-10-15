@@ -42,6 +42,7 @@ func toReviewDTO(r *models.Review, me uint) reviewDTO {
 }
 
 // GET /restaurants/:id/reviews?offset=0 — ล่าสุดก่อน ทีละ 20 · login อยู่จะได้ "mine" (รีวิวของตัวเอง) มาด้วย
+// แบ่งหน้าแบบ offset (ง่ายที่สุด) · ข้อเสีย: มีรีวิวใหม่ระหว่างกด "ดูเพิ่ม" รายการจะเลื่อน อาจเห็นซ้ำ 1 รายการ — ยอมรับได้สำหรับรีวิว
 func (h *Handler) ListReviews(c fiber.Ctx) error {
 	id, err := paramID(c, "id")
 	if err != nil {
@@ -61,6 +62,7 @@ func (h *Handler) ListReviews(c fiber.Ctx) error {
 	if err := h.DB.Model(&models.Review{}).Where("restaurant_id = ?", id).Count(&total).Error; err != nil {
 		return err
 	}
+	// เรียงตาม updated_at → รีวิวที่เพิ่งแก้ขึ้นบนสุด · id ตัดสินตอนเวลาเท่ากัน ลำดับจะได้คงที่ระหว่างหน้า
 	var rows []models.Review
 	if err := h.DB.Preload("User").Where("restaurant_id = ?", id).
 		Order("updated_at DESC, id DESC").Offset(offset).Limit(pageSize).Find(&rows).Error; err != nil {
@@ -72,6 +74,7 @@ func (h *Handler) ListReviews(c fiber.Ctx) error {
 	}
 
 	// รีวิวของตัวเองส่งมากับหน้าแรกหน้าเดียว (หน้าเว็บอ่านจาก pages[0])
+	// แยกส่งต่างหากเพราะรีวิวของเราอาจอยู่หน้า 5 ที่ยังไม่ได้โหลด แต่ฟอร์มต้องรู้ค่าเดิมตั้งแต่แรก
 	var mine *reviewDTO
 	if me != 0 && offset == 0 {
 		var r models.Review
@@ -133,6 +136,7 @@ func (h *Handler) UpsertMyReview(c fiber.Ctx) error {
 		return err
 	}
 
+	// อ่านใหม่จาก DB → ได้ created_at ของแถวจริง (ตอนแก้รีวิวเดิม created_at ใน struct เป็นเวลาตอนนี้ ไม่ใช่ของเดิม) พร้อมชื่อผู้รีวิว
 	var saved models.Review
 	if err := h.DB.Preload("User").Where("restaurant_id = ? AND user_id = ?", id, me).First(&saved).Error; err != nil {
 		return err

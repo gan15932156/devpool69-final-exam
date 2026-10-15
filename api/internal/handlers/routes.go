@@ -14,6 +14,7 @@ func (h *Handler) Routes(app *fiber.App) {
 	optionalAuth := middleware.OptionalAuth(h.JWTSecret, h.DB)
 	limit := newLimits() // rate limit · ค่าอยู่ใน limits.go
 
+	// ใส่เลขเวอร์ชันใน path → วันหน้าเปลี่ยนรูปแบบ API ได้ที่ /api/v2 โดยหน้าเว็บเดิมยังใช้ /api/v1 ได้
 	api := app.Group("/api/v1")
 	api.Get("/health", func(c fiber.Ctx) error {
 		return c.JSON(fiber.Map{"status": "ok"})
@@ -51,6 +52,7 @@ func (h *Handler) Routes(app *fiber.App) {
 	api.Get("/restaurants/:id/bookings", auth, h.RestaurantBookings)
 
 	// ไฟล์รูปที่อัปโหลด: GET /uploads/<ชื่อไฟล์>
+	// อยู่นอก /api/v1 และไม่ต้อง login → รูปร้านเป็นข้อมูลสาธารณะ ใส่ใน <img> ได้ตรง ๆ
 	app.Use("/uploads", static.New(h.UploadDir))
 
 	// Swagger UI: GET /docs

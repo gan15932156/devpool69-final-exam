@@ -53,6 +53,8 @@ type restaurantRow struct {
 
 // restaurantQuery — SELECT ร้าน พร้อมค่าเฉลี่ยรีวิว (ทศนิยม 1 ตำแหน่ง) และจำนวนรีวิว
 // LEFT JOIN = ร้านที่ยังไม่มีรีวิวก็ยังออกมา (avg = NULL, count = 0)
+// คำนวณสดทุกครั้ง ไม่เก็บค่าเฉลี่ยไว้ในตารางร้าน → ไม่ต้องคอยอัปเดตตอนมีรีวิวใหม่/แก้รีวิว และตัวเลขไม่มีทางเพี้ยน
+// ปัดทศนิยมใน SQL → ทุกหน้าแสดงเลขเดียวกัน และเรียงตามค่าที่ผู้ใช้เห็นจริง (4.8 เท่ากัน → ตัดสินด้วยจำนวนรีวิว)
 func (h *Handler) restaurantQuery() *gorm.DB {
 	return h.DB.Model(&models.Restaurant{}).
 		Select("restaurants.*, ROUND(AVG(reviews.rating)::numeric, 1) AS avg_rating, COUNT(reviews.id) AS review_count").
@@ -61,6 +63,7 @@ func (h *Handler) restaurantQuery() *gorm.DB {
 }
 
 // toDTOs แปลงแถวจาก DB เป็น JSON พร้อมรูป (ดึงรูปของทุกร้านใน query เดียว)
+// แถวมาจาก Scan ของ SELECT ที่มีค่าคำนวณ จึงดึงรูปเองด้วย WHERE IN ครั้งเดียว ไม่ query ทีละร้าน (N+1)
 func (h *Handler) toDTOs(rows []restaurantRow) ([]restaurantDTO, error) {
 	ids := make([]uint, len(rows))
 	for i, r := range rows {
@@ -80,7 +83,7 @@ func (h *Handler) toDTOs(rows []restaurantRow) ([]restaurantDTO, error) {
 	out := make([]restaurantDTO, len(rows))
 	for i, r := range rows {
 		imgs := byRestaurant[r.ID]
-		if imgs == nil {
+		if imgs == nil { // nil → JSON เป็น null · ส่ง [] เสมอ หน้าเว็บจะได้ .map ได้เลย
 			imgs = []string{}
 		}
 		out[i] = restaurantDTO{
@@ -130,6 +133,7 @@ func (h *Handler) findRestaurantDetail(id uint) (*restaurantDetailDTO, error) {
 		Where("restaurant_id = ?", id).Group("rating").Scan(&counts).Error; err != nil {
 		return nil, err
 	}
+	// ใส่ 0 ครบ 5 ดาวไว้ก่อน → ดาวที่ไม่มีใครให้ก็ยังมีแถวในกราฟ
 	dist := map[int]int{1: 0, 2: 0, 3: 0, 4: 0, 5: 0}
 	for _, c := range counts {
 		dist[c.Rating] = c.Count
@@ -183,7 +187,7 @@ func (in *restaurantInput) validate() (open, close int, err error) {
 		fields["closeTime"] = "กรุณาใส่เวลาปิด"
 	case !booking.OnHalfHour(close):
 		fields["closeTime"] = "เวลาต้องลงที่ :00 หรือ :30"
-	case openErr == nil && open == close:
+	case openErr == nil && open == close: // กำกวม: เปิด 24 ชม. หรือไม่เปิดเลย? → ไม่รับ
 		fields["closeTime"] = "เวลาเปิดและปิดต้องไม่ตรงกัน"
 	}
 
@@ -221,6 +225,8 @@ func imagesOf(restaurantID uint, urls []string) []models.RestaurantImage {
 func (h *Handler) ListRestaurants(c fiber.Ctx) error {
 	query := h.restaurantQuery()
 	if q := strings.TrimSpace(c.Query("q")); q != "" {
+		// ILIKE '%คำ%' แทน full-text search ของ Postgres เพราะตัวนั้นตัดคำภาษาไทยไม่ได้ (ไทยไม่เว้นวรรคระหว่างคำ)
+		// ต้องสแกนทั้งตารางทุกครั้ง แต่ร้านมีหลักร้อย ยังเร็วพอ
 		like := "%" + q + "%"
 		query = query.Where("restaurants.name ILIKE ? OR restaurants.cuisine ILIKE ?", like, like)
 	}
@@ -236,6 +242,7 @@ func (h *Handler) ListRestaurants(c fiber.Ctx) error {
 	default:
 		return apperr.Validation(map[string]string{"sort": "sort ต้องเป็น rating หรือ reviews"})
 	}
+	// ปิดท้ายด้วย id → ร้านที่ค่าเท่ากันเรียงเหมือนเดิมทุกครั้ง ไม่สลับที่ไปมาตอนรีเฟรช
 	dtos, err := h.queryDTOs(query.Order("restaurants.id"))
 	if err != nil {
 		return err
@@ -328,7 +335,8 @@ func (h *Handler) UpdateRestaurant(c fiber.Ctx) error {
 		}).Error; err != nil {
 			return err
 		}
-		// รูป: ลบของเดิมทั้งหมดแล้วใส่ใหม่ตามลำดับที่ส่งมา
+		// รูป: ลบของเดิมทั้งหมดแล้วใส่ใหม่ตามลำดับที่ส่งมา · ง่ายกว่าไล่เทียบว่ารูปไหนเพิ่ม/ลบ/ย้ายที่ (มีไม่เกิน 8 แถว)
+		// ไฟล์รูปที่เลิกใช้ไม่ลบตรงนี้ → CleanUploads เก็บกวาดทีหลัง
 		if err := tx.Where("restaurant_id = ?", r.ID).Delete(&models.RestaurantImage{}).Error; err != nil {
 			return err
 		}

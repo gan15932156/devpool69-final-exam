@@ -22,7 +22,7 @@ type Handler struct {
 	Now       func() time.Time // แยกออกมาเผื่ออยากจำลองเวลาตอนทดสอบ
 }
 
-// paramID อ่าน :id จาก URL เป็นตัวเลข
+// paramID อ่าน :id จาก URL เป็นตัวเลข · ไม่ใช่ตัวเลข = ไม่มีของชิ้นนั้นแน่ ๆ → ตอบ 404 เหมือน id ที่ไม่มีอยู่
 func paramID(c fiber.Ctx, name string) (uint, error) {
 	id, err := strconv.ParseUint(c.Params(name), 10, 64)
 	if err != nil || id == 0 {

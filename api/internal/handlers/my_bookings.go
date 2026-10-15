@@ -40,6 +40,9 @@ func (h *Handler) MyBookings(c fiber.Ctx) error {
 		reviewed[id] = true
 	}
 
+	// แบ่งกลุ่มที่ Go ด้วยเวลาของ server → นาฬิกาเครื่องลูกค้าเพี้ยนก็ไม่ทำให้การ์ดอยู่ผิดแท็บ
+	// "ผ่านมาแล้ว" ดูจากเวลาจบ ไม่ใช่เวลาเริ่ม → การจองที่กำลังนั่งกินอยู่ยังอยู่ใน "กำลังจะถึง"
+	// เริ่มด้วย slice ว่างแทน nil → JSON ได้ [] ไม่ใช่ null
 	res := myBookingsResponse{Upcoming: []bookingDTO{}, Past: []bookingDTO{}, Cancelled: []bookingDTO{}}
 	for i := range bookings {
 		b := &bookings[i]

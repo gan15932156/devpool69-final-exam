@@ -19,6 +19,8 @@ func Connect(url string) (*gorm.DB, error) {
 }
 
 // Migrate สร้าง/อัปเดตตารางตาม struct ใน models (เรียงตาม foreign key: ตารางที่ถูกอ้างถึงต้องมาก่อน)
+// ใช้ AutoMigrate แทนไฟล์ migration SQL → schema อยู่ที่ struct ใน models ที่เดียว พอสำหรับโปรเจกต์ขนาดนี้
+// ข้อจำกัด: เพิ่มตาราง/คอลัมน์/index ให้เอง แต่ไม่ลบคอลัมน์ที่เลิกใช้แล้ว
 func Migrate(db *gorm.DB) error {
 	return db.AutoMigrate(
 		&models.User{},

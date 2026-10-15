@@ -32,6 +32,8 @@ var allowedImageTypes = map[string]string{
 var errUnsupportedFile = apperr.New(http.StatusBadRequest, "UNSUPPORTED_FILE", "รับเฉพาะรูป JPG, PNG, WEBP ขนาดไม่เกิน 5MB")
 
 // POST /uploads (multipart, ช่องชื่อ "file") → { "url": "/uploads/<ชื่อสุ่ม>.jpg" }
+// อัปโหลดทันทีที่เลือกรูป (ก่อนกดบันทึกร้าน) → ฟอร์มแสดงตัวอย่างได้เลย และร้านเก็บแค่ URL
+// ไฟล์เก็บในโฟลเดอร์ (Docker volume) ไม่ใช่ใน DB หรือ S3 → ง่ายและพอสำหรับ API ที่รันเครื่องเดียว
 func (h *Handler) Upload(c fiber.Ctx) error {
 	fh, err := c.FormFile("file")
 	if err != nil {
@@ -68,6 +70,7 @@ func (h *Handler) Upload(c fiber.Ctx) error {
 	return c.Status(http.StatusCreated).JSON(fiber.Map{"url": "/uploads/" + name + ext})
 }
 
+// randomName 16 byte สุ่มจาก crypto/rand (hex 32 ตัว) → เดาชื่อไฟล์ของคนอื่นไม่ได้ และไม่ชนกัน
 func randomName() (string, error) {
 	b := make([]byte, 16)
 	if _, err := rand.Read(b); err != nil {
