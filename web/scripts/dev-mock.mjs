@@ -1,5 +1,5 @@
 // npm run dev:mock — เปิดหน้าเว็บด้วย mock API ในตัว (web/mock) ไม่ต้องเปิด Go / PostgreSQL
-// ทำงานโดยชี้ API_URL มาที่ route /mock ของ Next เอง → rewrites และ NextAuth ใช้ได้โดยไม่ต้องแก้โค้ด
+// ทำงานโดยชี้ API_URL มาที่ route /mock ของ Next เอง → route /api/v1, rewrite ของรูป และ NextAuth ใช้ได้โดยไม่ต้องแก้โค้ด
 import { spawn } from "node:child_process";
 import { randomBytes } from "node:crypto";
 import { existsSync } from "node:fs";

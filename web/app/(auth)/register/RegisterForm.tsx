@@ -39,7 +39,7 @@ export function RegisterForm() {
   async function onSubmit({ name, email, password }: RegisterValues) {
     setFormError("");
     try {
-      // ยิงผ่าน rewrite ของ Next → Go
+      // ยังไม่ได้ login → เรียก request ตรง ๆ ไม่ผ่าน useApi (ไม่มี session ให้ signOut) · ผ่าน /api/v1 ของ Next → Go
       await request("/api/v1/auth/register", { method: "POST", json: { name, email, password } });
     } catch (e) {
       if (!(e instanceof ApiError)) throw e;
