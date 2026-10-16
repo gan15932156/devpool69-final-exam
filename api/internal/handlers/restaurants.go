@@ -364,7 +364,7 @@ func (h *Handler) DeleteRestaurant(c fiber.Ctx) error {
 	}
 
 	err = h.DB.Transaction(func(tx *gorm.DB) error {
-		if err := lockRestaurantRow(tx, r.ID); err != nil {
+		if _, err := booking.LockRestaurant(tx, r.ID); err != nil {
 			return err
 		}
 		var upcoming int64

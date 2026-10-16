@@ -40,14 +40,14 @@ func CancelDeadline(b *models.Booking, r *models.Restaurant) time.Time {
 	return b.StartAt.Add(-time.Duration(r.CancelLeadMinutes) * time.Minute)
 }
 
-// lockRestaurant = SELECT ... FROM restaurants WHERE id = ? FOR UPDATE
-// ทุกคำสั่งที่จะเปลี่ยนการจองของร้านเดียวกัน (จอง/แก้/ยกเลิก) ต้องล็อกแถวร้านก่อน
+// LockRestaurant = SELECT ... FROM restaurants WHERE id = ? FOR UPDATE
+// ทุกคำสั่งที่จะเปลี่ยนการจองของร้านเดียวกัน (จอง/แก้/ยกเลิก และลบร้าน) ต้องล็อกแถวร้านก่อน
 // → ธุรกรรมที่มาทีหลังต้องรอคนแรกจบ จึงไม่มีทางที่สองคนเห็น "ที่ว่าง" ชุดเดียวกันแล้วจองทับกัน
 //
 // ทำไมล็อกแถวร้าน: ช่องที่ยังว่างไม่มีแถวการจองให้ล็อก · แถวร้านคือจุดเดียวที่ทุกการจองของร้านนั้นต้องผ่าน
 // ทำไมไม่ใช้ SERIALIZABLE: Postgres จะยกเลิก transaction ที่ชนกันแล้วเราต้องเขียน retry เอง · ล็อกแถวแค่ให้รอคิว
 // ราคาที่จ่าย: คำขอที่เปลี่ยนการจองของร้านเดียวกันต้องต่อคิวทีละคำขอ (คนละร้านไม่ต้องรอกัน)
-func lockRestaurant(tx *gorm.DB, id uint) (*models.Restaurant, error) {
+func LockRestaurant(tx *gorm.DB, id uint) (*models.Restaurant, error) {
 	var r models.Restaurant
 	err := tx.Clauses(clause.Locking{Strength: "UPDATE"}).First(&r, id).Error
 	if errors.Is(err, gorm.ErrRecordNotFound) {
@@ -108,7 +108,7 @@ func CheckSeats(tx *gorm.DB, r *models.Restaurant, slot Slot, party int, exclude
 func Create(db *gorm.DB, restaurantID, userID uint, in Input, now time.Time) (*models.Booking, error) {
 	var b models.Booking
 	err := db.Transaction(func(tx *gorm.DB) error {
-		r, err := lockRestaurant(tx, restaurantID)
+		r, err := LockRestaurant(tx, restaurantID)
 		if err != nil {
 			return err
 		}
@@ -160,7 +160,7 @@ func loadOwnBooking(tx *gorm.DB, bookingID, userID uint, now time.Time) (*models
 	if b.UserID != userID {
 		return nil, nil, apperr.Forbidden()
 	}
-	r, err := lockRestaurant(tx, b.RestaurantID)
+	r, err := LockRestaurant(tx, b.RestaurantID)
 	if err != nil {
 		return nil, nil, err
 	}

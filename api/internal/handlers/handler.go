@@ -7,7 +7,6 @@ import (
 
 	"github.com/gofiber/fiber/v3"
 	"gorm.io/gorm"
-	"gorm.io/gorm/clause"
 
 	"toawang/internal/apperr"
 	"toawang/internal/middleware"
@@ -41,16 +40,6 @@ func (h *Handler) findRestaurant(id uint) (*models.Restaurant, error) {
 		return nil, err
 	}
 	return &r, nil
-}
-
-// lockRestaurantRow = SELECT ... FROM restaurants WHERE id = ? FOR UPDATE (ใน transaction) · ร้านหายไปแล้ว → 404
-// การจองต้องล็อกแถวเดียวกันนี้ก่อน (booking.Create) → ใครมาทีหลังต้องรอคนแรกจบ
-func lockRestaurantRow(tx *gorm.DB, id uint) error {
-	err := tx.Clauses(clause.Locking{Strength: "UPDATE"}).First(&models.Restaurant{}, id).Error
-	if errors.Is(err, gorm.ErrRecordNotFound) {
-		return apperr.NotFound("ร้าน")
-	}
-	return err
 }
 
 // ownedRestaurant โหลดร้านจาก :id แล้วเช็กว่าคนที่ login เป็นเจ้าของ · ไม่ใช่ → 403
