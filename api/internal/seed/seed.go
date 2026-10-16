@@ -138,6 +138,9 @@ var comments = map[int][]string{
 // Run ใส่ข้อมูลตัวอย่าง · ถ้ามี user อยู่แล้วจะไม่ทำอะไร (รันซ้ำได้ ไม่ซ้ำข้อมูล)
 // การจองนับวันจาก "วันที่รัน seed" → เปิดมาเมื่อไหร่ก็เห็นการจองที่ยังไม่ถึงเวลา
 func Run(db *gorm.DB, uploadDir string) error {
+	if err := EnsureImages(uploadDir); err != nil {
+		return err
+	}
 	var count int64
 	if err := db.Model(&models.User{}).Count(&count).Error; err != nil {
 		return err
@@ -203,16 +206,13 @@ func Run(db *gorm.DB, uploadDir string) error {
 		}
 		reviewers = batch
 
-		// ---- ร้าน + รูป ----
-		if err := os.MkdirAll(uploadDir, 0o755); err != nil {
-			return err
-		}
+		// ---- ร้าน + รูป (ไฟล์รูปเขียนไว้แล้วตอนต้น Run) ----
 		for _, s := range restaurants {
 			r := &models.Restaurant{
 				OwnerID: users[s.owner].ID, Name: s.name, Cuisine: s.cuisine, Description: s.description,
 				Seats: s.seats, OpenMinute: s.open, CloseMinute: s.close, CancelLeadMinutes: s.lead,
 			}
-			urls, err := copyImages(s.slug, uploadDir)
+			urls, err := imageURLs(s.slug)
 			if err != nil {
 				return err
 			}
@@ -410,29 +410,26 @@ func nextHalfHour(t time.Time) time.Time {
 	return t.Truncate(30 * time.Minute).Add(30 * time.Minute)
 }
 
-// copyImages คัดลอกรูปของร้านจากที่ฝังไว้ไปโฟลเดอร์ uploads → คืน URL เรียงตามชื่อไฟล์
-func copyImages(slug, uploadDir string) ([]string, error) {
+// seedFileName ชื่อไฟล์ใน uploads ของรูปที่ฝังไว้ · ต้องเข้ารูปแบบ managedUpload (handlers/uploads.go) ไม่งั้น CleanUploads ไม่รู้จัก
+func seedFileName(name string) string {
+	return "seed-" + strings.ToLower(path.Base(name))
+}
+
+// imageURLs URL รูปของร้าน เรียงตามชื่อไฟล์ (ไฟล์จริงเขียนโดย EnsureImages)
+func imageURLs(slug string) ([]string, error) {
 	names, err := fs.Glob(imagesFS, "images/"+slug+"-*")
 	if err != nil {
 		return nil, err
 	}
 	sort.Strings(names)
-	var urls []string
-	for _, name := range names {
-		data, err := imagesFS.ReadFile(name)
-		if err != nil {
-			return nil, err
-		}
-		file := "seed-" + strings.ToLower(path.Base(name))
-		if err := os.WriteFile(filepath.Join(uploadDir, file), data, 0o644); err != nil {
-			return nil, err
-		}
-		urls = append(urls, "/uploads/"+file)
+	urls := make([]string, len(names))
+	for i, name := range names {
+		urls[i] = "/uploads/" + seedFileName(name)
 	}
 	return urls, nil
 }
 
-// EnsureImages เขียนรูปตัวอย่างลง uploads ถ้ายังไม่มีไฟล์
+// EnsureImages เขียนรูปตัวอย่างลง uploads ถ้ายังไม่มีไฟล์ · Run เรียกทุกครั้ง แม้ DB มีข้อมูลแล้ว
 // กรณี DB มีข้อมูลแล้วแต่โฟลเดอร์ uploads ว่าง (เช่น volume ของ Docker ถูกสร้างใหม่) รูปจะได้ไม่หาย
 func EnsureImages(uploadDir string) error {
 	if err := os.MkdirAll(uploadDir, 0o755); err != nil {
@@ -443,7 +440,7 @@ func EnsureImages(uploadDir string) error {
 		return err
 	}
 	for _, name := range names {
-		dst := filepath.Join(uploadDir, "seed-"+strings.ToLower(path.Base(name)))
+		dst := filepath.Join(uploadDir, seedFileName(name))
 		if _, err := os.Stat(dst); err == nil {
 			continue
 		}

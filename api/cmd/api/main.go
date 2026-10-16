@@ -33,9 +33,6 @@ func main() {
 	}
 	// "true" = seed เฉพาะตอน DB ว่าง (มีข้อมูลแล้วจะข้าม) · "false" = ไม่แตะข้อมูล
 	if cfg.SeedOnStart == "reset" || cfg.SeedOnStart == "true" {
-		if err := seed.EnsureImages(cfg.UploadDir); err != nil {
-			log.Fatalf("seed images: %v", err)
-		}
 		if err := seed.Run(db, cfg.UploadDir); err != nil {
 			log.Fatalf("seed: %v", err)
 		}
