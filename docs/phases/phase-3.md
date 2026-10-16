@@ -41,7 +41,7 @@
 **③ ตรวจที่นั่งใน transaction** — `service.go`
 ```go
 db.Transaction(func(tx *gorm.DB) error {
-    r := lockRestaurant(tx, id)            // SELECT ... FOR UPDATE → คนที่มาทีหลังรอตรงนี้
+    r := LockRestaurant(tx, id)            // SELECT ... FOR UPDATE → คนที่มาทีหลังรอตรงนี้
     slot := Validate(r, input, now)
     CheckSeats(tx, r, slot, party, 0)      // ดึงการจองที่ซ้อน → วนทีละช่อง 30 นาที
     tx.Create(&booking)
