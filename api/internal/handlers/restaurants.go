@@ -180,13 +180,13 @@ func (in *restaurantInput) validate() (open, close int, err error) {
 	case openErr != nil:
 		fields["openTime"] = "กรุณาใส่เวลาเปิด"
 	case !booking.OnHalfHour(open):
-		fields["openTime"] = "เวลาต้องลงที่ :00 หรือ :30"
+		fields["openTime"] = booking.ErrInvalidSlot.Message
 	}
 	switch {
 	case closeErr != nil:
 		fields["closeTime"] = "กรุณาใส่เวลาปิด"
 	case !booking.OnHalfHour(close):
-		fields["closeTime"] = "เวลาต้องลงที่ :00 หรือ :30"
+		fields["closeTime"] = booking.ErrInvalidSlot.Message
 	case openErr == nil && open == close: // กำกวม: เปิด 24 ชม. หรือไม่เปิดเลย? → ไม่รับ
 		fields["closeTime"] = "เวลาเปิดและปิดต้องไม่ตรงกัน"
 	}

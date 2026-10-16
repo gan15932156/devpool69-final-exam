@@ -45,7 +45,7 @@ func Validate(r *models.Restaurant, in Input, now time.Time) (Slot, error) {
 	start, errStart := ParseHHMM(in.Start)
 	end, errEnd := ParseHHMM(in.End)
 	if errStart != nil || errEnd != nil {
-		return Slot{}, apperr.Validation(map[string]string{"start": "รูปแบบเวลาต้องเป็น HH:MM"})
+		return Slot{}, apperr.Validation(map[string]string{"start": errBadTime.Error()})
 	}
 
 	if !OnHalfHour(start) || !OnHalfHour(end) {
