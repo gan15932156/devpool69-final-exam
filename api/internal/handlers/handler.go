@@ -42,14 +42,19 @@ func (h *Handler) findRestaurant(id uint) (*models.Restaurant, error) {
 	return &r, nil
 }
 
-// ownedRestaurant โหลดร้านจาก :id แล้วเช็กว่าคนที่ login เป็นเจ้าของ · ไม่ใช่ → 403
-// ต้องเช็กที่ API ทุกครั้ง การซ่อนปุ่มในหน้าเว็บกันคนยิง API ตรงไม่ได้
-func (h *Handler) ownedRestaurant(c fiber.Ctx) (*models.Restaurant, error) {
+// restaurantParam โหลดร้านจาก :id ใน URL · ไม่มี → 404
+func (h *Handler) restaurantParam(c fiber.Ctx) (*models.Restaurant, error) {
 	id, err := paramID(c, "id")
 	if err != nil {
 		return nil, err
 	}
-	r, err := h.findRestaurant(id)
+	return h.findRestaurant(id)
+}
+
+// ownedRestaurant โหลดร้านจาก :id แล้วเช็กว่าคนที่ login เป็นเจ้าของ · ไม่ใช่ → 403
+// ต้องเช็กที่ API ทุกครั้ง การซ่อนปุ่มในหน้าเว็บกันคนยิง API ตรงไม่ได้
+func (h *Handler) ownedRestaurant(c fiber.Ctx) (*models.Restaurant, error) {
+	r, err := h.restaurantParam(c)
 	if err != nil {
 		return nil, err
 	}

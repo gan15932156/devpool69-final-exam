@@ -44,13 +44,11 @@ func toReviewDTO(r *models.Review, me uint) reviewDTO {
 // GET /restaurants/:id/reviews?offset=0 — ล่าสุดก่อน ทีละ 20 · login อยู่จะได้ "mine" (รีวิวของตัวเอง) มาด้วย
 // แบ่งหน้าแบบ offset (ง่ายที่สุด) · ข้อเสีย: มีรีวิวใหม่ระหว่างกด "ดูเพิ่ม" รายการจะเลื่อน อาจเห็นซ้ำ 1 รายการ — ยอมรับได้สำหรับรีวิว
 func (h *Handler) ListReviews(c fiber.Ctx) error {
-	id, err := paramID(c, "id")
+	r, err := h.restaurantParam(c)
 	if err != nil {
 		return err
 	}
-	if _, err := h.findRestaurant(id); err != nil {
-		return err
-	}
+	id := r.ID
 	offset, _ := strconv.Atoi(c.Query("offset", "0"))
 	if offset < 0 {
 		offset = 0
@@ -77,16 +75,22 @@ func (h *Handler) ListReviews(c fiber.Ctx) error {
 	// แยกส่งต่างหากเพราะรีวิวของเราอาจอยู่หน้า 5 ที่ยังไม่ได้โหลด แต่ฟอร์มต้องรู้ค่าเดิมตั้งแต่แรก
 	var mine *reviewDTO
 	if me != 0 && offset == 0 {
-		var r models.Review
-		err := h.DB.Preload("User").Where("restaurant_id = ? AND user_id = ?", id, me).First(&r).Error
+		review, err := h.findMyReview(id, me)
 		if err == nil {
-			dto := toReviewDTO(&r, me)
+			dto := toReviewDTO(review, me)
 			mine = &dto
 		} else if !errors.Is(err, gorm.ErrRecordNotFound) {
 			return err
 		}
 	}
 	return c.JSON(fiber.Map{"total": total, "items": items, "mine": mine})
+}
+
+// findMyReview รีวิวของ me ในร้านนี้ พร้อมชื่อผู้รีวิว · ยังไม่เคยรีวิว → gorm.ErrRecordNotFound
+func (h *Handler) findMyReview(restaurantID, me uint) (*models.Review, error) {
+	var r models.Review
+	err := h.DB.Preload("User").Where("restaurant_id = ? AND user_id = ?", restaurantID, me).First(&r).Error
+	return &r, err
 }
 
 type reviewInput struct {
@@ -97,14 +101,11 @@ type reviewInput struct {
 // PUT /restaurants/:id/reviews/me — 1 คน 1 รีวิวต่อร้าน · ส่งซ้ำ = แก้รีวิวเดิม (upsert)
 // ไม่ต้องเคยจองก่อน (ตามที่ตกลงไว้) · เจ้าของร้านรีวิวร้านตัวเองไม่ได้
 func (h *Handler) UpsertMyReview(c fiber.Ctx) error {
-	id, err := paramID(c, "id")
+	r, err := h.restaurantParam(c)
 	if err != nil {
 		return err
 	}
-	r, err := h.findRestaurant(id)
-	if err != nil {
-		return err
-	}
+	id := r.ID
 	me := middleware.UserID(c)
 	if r.OwnerID == me {
 		return errOwnRestaurant
@@ -137,9 +138,9 @@ func (h *Handler) UpsertMyReview(c fiber.Ctx) error {
 	}
 
 	// อ่านใหม่จาก DB → ได้ created_at ของแถวจริง (ตอนแก้รีวิวเดิม created_at ใน struct เป็นเวลาตอนนี้ ไม่ใช่ของเดิม) พร้อมชื่อผู้รีวิว
-	var saved models.Review
-	if err := h.DB.Preload("User").Where("restaurant_id = ? AND user_id = ?", id, me).First(&saved).Error; err != nil {
+	saved, err := h.findMyReview(id, me)
+	if err != nil {
 		return err
 	}
-	return c.JSON(toReviewDTO(&saved, me))
+	return c.JSON(toReviewDTO(saved, me))
 }

@@ -46,7 +46,7 @@ func (h *Handler) MyBookings(c fiber.Ctx) error {
 	res := myBookingsResponse{Upcoming: []bookingDTO{}, Past: []bookingDTO{}, Cancelled: []bookingDTO{}}
 	for i := range bookings {
 		b := &bookings[i]
-		dto := toBookingDTO(b, &b.Restaurant, now)
+		dto := toBookingDTO(b, now)
 		dto.HasReviewed = reviewed[b.RestaurantID]
 		switch {
 		case b.Status == models.StatusCancelled:
@@ -99,5 +99,5 @@ func (h *Handler) bookingResponse(c fiber.Ctx, id uint, now time.Time) error {
 	if err := h.DB.Preload("Restaurant").First(&fresh, id).Error; err != nil {
 		return err
 	}
-	return c.JSON(toBookingDTO(&fresh, &fresh.Restaurant, now))
+	return c.JSON(toBookingDTO(&fresh, now))
 }

@@ -33,7 +33,9 @@ type bookingDTO struct {
 	HasReviewed        bool   `json:"hasReviewed"`        // เคยรีวิวร้านนี้แล้วหรือยัง
 }
 
-func toBookingDTO(b *models.Booking, r *models.Restaurant, now time.Time) bookingDTO {
+// b ต้อง Preload("Restaurant") มาแล้ว
+func toBookingDTO(b *models.Booking, now time.Time) bookingDTO {
+	r := &b.Restaurant
 	deadline := booking.CancelDeadline(b, r)
 	return bookingDTO{
 		ID:                 b.ID,
@@ -54,11 +56,7 @@ func toBookingDTO(b *models.Booking, r *models.Restaurant, now time.Time) bookin
 // GET /restaurants/:id/availability?date=2026-09-25&excludeBookingId=12
 // ใครก็ดูได้ · excludeBookingId ใช้ตอนแก้ไขการจอง (ไม่นับที่นั่งเดิมซ้ำ) และใช้ได้เฉพาะการจองของตัวเอง
 func (h *Handler) Availability(c fiber.Ctx) error {
-	id, err := paramID(c, "id")
-	if err != nil {
-		return err
-	}
-	r, err := h.findRestaurant(id)
+	r, err := h.restaurantParam(c)
 	if err != nil {
 		return err
 	}
