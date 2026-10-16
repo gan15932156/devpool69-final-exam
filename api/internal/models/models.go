@@ -23,6 +23,7 @@ type AppSecret struct {
 // → บวก/ลบ/เทียบเป็นตัวเลขได้ตรง ๆ และเขียน check ช่วง 0–1439 ได้ง่าย
 // ไม่มีคอลัมน์ค่าเฉลี่ยรีวิว — คำนวณสดจากตาราง reviews ทุกครั้ง (restaurantQuery) จึงไม่มีทางเพี้ยนจากรีวิวจริง
 // check:... ทุกตัวในไฟล์นี้ = ด่านสุดท้ายที่ DB · ถ้าโค้ดตรวจพลาด ข้อมูลผิดก็ยังเข้าตารางไม่ได้
+// เวลาเปิด/ปิดต้องลง :00/:30 (การจองนับทีละช่อง 30 นาทีจากเวลาเปิด) และห้ามเท่ากัน (กำกวม: เปิด 24 ชม. หรือไม่เปิดเลย?)
 type Restaurant struct {
 	ID                uint              `gorm:"primaryKey"`
 	OwnerID           uint              `gorm:"not null;index"`
@@ -31,8 +32,8 @@ type Restaurant struct {
 	Cuisine           string            `gorm:"not null;default:''"`
 	Description       string            `gorm:"not null;default:''"`
 	Seats             int               `gorm:"not null;check:seats > 0"`
-	OpenMinute        int               `gorm:"not null;check:open_minute BETWEEN 0 AND 1439"`  // นาทีนับจากเที่ยงคืน 11:00 = 660
-	CloseMinute       int               `gorm:"not null;check:close_minute BETWEEN 0 AND 1439"` // close <= open = ปิดข้ามเที่ยงคืน
+	OpenMinute        int               `gorm:"not null;check:chk_restaurants_open_slot,open_minute BETWEEN 0 AND 1439 AND open_minute % 30 = 0"`                                    // นาทีนับจากเที่ยงคืน 11:00 = 660
+	CloseMinute       int               `gorm:"not null;check:chk_restaurants_close_slot,close_minute BETWEEN 0 AND 1439 AND close_minute % 30 = 0 AND close_minute <> open_minute"` // close < open = ปิดข้ามเที่ยงคืน
 	CancelLeadMinutes int               `gorm:"not null;default:30;check:cancel_lead_minutes >= 30"`
 	Images            []RestaurantImage `gorm:"constraint:OnDelete:CASCADE"`
 	CreatedAt         time.Time
