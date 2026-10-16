@@ -238,3 +238,16 @@ func Availability(db *gorm.DB, r *models.Restaurant, date time.Time, excludeID u
 	}
 	return slots, nil
 }
+
+// Upcoming = การจองที่ยืนยันอยู่และยังไม่จบ ("ผ่านไปแล้ว" ดูจากเวลาจบ → การจองที่กำลังนั่งกินอยู่ยังนับ)
+// กติกาเดียวกันใช้ 3 ที่: แท็บ "กำลังจะถึง" · เพดานการจองต่อคน · ลบร้านไม่ได้ถ้ายังมีการจอง
+// UpcomingScope = เงื่อนไขเดียวกันในรูป SQL ใช้กับ .Scopes(...)
+func Upcoming(b *models.Booking, now time.Time) bool {
+	return b.Status == models.StatusConfirmed && b.EndAt.After(now)
+}
+
+func UpcomingScope(now time.Time) func(*gorm.DB) *gorm.DB {
+	return func(db *gorm.DB) *gorm.DB {
+		return db.Where("status = ? AND end_at > ?", models.StatusConfirmed, now)
+	}
+}

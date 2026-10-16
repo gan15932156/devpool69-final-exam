@@ -368,9 +368,8 @@ func (h *Handler) DeleteRestaurant(c fiber.Ctx) error {
 			return err
 		}
 		var upcoming int64
-		if err := tx.Model(&models.Booking{}).
-			Where("restaurant_id = ? AND status = ? AND end_at > ?", r.ID, models.StatusConfirmed, h.Now()).
-			Count(&upcoming).Error; err != nil {
+		if err := tx.Model(&models.Booking{}).Scopes(booking.UpcomingScope(h.Now())).
+			Where("restaurant_id = ?", r.ID).Count(&upcoming).Error; err != nil {
 			return err
 		}
 		if upcoming > 0 {

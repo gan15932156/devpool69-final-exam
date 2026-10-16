@@ -123,9 +123,8 @@ func (h *Handler) CreateBooking(c fiber.Ctx) error {
 			return err
 		}
 		var active int64
-		if err := tx.Model(&models.Booking{}).
-			Where("user_id = ? AND status = ? AND end_at > ?", userID, models.StatusConfirmed, now).
-			Count(&active).Error; err != nil {
+		if err := tx.Model(&models.Booking{}).Scopes(booking.UpcomingScope(now)).
+			Where("user_id = ?", userID).Count(&active).Error; err != nil {
 			return err
 		}
 		if active >= MaxActiveBookings {

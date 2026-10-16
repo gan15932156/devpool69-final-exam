@@ -51,7 +51,7 @@ func (h *Handler) MyBookings(c fiber.Ctx) error {
 		switch {
 		case b.Status == models.StatusCancelled:
 			res.Cancelled = append(res.Cancelled, dto)
-		case b.EndAt.After(now):
+		case booking.Upcoming(b, now):
 			res.Upcoming = append(res.Upcoming, dto)
 		default:
 			res.Past = append(res.Past, dto)
