@@ -80,7 +80,7 @@ type Review struct {
 	ID           uint       `gorm:"primaryKey"`
 	RestaurantID uint       `gorm:"not null;uniqueIndex:idx_reviews_restaurant_user"`
 	Restaurant   Restaurant `gorm:"constraint:OnDelete:CASCADE"`
-	UserID       uint       `gorm:"not null;uniqueIndex:idx_reviews_restaurant_user"`
+	UserID       uint       `gorm:"not null;uniqueIndex:idx_reviews_restaurant_user;index"` // index แยก → /me/bookings หาร้านที่เคยรีวิวด้วย user_id อย่างเดียว
 	User         User       `gorm:"constraint:OnDelete:CASCADE"`
 	Rating       int        `gorm:"not null;check:rating BETWEEN 1 AND 5"`
 	Comment      string     `gorm:"not null;default:''"`
