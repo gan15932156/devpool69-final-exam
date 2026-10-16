@@ -566,7 +566,7 @@ a { color: var(--indigo); }
     <table>
       <thead><tr><th>โหมด</th><th>คำสั่ง</th><th>ใช้เมื่อ</th></tr></thead>
       <tbody>
-        <tr><td>Docker ครบชุด</td><td class="m">docker compose up --build</td><td>เดโม / ตรวจงาน · seed ข้อมูลใหม่ทุกครั้งที่ API เริ่ม (<code>SEED_ON_START=reset</code>) การจองตัวอย่างจึงนับจาก "ตอนนี้" เสมอ</td></tr>
+        <tr><td>Docker ครบชุด</td><td class="m">docker compose up --build</td><td>เดโม / ตรวจงาน · seed ข้อมูลตัวอย่างครั้งแรกที่ DB ว่าง (<code>SEED_ON_START=true</code>) ข้อมูลที่ทดสอบอยู่รอดข้าม restart · seed ใหม่ให้การจองนับจาก "ตอนนี้": ตั้ง <code>SEED_ON_START=reset</code> แล้ว <code>docker compose up -d api</code></td></tr>
         <tr><td>Dev</td><td class="m">go run ./cmd/api · npm run dev</td><td>แก้โค้ดแล้วเห็นผลทันที (เปิดแค่ <code>db</code> ใน Docker)</td></tr>
         <tr><td>Mock API</td><td class="m">npm run dev:mock</td><td>ทำหน้าเว็บอย่างเดียว ไม่ต้องเปิด Go หรือ Postgres · <code>web/mock/booking.ts</code> แปลงกติกามาจาก Go และใช้ error code เดียวกัน</td></tr>
       </tbody>

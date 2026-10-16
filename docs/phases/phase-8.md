@@ -6,7 +6,7 @@ Phase นี้**คุณทำเอง** — ไฟล์นี้คือ�
 
 ```powershell
 docker compose up --build -d    # ครั้งแรก
-docker compose restart api      # ก่อนอัดทุกครั้ง → ล้างแล้ว seed ใหม่ การจองตัวอย่างนับจากตอนนี้
+$env:SEED_ON_START="reset"; docker compose up -d api   # ก่อนอัดทุกครั้ง → ล้างแล้ว seed ใหม่ การจองตัวอย่างนับจากตอนนี้
 ```
 - เปิด 2 หน้าต่างเบราว์เซอร์: ปกติ (สมชาย `usr2@email.com`) + incognito (มะลิ `usr1@email.com`) · รหัส `123456`
 - **restart API ช่วง 10:00–21:30** แล้วอัดภายใน ~2 ชม. → สมชายจะมีการ์ด "เลยเวลายกเลิกแล้ว" ให้โชว์

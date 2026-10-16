@@ -29,7 +29,7 @@ docker compose up --build
 | API docs (Swagger UI) | http://localhost:8080/docs |
 | PostgreSQL | `localhost:5433` (user / pass / db = `toawang` · เปิดให้เครื่องนี้เท่านั้น) |
 
-**ข้อมูลตัวอย่างสดใหม่ทุกครั้งที่ API เริ่ม** (`SEED_ON_START=reset`): ทุกตารางถูกล้างแล้ว seed ใหม่ การจองตัวอย่างนับจากเวลาตอนนั้น · ทิ้งไว้นานจนการจองวันนี้ผ่านไปแล้ว → `docker compose restart api` · ข้อมูลที่สร้างระหว่างทดสอบจะหายเมื่อ restart (อยากเก็บไว้ ดู `SEED_ON_START` ด้านล่าง) · ล็อกอินค้างไว้ได้ เพราะ seed สร้างผู้ใช้ลำดับเดิม id เดิมทุกครั้ง และกุญแจ JWT เก็บในตารางที่ไม่ถูกล้าง · สร้าง container `web` ใหม่ (เช่น `up --build`) ต้อง login ใหม่ เพราะ `AUTH_SECRET` สุ่มใหม่ (ตั้งค่าเองใน `.env` ได้)
+**Docker seed ข้อมูลตัวอย่างครั้งเดียวตอน DB ว่าง** (`SEED_ON_START=true`): ข้อมูลที่สร้างระหว่างทดสอบอยู่รอดข้าม restart · การจองตัวอย่างนับจากเวลาที่ seed ครั้งแรก ทิ้งไว้นานจนการจองวันนี้ผ่านไปแล้ว → ล้างแล้ว seed ใหม่ด้วย `$env:SEED_ON_START="reset"; docker compose up -d api` (รอบถัดไปสั่ง `docker compose up -d api` เฉย ๆ เพื่อกลับเป็น `true`) · seed สร้างผู้ใช้ลำดับเดิม id เดิมทุกครั้ง และกุญแจ JWT เก็บในตารางที่ไม่ถูกล้าง จึงล็อกอินค้างไว้ได้แม้ seed ใหม่ · container `web` เริ่มใหม่ (restart หรือ `up --build`) ต้อง login ใหม่ เพราะ `AUTH_SECRET` สุ่มใหม่ (ตั้งค่าเองใน `.env` ได้)
 
 ## บัญชีทดสอบ
 

@@ -1,4 +1,4 @@
-# docker compose up --build → เปิด http://localhost:3000 ได้เลย (API seed ข้อมูลตัวอย่างใหม่ทุกครั้งที่เริ่ม)
+# docker compose up --build → เปิด http://localhost:3000 ได้เลย (API seed ข้อมูลตัวอย่างครั้งแรกที่ DB ว่าง · รอบต่อไปข้อมูลอยู่ต่อ)
 # ไม่ต้องมีไฟล์ .env: กุญแจ JWT สุ่มเก็บไว้ใน DB · AUTH_SECRET สุ่มตอน web เริ่ม (ไม่มีค่าลับที่เขียนไว้ใน repo)
 services:
   db:
@@ -22,7 +22,8 @@ services:
     environment:
       DATABASE_URL: postgres://toawang:toawang@db:5432/toawang?sslmode=disable
       JWT_SECRET: ${JWT_SECRET:-} # ไม่ตั้ง = API สุ่มกุญแจแล้วเก็บไว้ใน DB เอง
-      SEED_ON_START: "reset" # ทุกครั้งที่ api เริ่ม → ล้างแล้ว seed ใหม่ (เวลาในข้อมูลตัวอย่างนับจากตอนนี้)
+      # true = seed เฉพาะตอน DB ว่าง ข้อมูลที่ทดสอบอยู่รอดข้าม restart · ล้างแล้ว seed ใหม่: $env:SEED_ON_START="reset"; docker compose up -d api
+      SEED_ON_START: ${SEED_ON_START:-true}
     volumes:
       # รูปที่อัปโหลดอยู่รอดแม้สร้าง container ใหม่ · ใช้ชื่อใหม่เพราะ volume เดิมเป็นของ root แต่ตอนนี้ api รันเป็น user ธรรมดา
       - uploads-data:/app/uploads
