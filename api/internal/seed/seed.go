@@ -165,7 +165,7 @@ func Run(db *gorm.DB, uploadDir string) error {
 	err = db.Transaction(func(tx *gorm.DB) error {
 		// ---- บัญชีสำหรับ present 2 บัญชี + เจ้าของร้านอื่น ๆ ----
 		named := []struct{ key, name, email string }{
-			{"mali", "มะลิ ศรีสุข", "usr1@email.com"},    // present: เจ้าของ 3 ร้าน + เป็นลูกค้าร้านอื่น
+			{"mali", "มะลิ ศรีสุข", "usr1@email.com"},   // present: เจ้าของ 3 ร้าน + เป็นลูกค้าร้านอื่น
 			{"somchai", "สมชาย ใจดี", "usr2@email.com"}, // present: ลูกค้า
 			{"nid", "เชฟนิด ริมคลอง", "nid@example.com"},
 			{"somsak", "ลุงสมศักดิ์", "somsak@example.com"},
@@ -269,133 +269,141 @@ func Run(db *gorm.DB, uploadDir string) error {
 	}
 
 	// ---- การจอง: ใช้ booking.Create ตัวเดียวกับ API → การจองตัวอย่างผ่านกติกาจริงทุกข้อ ----
-	today := now.In(booking.Loc)
-	day := func(offset int) string { return today.AddDate(0, 0, offset).Format(booking.DateLayout) }
-	book := func(slug string, user *models.User, date, start, end string, party int) *models.Booking {
-		b, err := booking.Create(db, shops[slug].ID, user.ID, booking.Input{Date: date, Start: start, End: end, PartySize: party}, now)
-		if err != nil {
-			log.Printf("seed: ข้ามการจอง %s %s %s–%s (%v)", shops[slug].Name, date, start, end, err)
-			return nil
+	// ทั้งหมดอยู่ใน transaction เดียว → commit ครั้งเดียวแทนราวพันครั้ง
+	// booking.Create/Cancel ข้างในกลายเป็น SAVEPOINT → จองไม่ผ่านก็ย้อนเฉพาะรายการนั้น ที่เหลือไปต่อได้
+	err = db.Transaction(func(tx *gorm.DB) error {
+		today := now.In(booking.Loc)
+		day := func(offset int) string { return today.AddDate(0, 0, offset).Format(booking.DateLayout) }
+		book := func(slug string, user *models.User, date, start, end string, party int) *models.Booking {
+			b, err := booking.Create(tx, shops[slug].ID, user.ID, booking.Input{Date: date, Start: start, End: end, PartySize: party}, now)
+			if err != nil {
+				log.Printf("seed: ข้ามการจอง %s %s %s–%s (%v)", shops[slug].Name, date, start, end, err)
+				return nil
+			}
+			return b
 		}
-		return b
-	}
-	cancel := func(b *models.Booking, user *models.User) {
-		if b != nil {
-			_ = booking.Cancel(db, b.ID, user.ID, now)
+		cancel := func(b *models.Booking, user *models.User) {
+			if b != nil {
+				_ = booking.Cancel(tx, b.ID, user.ID, now)
+			}
 		}
-	}
-	somchai, mali := users["somchai"], users["mali"]
+		somchai, mali := users["somchai"], users["mali"]
 
-	// ===== สมชาย (ลูกค้า) — การจองครบทุกสถานะ =====
-	// เคสเดโมจากโจทย์: ครัวริมคลอง 10 ที่ พรุ่งนี้ 12:00–13:00 สมชาย 7 + อีกคน 3 = เต็มพอดี → ลองแก้ 7→8 ✕ / 7→5 ✓
-	book("krua-rim-klong", somchai, day(1), "12:00", "13:00", 7)
-	book("krua-rim-klong", reviewers[0], day(1), "12:00", "13:00", 3)
-	// วันนี้ (ต้นขั้วสีชาด) — ถ้าเวลาผ่านไปแล้วจะถูกข้ามเอง
-	book("mookata-rim-tang", somchai, day(0), "20:00", "21:30", 4)
-	book("khao-tom-tha-nam", somchai, day(0), "22:00", "23:00", 2)
-	// เลยเวลายกเลิกแล้ว: ร้านทะเล (11:00–23:00) ให้ยกเลิกล่วงหน้า 3 ชม. แต่การจองนี้เริ่มในอีกไม่ถึงชั่วโมง → ปุ่มแก้/ยกเลิก disabled
-	// นาน 2 ชม. (ไม่เกินเวลาปิด) → การ์ดอยู่ในแท็บ "กำลังจะถึง" ได้ราว 2 ชม. ครึ่งหลัง seed · มีเมื่อ seed ช่วงราว 10:00–21:30
-	if start := nextHalfHour(today).Add(30 * time.Minute); start.Day() == today.Day() && start.Hour() >= 11 && start.Hour() < 22 {
-		end := start.Add(2 * time.Hour)
-		if closeAt := booking.At(today, 23*hm); end.After(closeAt) {
-			end = closeAt
+		// ===== สมชาย (ลูกค้า) — การจองครบทุกสถานะ =====
+		// เคสเดโมจากโจทย์: ครัวริมคลอง 10 ที่ พรุ่งนี้ 12:00–13:00 สมชาย 7 + อีกคน 3 = เต็มพอดี → ลองแก้ 7→8 ✕ / 7→5 ✓
+		book("krua-rim-klong", somchai, day(1), "12:00", "13:00", 7)
+		book("krua-rim-klong", reviewers[0], day(1), "12:00", "13:00", 3)
+		// วันนี้ (ต้นขั้วสีชาด) — ถ้าเวลาผ่านไปแล้วจะถูกข้ามเอง
+		book("mookata-rim-tang", somchai, day(0), "20:00", "21:30", 4)
+		book("khao-tom-tha-nam", somchai, day(0), "22:00", "23:00", 2)
+		// เลยเวลายกเลิกแล้ว: ร้านทะเล (11:00–23:00) ให้ยกเลิกล่วงหน้า 3 ชม. แต่การจองนี้เริ่มในอีกไม่ถึงชั่วโมง → ปุ่มแก้/ยกเลิก disabled
+		// นาน 2 ชม. (ไม่เกินเวลาปิด) → การ์ดอยู่ในแท็บ "กำลังจะถึง" ได้ราว 2 ชม. ครึ่งหลัง seed · มีเมื่อ seed ช่วงราว 10:00–21:30
+		if start := nextHalfHour(today).Add(30 * time.Minute); start.Day() == today.Day() && start.Hour() >= 11 && start.Hour() < 22 {
+			end := start.Add(2 * time.Hour)
+			if closeAt := booking.At(today, 23*hm); end.After(closeAt) {
+				end = closeAt
+			}
+			book("talay-chay-le", somchai, day(0), start.Format("15:04"), end.Format("15:04"), 2)
 		}
-		book("talay-chay-le", somchai, day(0), start.Format("15:04"), end.Format("15:04"), 2)
-	}
-	book("khao-tom-tha-nam", somchai, day(1), "23:30", "01:00", 2) // ร้านข้ามเที่ยงคืน
-	book("suki-baan-mai", somchai, day(2), "19:00", "20:30", 4)
-	book("cafe-rim-na", somchai, day(3), "14:00", "15:00", 2)
-	book("talay-chay-le", somchai, day(4), "18:00", "20:00", 6)
-	book("jok-tee-ha", somchai, day(5), "02:00", "03:00", 2) // โจ๊กรอบคืนวันที่ +5 = ตีสองของวันถัดไป
-	book("khao-soi-cm", somchai, day(6), "12:00", "13:00", 3)
-	book("krua-tai", somchai, day(7), "18:30", "20:00", 5)
-	// ยกเลิกแล้ว
-	cancel(book("somtam-na-talad", somchai, day(2), "18:00", "19:00", 4), somchai)
-	cancel(book("kuay-tiew-ruea", somchai, day(1), "10:00", "11:00", 2), somchai)
+		book("khao-tom-tha-nam", somchai, day(1), "23:30", "01:00", 2) // ร้านข้ามเที่ยงคืน
+		book("suki-baan-mai", somchai, day(2), "19:00", "20:30", 4)
+		book("cafe-rim-na", somchai, day(3), "14:00", "15:00", 2)
+		book("talay-chay-le", somchai, day(4), "18:00", "20:00", 6)
+		book("jok-tee-ha", somchai, day(5), "02:00", "03:00", 2) // โจ๊กรอบคืนวันที่ +5 = ตีสองของวันถัดไป
+		book("khao-soi-cm", somchai, day(6), "12:00", "13:00", 3)
+		book("krua-tai", somchai, day(7), "18:30", "20:00", 5)
+		// ยกเลิกแล้ว
+		cancel(book("somtam-na-talad", somchai, day(2), "18:00", "19:00", 4), somchai)
+		cancel(book("kuay-tiew-ruea", somchai, day(1), "10:00", "11:00", 2), somchai)
 
-	// ===== มะลิ (เจ้าของ 3 ร้าน) — เป็นลูกค้าร้านอื่นด้วย =====
-	book("cafe-rim-na", mali, day(1), "10:00", "11:00", 2)
-	book("krua-tai", mali, day(2), "18:00", "19:30", 3)
-	book("khanom-jeen-khun-yai", mali, day(3), "09:00", "10:00", 2)
-	book("suki-baan-mai", mali, day(5), "12:00", "13:00", 4)
-	cancel(book("tom-yum-boran", mali, day(4), "12:00", "13:00", 2), mali)
+		// ===== มะลิ (เจ้าของ 3 ร้าน) — เป็นลูกค้าร้านอื่นด้วย =====
+		book("cafe-rim-na", mali, day(1), "10:00", "11:00", 2)
+		book("krua-tai", mali, day(2), "18:00", "19:30", 3)
+		book("khanom-jeen-khun-yai", mali, day(3), "09:00", "10:00", 2)
+		book("suki-baan-mai", mali, day(5), "12:00", "13:00", 4)
+		cancel(book("tom-yum-boran", mali, day(4), "12:00", "13:00", 2), mali)
 
-	// ===== การจองที่ผ่านมาแล้ว =====
-	// กติกา "ห้ามจองเวลาที่ผ่านไปแล้ว" ทำให้สร้างผ่าน booking.Create ไม่ได้ (ตั้งใจ) จึงใส่ตรง ๆ
-	past := []struct {
-		slug      string
-		user      *models.User
-		daysAgo   int
-		start     int
-		end       int
-		party     int
-		cancelled bool
-	}{
-		// สมชาย: ร้านที่รีวิวแล้ว → ป้าย "รีวิวแล้ว" · ร้านที่ยังไม่รีวิว → ปุ่ม "เขียนรีวิว"
-		{"cafe-rim-na", somchai, 2, 10 * hm, 11 * hm, 2, false},         // ยังไม่รีวิว
-		{"khanom-jeen-khun-yai", somchai, 3, 9 * hm, 10 * hm, 3, false}, // ยังไม่รีวิว
-		{"somtam-na-talad", somchai, 6, 12 * hm, 13 * hm, 4, false},     // รีวิวแล้ว
-		{"krua-rim-klong", somchai, 10, 18 * hm, 19*hm + 30, 2, false},  // รีวิวแล้ว
-		{"mookata-rim-tang", somchai, 12, 19 * hm, 21 * hm, 5, false},   // รีวิวแล้ว
-		{"suki-baan-mai", somchai, 18, 18*hm + 30, 20 * hm, 3, false},   // รีวิวแล้ว
-		{"khao-soi-cm", somchai, 25, 12 * hm, 13 * hm, 2, false},        // ยังไม่รีวิว
-		{"khao-man-kai", somchai, 30, 7 * hm, 7*hm + 30, 1, false},      // รีวิวแล้ว
-		{"khao-tom-tha-nam", somchai, 9, 19 * hm, 20 * hm, 2, true},     // ยกเลิกไปแล้ว
-		// มะลิในฐานะลูกค้า
-		{"talay-chay-le", mali, 8, 18 * hm, 20 * hm, 4, false},   // รีวิวแล้ว
-		{"khao-man-kai", mali, 15, 8 * hm, 9 * hm, 2, false},     // รีวิวแล้ว
-		{"kuay-tiew-ruea", mali, 20, 11 * hm, 12 * hm, 2, false}, // รีวิวแล้ว
-		{"krua-rim-klong", mali, 5, 12 * hm, 13 * hm, 2, false},  // รีวิวแล้ว
-		{"nam-cha-yam-chao", mali, 4, 7 * hm, 8 * hm, 3, false},  // ยังไม่รีวิว
-	}
-	for _, p := range past {
-		date := today.AddDate(0, 0, -p.daysAgo)
-		b := models.Booking{
-			RestaurantID: shops[p.slug].ID, UserID: p.user.ID, PartySize: p.party,
-			ServiceDate: booking.DateOnly(date), StartAt: booking.At(date, p.start), EndAt: booking.At(date, p.end),
-			Status: models.StatusConfirmed,
+		// ===== การจองที่ผ่านมาแล้ว =====
+		// กติกา "ห้ามจองเวลาที่ผ่านไปแล้ว" ทำให้สร้างผ่าน booking.Create ไม่ได้ (ตั้งใจ) จึงใส่ตรง ๆ
+		past := []struct {
+			slug      string
+			user      *models.User
+			daysAgo   int
+			start     int
+			end       int
+			party     int
+			cancelled bool
+		}{
+			// สมชาย: ร้านที่รีวิวแล้ว → ป้าย "รีวิวแล้ว" · ร้านที่ยังไม่รีวิว → ปุ่ม "เขียนรีวิว"
+			{"cafe-rim-na", somchai, 2, 10 * hm, 11 * hm, 2, false},         // ยังไม่รีวิว
+			{"khanom-jeen-khun-yai", somchai, 3, 9 * hm, 10 * hm, 3, false}, // ยังไม่รีวิว
+			{"somtam-na-talad", somchai, 6, 12 * hm, 13 * hm, 4, false},     // รีวิวแล้ว
+			{"krua-rim-klong", somchai, 10, 18 * hm, 19*hm + 30, 2, false},  // รีวิวแล้ว
+			{"mookata-rim-tang", somchai, 12, 19 * hm, 21 * hm, 5, false},   // รีวิวแล้ว
+			{"suki-baan-mai", somchai, 18, 18*hm + 30, 20 * hm, 3, false},   // รีวิวแล้ว
+			{"khao-soi-cm", somchai, 25, 12 * hm, 13 * hm, 2, false},        // ยังไม่รีวิว
+			{"khao-man-kai", somchai, 30, 7 * hm, 7*hm + 30, 1, false},      // รีวิวแล้ว
+			{"khao-tom-tha-nam", somchai, 9, 19 * hm, 20 * hm, 2, true},     // ยกเลิกไปแล้ว
+			// มะลิในฐานะลูกค้า
+			{"talay-chay-le", mali, 8, 18 * hm, 20 * hm, 4, false},   // รีวิวแล้ว
+			{"khao-man-kai", mali, 15, 8 * hm, 9 * hm, 2, false},     // รีวิวแล้ว
+			{"kuay-tiew-ruea", mali, 20, 11 * hm, 12 * hm, 2, false}, // รีวิวแล้ว
+			{"krua-rim-klong", mali, 5, 12 * hm, 13 * hm, 2, false},  // รีวิวแล้ว
+			{"nam-cha-yam-chao", mali, 4, 7 * hm, 8 * hm, 3, false},  // ยังไม่รีวิว
 		}
-		if p.cancelled {
-			at := booking.At(date, p.start).Add(-24 * time.Hour)
-			b.Status, b.CancelledAt = models.StatusCancelled, &at
+		for _, p := range past {
+			date := today.AddDate(0, 0, -p.daysAgo)
+			b := models.Booking{
+				RestaurantID: shops[p.slug].ID, UserID: p.user.ID, PartySize: p.party,
+				ServiceDate: booking.DateOnly(date), StartAt: booking.At(date, p.start), EndAt: booking.At(date, p.end),
+				Status: models.StatusConfirmed,
+			}
+			if p.cancelled {
+				at := booking.At(date, p.start).Add(-24 * time.Hour)
+				b.Status, b.CancelledAt = models.StatusCancelled, &at
+			}
+			if err := tx.Create(&b).Error; err != nil {
+				return err
+			}
 		}
-		if err := db.Create(&b).Error; err != nil {
-			return err
-		}
-	}
 
-	// ===== การจองสุ่มของผู้รีวิว วันนี้ถึงอีก 7 วัน → กราฟที่นั่งและ dashboard มีข้อมูล =====
-	// (ไม่เกิน 7 วัน → วันที่ +10/+11 ที่ requests.http ใช้ทดสอบว่างแน่นอน)
-	for _, s := range restaurants {
-		closeM := s.close
-		if closeM <= s.open {
-			closeM += 1440
-		}
-		perDay := 3 + s.seats/5
-		if s.owner == "mali" {
-			perDay += 4 // ร้านของมะลิคึกคักกว่า → dashboard ตอน present ดูง่าย
-		}
-		for d := 0; d <= 7; d++ {
-			for n := 0; n < perDay+rng.IntN(3); n++ {
-				length := 60 + 30*rng.IntN(3)
-				slots := (closeM - s.open - length) / 30
-				if slots < 0 {
-					continue
-				}
-				start := s.open + 30*rng.IntN(slots+1)
-				party := 1 + rng.IntN(max(1, min(8, s.seats/3)))
-				// ช่วงเดโมของครัวริมคลองพรุ่งนี้ ให้เคส 7 + 3 = 10 คงเดิม
-				if s.slug == "krua-rim-klong" && d == 1 && start < 14*hm && start+length > 11*hm {
-					continue
-				}
-				who := reviewers[rng.IntN(len(reviewers))]
-				b, err := booking.Create(db, shops[s.slug].ID, who.ID,
-					booking.Input{Date: day(d), Start: booking.FormatHHMM(start), End: booking.FormatHHMM(start + length), PartySize: party}, now)
-				if err == nil && rng.IntN(100) < 8 {
-					cancel(b, who) // ~8% ยกเลิก → เจ้าของร้านเห็นสถานะ "ยกเลิกแล้ว" ในตาราง
+		// ===== การจองสุ่มของผู้รีวิว วันนี้ถึงอีก 7 วัน → กราฟที่นั่งและ dashboard มีข้อมูล =====
+		// (ไม่เกิน 7 วัน → วันที่ +10/+11 ที่ requests.http ใช้ทดสอบว่างแน่นอน)
+		for _, s := range restaurants {
+			closeM := s.close
+			if booking.CrossesMidnight(s.open, s.close) {
+				closeM += 1440
+			}
+			perDay := 3 + s.seats/5
+			if s.owner == "mali" {
+				perDay += 4 // ร้านของมะลิคึกคักกว่า → dashboard ตอน present ดูง่าย
+			}
+			for d := 0; d <= 7; d++ {
+				for n := 0; n < perDay+rng.IntN(3); n++ {
+					length := 60 + 30*rng.IntN(3)
+					slots := (closeM - s.open - length) / 30
+					if slots < 0 {
+						continue
+					}
+					start := s.open + 30*rng.IntN(slots+1)
+					party := 1 + rng.IntN(max(1, min(8, s.seats/3)))
+					// ช่วงเดโมของครัวริมคลองพรุ่งนี้ ให้เคส 7 + 3 = 10 คงเดิม
+					if s.slug == "krua-rim-klong" && d == 1 && start < 14*hm && start+length > 11*hm {
+						continue
+					}
+					who := reviewers[rng.IntN(len(reviewers))]
+					b, err := booking.Create(tx, shops[s.slug].ID, who.ID,
+						booking.Input{Date: day(d), Start: booking.FormatHHMM(start), End: booking.FormatHHMM(start + length), PartySize: party}, now)
+					if err == nil && rng.IntN(100) < 8 {
+						cancel(b, who) // ~8% ยกเลิก → เจ้าของร้านเห็นสถานะ "ยกเลิกแล้ว" ในตาราง
+					}
 				}
 			}
 		}
+		return nil
+	})
+	if err != nil {
+		return err
 	}
 
 	var bookings int64
