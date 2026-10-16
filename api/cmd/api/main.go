@@ -53,6 +53,9 @@ func main() {
 	app := fiber.New(fiber.Config{
 		BodyLimit:    10 * 1024 * 1024, // 10MB — default 4MB ไม่พอสำหรับอัปโหลดรูป
 		ErrorHandler: apperr.Handler,   // ทุก error ตอบรูปแบบเดียวกัน
+		// เพดานขนาด header · default 4KB → cookie session ของ NextAuth ที่ rewrite /uploads ส่งต่อมาเกินแล้วได้ 431
+		// 16KB เท่ากับ default ของ Node (Next) ที่รับคำขอก่อน
+		ReadBufferSize: 16 * 1024,
 		// คำขอจากหน้าเว็บผ่าน server ของ Next ก่อนถึง Go → IP ผู้ใช้อยู่ใน X-Forwarded-For
 		// เชื่อ header นี้เฉพาะคำขอจากเครื่องเดียวกัน/เครือข่ายภายใน (Next ใน Docker) · ใช้แค่นับ rate limit
 		ProxyHeader:        fiber.HeaderXForwardedFor,
