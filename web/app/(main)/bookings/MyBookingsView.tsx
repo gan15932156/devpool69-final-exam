@@ -15,9 +15,11 @@ const TABS: { key: Tab; label: string; empty: string }[] = [
   { key: "cancelled", label: "ยกเลิกแล้ว", empty: "ไม่มีการจองที่ยกเลิก" },
 ];
 
+// หน้าการจองของฉัน · page.tsx (server) เช็ก login ก่อน แล้วค่อย render ส่วนนี้ (client) ที่ดึงข้อมูลเอง
 export function MyBookingsView() {
   const api = useApi();
-  const [tab, setTab] = useState<Tab>("upcoming");
+  const [tab, setTab] = useState<Tab>("upcoming"); // แท็บที่เลือก · สลับแท็บไม่ยิง API ใหม่ เพราะคำตอบเดียวมีครบทั้ง 3 กลุ่ม
+  // key ["my-bookings"] = key ที่ invalidateBookingQueries ล้าง → จอง/แก้/ยกเลิกจากหน้าไหน รายการนี้ก็อัปเดต
   const { data, isPending, isError } = useQuery({
     queryKey: ["my-bookings"],
     queryFn: () => api<MyBookings>("/api/v1/me/bookings"),

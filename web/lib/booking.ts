@@ -5,8 +5,10 @@ import { z } from "zod";
 import { ApiError } from "./api";
 import { toHHMM, toMinutes } from "./format";
 
-export type SlotUsage = { start: string; used: number; past: boolean };
-export type Availability = { date: string; seats: number; slots: SlotUsage[] };
+// คำตอบของ GET /restaurants/:id/availability (SlotUsage ใน api/internal/booking/service.go)
+// slots เรียงจากเวลาเปิดร้าน ช่องละ 30 นาที → ช่องที่ i เริ่มที่ open + i*30 (ใช้ใน checkSeats / SeatTimeline)
+export type SlotUsage = { start: string; used: number; past: boolean }; // used = จองแล้วกี่ที่ในช่องนี้ · past = ช่องนี้ผ่านไปแล้ว
+export type Availability = { date: string; seats: number; slots: SlotUsage[] }; // seats = ที่นั่งของร้าน ณ ตอนที่ถาม
 
 // ---------- เวลาในรอบของวัน ----------
 // ใช้ "นาทีนับจากเที่ยงคืนของวันที่จอง" ซึ่งเกิน 1440 ได้ เช่น ร้าน 18:00–02:00 → 1080 ถึง 1560
@@ -82,12 +84,15 @@ export type SeatCheck = {
   over: (slotMinutes: number) => boolean;
 };
 
+// start/end = นาทีในรอบ (ค่าเดียวกับใน state ของใบจอง) · ไม่ยิง API เพิ่ม ใช้ availability ที่โหลดมาแล้ว → เปลี่ยนค่าแล้วเห็นผลทันที
 export function checkSeats(av: Availability, open: number, party: number, start: number, end: number): SeatCheck {
   let firstOver: SeatCheck["firstOver"] = null;
   let peak = 0;
-  const overSet = new Set<number>();
+  const overSet = new Set<number>(); // เก็บช่องที่เกินทุกช่อง → SeatTimeline ระบายแดงทีละช่อง
   av.slots.forEach((s, i) => {
-    const t = open + i * 30;
+    const t = open + i * 30; // ช่องที่ i เริ่มนาทีที่เท่าไรของรอบ
+    // ดูเฉพาะช่องในช่วงที่ขอ · t < end (ไม่ใช่ <=) เพราะช่องที่เริ่มตรงเวลาจบ ลูกค้าไม่ได้นั่งแล้ว
+    // บวก party ตรง ๆ ได้ เพราะ Stepper จำกัดไว้ไม่เกินที่นั่งร้าน (Go เทียบแบบลบ กันเลขที่คนยิง API ส่งมาจนล้น)
     if (t >= start && t < end) {
       peak = Math.max(peak, s.used);
       if (s.used + party > av.seats) {
@@ -96,6 +101,7 @@ export function checkSeats(av: Availability, open: number, party: number, start:
       }
     }
   });
+  // inRange / over ส่งเป็นฟังก์ชัน → SeatTimeline ถามทีละช่องได้ว่าอยู่ในช่วงที่ขอไหม / เกินไหม
   return {
     seats: av.seats,
     firstOver,
@@ -106,6 +112,7 @@ export function checkSeats(av: Availability, open: number, party: number, start:
 }
 
 // details ของ SEATS_EXCEEDED ที่ Go ส่งมา (SeatsExceededDetails)
+// ตรวจด้วย zod ก่อนใช้ → ถ้า Go เปลี่ยนรูปแบบ details หน้าเว็บไม่พัง แค่ถอยไปใช้ข้อความของ Go
 const seatsExceededSchema = z.object({ slotStart: z.string(), slotEnd: z.string(), used: z.number(), party: z.number(), seats: z.number() });
 type SeatsExceeded = z.infer<typeof seatsExceededSchema>;
 
@@ -123,6 +130,7 @@ export function seatsExceededText(d: SeatsExceeded, mode: BookingMode) {
   return `ที่นั่งไม่พอ: ช่วง ${d.slotStart}–${d.slotEnd} ร้านรับได้ ${d.seats} ที่ ${parts} = ${total} คน เกินไป ${total - d.seats} คน`;
 }
 
+// ข้อความผลตรวจที่นั่งใต้ใบจอง · เกิน → ใช้ seatsExceededText ตัวเดียวกับตอน Go ตอบ 409 (ข้อความหน้าเว็บกับ Go จึงตรงกัน)
 export function seatText(check: SeatCheck, party: number, mode: BookingMode) {
   const { seats, peak } = check;
   if (check.firstOver) {
@@ -143,6 +151,8 @@ export function bookingErrorText(e: Error, mode: BookingMode) {
 }
 
 // การจองเปลี่ยน (จอง/แก้/ยกเลิก) → กราฟที่นั่งและรายการจองของฉันต้องโหลดใหม่
+// ใส่ key แค่ส่วนหน้า ["availability"] → TanStack ล้างทุกร้าน ทุกวัน (รวมแคชของหน้าแก้ไขที่มี bookingId ต่อท้าย)
+// คืน Promise → ผู้เรียก await ได้ เช่น จองเสร็จรอโหลดใหม่ก่อนค่อยพาไปหน้า /bookings
 export function invalidateBookingQueries(queryClient: QueryClient) {
   return Promise.all([
     queryClient.invalidateQueries({ queryKey: ["availability"] }),

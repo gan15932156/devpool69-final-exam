@@ -15,7 +15,8 @@ export function SeatTimeline({
   request?: { party: number; inRange: (t: number) => boolean; over: (t: number) => boolean };
   height?: number;
 }) {
-  const close = open + av.slots.length * 30;
+  // request = การจองที่กำลังเลือกอยู่ (ไม่ส่ง = แสดงแค่ที่จองแล้ว) · inRange/over มาจาก checkSeats ใน lib/booking.ts
+  const close = open + av.slots.length * 30; // เวลาปิดคิดจากจำนวนช่องที่ Go ส่งมา → ป้ายท้ายแกนตรงกับข้อมูลเสมอ
   // ป้ายแกนเวลา ~5 จุด
   const step = Math.max(1, Math.round(av.slots.length / 4));
   const ticks = av.slots.map((_, i) => open + i * 30).filter((_, i) => i % step === 0);
@@ -25,7 +26,9 @@ export function SeatTimeline({
       <div className="flex items-end gap-0.5 border-t border-dashed border-muted" style={{ height: H }} role="img" aria-label="กราฟที่นั่งที่ถูกจองในแต่ละช่วง 30 นาที">
         {av.slots.map((s, i) => {
           const t = open + i * 30;
+          // ความสูงแท่ง = สัดส่วนของที่นั่งร้าน · min กับ seats กันแท่งล้นกรอบ (เช่น เจ้าของลดที่นั่งหลังมีคนจองไว้แล้ว)
           const usedH = Math.round((Math.min(s.used, av.seats) / av.seats) * H);
+          // ส่วนของเราซ้อนบนส่วนที่จองแล้ว แต่ไม่ให้สูงเกินกรอบ · ส่วนที่เกินแสดงด้วยสีแดง (over) แทน
           const mine = request?.inRange(t) ? Math.max(0, Math.min(Math.round((request.party / av.seats) * H), H - usedH)) : 0;
           const over = request?.over(t) ?? false;
           return (

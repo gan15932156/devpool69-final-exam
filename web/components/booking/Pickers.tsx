@@ -60,8 +60,9 @@ export function TimeRangeSelect({
   onChange: (start: number, end: number) => void;
   isPast: (minutes: number) => boolean;
 }) {
-  const starts = timeOptions(open, close - 30);
-  const ends = timeOptions(start + 30, close);
+  // value ของ option = นาทีในรอบ (ไม่ใช่ "HH:MM") → ร้านข้ามคืน "01:00" = 1500 อยู่หลัง "23:30" = 1410 เรียงและเทียบกับ open/close ได้ตรง ๆ
+  const starts = timeOptions(open, close - 30); // เริ่มช้าสุดก่อนปิด 30 นาที (ต้องนั่งได้อย่างน้อย 1 ช่อง)
+  const ends = timeOptions(start + 30, close); // จบต้องหลังเริ่ม → ไม่มีทางเลือกช่วงติดลบได้
   return (
     <div className="flex items-end gap-2.5">
       <label className="flex flex-1 flex-col gap-1.5 text-sm text-muted">
@@ -76,6 +77,7 @@ export function TimeRangeSelect({
           className={inputClass(false, "h-[50px] px-3")}
         >
           {starts.map((o) => (
+            // isPast มาจากผู้เรียก (รู้วันที่เลือก) · เวลาที่ผ่านแล้วยังแสดงแต่กดไม่ได้ → ผู้ใช้เห็นว่าทำไมเลือกไม่ได้
             <option key={o.minutes} value={o.minutes} disabled={isPast(o.minutes)}>
               {o.label}
               {isPast(o.minutes) ? " (ผ่านแล้ว)" : ""}

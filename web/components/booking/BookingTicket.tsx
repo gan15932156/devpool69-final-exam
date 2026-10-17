@@ -38,13 +38,14 @@ function defaultSlot(date: string, open: number, close: number) {
   return { start, end: Math.min(close, start + 60) };
 }
 
+// ใบจองบนหน้าร้าน: เลือก จำนวนคน → วัน → เวลา แล้วตรวจเงื่อนไขให้ดูทันที ก่อนส่งให้ Go ตัดสินจริง
 export function BookingTicket({ restaurant: r }: { restaurant: RestaurantDetail }) {
   const api = useApi();
   const router = useRouter();
   const queryClient = useQueryClient();
-  const { data: session } = useSession();
-  const { open, close } = serviceRange(r.openTime, r.closeTime);
-  const days = nextDays(5);
+  const { data: session } = useSession(); // ใช้แค่เลือกว่าจะโชว์ปุ่มจองหรือปุ่มไป login · token ไม่อยู่ใน session
+  const { open, close } = serviceRange(r.openTime, r.closeTime); // นาทีในรอบ · ร้านข้ามคืน close เกิน 1440
+  const days = nextDays(5); // ตัวเลือกวันในใบจอง: วันนี้ + 4 วัน · Go รับไกลสุด 60 วัน
 
   const [party, setParty] = useState(Math.min(2, r.seats)); // เริ่ม 2 คน (กรณีที่พบบ่อย) แต่ไม่เกินที่นั่งของร้าน
   // วันแรกที่ยังจองได้: ถ้าวันนี้ร้านปิดไปแล้ว (เช่น เปิดถึง 14:00 แต่ตอนนี้บ่ายสาม) เริ่มที่พรุ่งนี้ · คิดครั้งเดียวตอนเปิดใบจอง
@@ -52,11 +53,14 @@ export function BookingTicket({ restaurant: r }: { restaurant: RestaurantDetail 
     const iso = (days.find((d) => firstFutureStart(d.iso, open, close) !== null) ?? days[0]).iso;
     return { date: iso, ...defaultSlot(iso, open, close) };
   });
-  const [date, setDate] = useState(initial.date);
+  const [date, setDate] = useState(initial.date); // "YYYY-MM-DD" = รอบของวันไหน (ไม่ใช่วันที่ของเวลาเริ่มเสมอไป)
+  // start/end เก็บเป็นนาทีในรอบ ไม่ใช่ "HH:MM" → เทียบ/บวกลบได้ตรง ๆ และ 01:00 ของร้านข้ามคืน (1500) มากกว่า 23:00 (1380) ถูกต้อง
   const [start, setStart] = useState(initial.start);
   const [end, setEnd] = useState(initial.end);
+  // error จาก Go แยกจากผลตรวจฝั่งเว็บ (ซึ่งคิดใหม่ทุก render) · ล้างทิ้งเมื่อผู้ใช้เปลี่ยนค่า เพราะไม่ตรงกับค่าใหม่แล้ว
   const [serverError, setServerError] = useState("");
 
+  // key มี date → แคชแยกทีละวัน · เปลี่ยนวันแล้ว TanStack ดึงวันใหม่ให้เอง และกลับมาวันเดิมได้จากแคช
   const { data: av } = useQuery({
     queryKey: ["availability", r.id, date],
     queryFn: () => api<Availability>(`/api/v1/restaurants/${r.id}/availability?date=${date}`),
@@ -66,10 +70,11 @@ export function BookingTicket({ restaurant: r }: { restaurant: RestaurantDetail 
     mutationFn: () =>
       api(`/api/v1/restaurants/${r.id}/bookings`, {
         method: "POST",
+        // ส่ง "เวลาบนหน้าปัด" + วันของรอบ ตามรูปแบบที่ Go รับ · Go เป็นคนแปลงว่า "01:00" เป็นของวันถัดไป (booking.Resolve)
         json: { date, start: toHHMM(start), end: toHHMM(end), partySize: party },
       }),
     onSuccess: async () => {
-      await invalidateBookingQueries(queryClient);
+      await invalidateBookingQueries(queryClient); // รอโหลดใหม่ก่อน → ไปถึงหน้า /bookings แล้วเห็นการจองใหม่ทันที
       router.push("/bookings");
     },
     onError: (e) => {
@@ -80,6 +85,7 @@ export function BookingTicket({ restaurant: r }: { restaurant: RestaurantDetail 
     },
   });
 
+  // เปลี่ยนวัน → ตั้งเวลาใหม่ด้วย เพราะเวลาที่เลือกไว้อาจผ่านไปแล้วในวันใหม่ (เช่น เปลี่ยนจากพรุ่งนี้กลับมาวันนี้)
   function changeDate(iso: string) {
     setDate(iso);
     const slot = defaultSlot(iso, open, close);
@@ -88,10 +94,13 @@ export function BookingTicket({ restaurant: r }: { restaurant: RestaurantDetail 
     setServerError("");
   }
 
+  // ตรวจซ้ำกติกาเดียวกับ Go เพื่อ UX (คิดใหม่ทุก render ไม่ต้องเก็บใน state):
+  // inHours ↔ OUTSIDE_HOURS/INVALID_RANGE · notPast ↔ IN_PAST · seatsOk ↔ SEATS_EXCEEDED
+  // ok = เปิดปุ่มจอง · ต่อให้ปุ่มเปิด Go ก็ตรวจใหม่ใน transaction อยู่ดี (เช่น มีคนจองตัดหน้า)
   const now = new Date();
   const inHours = start >= open && end <= close && end > start;
   const notPast = atMinutes(date, start) > now;
-  const check = av ? checkSeats(av, open, party, start, end) : null;
+  const check = av ? checkSeats(av, open, party, start, end) : null; // null = กราฟยังโหลดไม่เสร็จ → ยังจองไม่ได้
   const seatsOk = !!check && !check.firstOver;
   const ok = inHours && notPast && seatsOk;
   const hours = hoursText(r.openTime, r.closeTime);
@@ -190,6 +199,7 @@ export function BookingTicket({ restaurant: r }: { restaurant: RestaurantDetail 
           </span>
         </div>
         {serverError && <FormAlert>{serverError}</FormAlert>}
+        {/* ยังไม่ login ดูกราฟที่นั่งได้ (availability ใครก็เรียกได้) แต่จองต้อง login · callbackUrl พากลับมาหน้าร้านนี้ */}
         {session ? (
           <Button size="lg" className="min-h-14 text-lg" disabled={!ok || book.isPending} onClick={() => book.mutate()}>
             {book.isPending ? "กำลังจอง…" : "ยืนยันการจอง"}

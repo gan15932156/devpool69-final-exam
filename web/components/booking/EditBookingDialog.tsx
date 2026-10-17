@@ -27,13 +27,17 @@ import { TimeRangeSelect } from "./Pickers";
 export function EditBookingDialog({ booking: b, onClose }: { booking: Booking; onClose: () => void }) {
   const ref = useRef<HTMLDialogElement>(null);
 
+  // showModal() (ไม่ใช่ attribute open) → ได้ backdrop และกดส่วนอื่นของหน้าไม่ได้จนกว่าจะปิด
+  // component นี้ถูก render เฉพาะตอนกดแก้ไข (BookingStub) → เปิดทันทีที่ mount
   useEffect(() => {
     ref.current?.showModal();
   }, []);
 
+  // การจองไม่มีเวลาเปิด/ปิดและที่นั่งของร้าน → โหลดร้านมาด้วย · key ["restaurant", id] ใช้แคชร่วมกับหน้าร้าน
   const { data: r } = useRestaurant(b.restaurantId);
 
   return (
+    // ทุกทางที่ปิด (Esc / ปุ่ม X / ไม่บันทึก / บันทึกเสร็จ) เรียก ref.current.close() → event close → onClose ที่เดียว
     <dialog
       ref={ref}
       onClose={onClose}
@@ -77,11 +81,12 @@ function EditForm({ booking: b, restaurant: r, close }: { booking: Booking; rest
     return r.crossesMidnight && m <= toMinutes(r.closeTime) ? m + 1440 : m;
   };
 
+  // ค่าตั้งต้น = การจองเดิม · เก็บรูปแบบเดียวกับใบจองใหม่ (นาทีในรอบ) → ใช้ checkSeats / TimeRangeSelect ตัวเดียวกันได้
   const [party, setParty] = useState(b.partySize);
   const [date, setDate] = useState(b.serviceDate);
   const [start, setStart] = useState(inRound(b.start));
   const [end, setEnd] = useState(inRound(b.end));
-  const [error, setError] = useState("");
+  const [error, setError] = useState(""); // error จาก Go ตอนกดบันทึก
 
   const days = nextDays(5);
   // วันเดิมอยู่นอก 5 วันข้างหน้า (จองไว้ไกล) → ใส่เป็นตัวเลือกแรก ไม่งั้น <select> ไม่มีค่าที่ตรงกับวันเดิม
@@ -101,10 +106,11 @@ function EditForm({ booking: b, restaurant: r, close }: { booking: Booking; rest
         json: { date, start: toHHMM(start), end: toHHMM(end), partySize: party },
       }),
     onSuccess: async () => {
-      await invalidateBookingQueries(queryClient);
+      await invalidateBookingQueries(queryClient); // การ์ดในหน้าการจองของฉันอัปเดตเป็นค่าใหม่
       close();
     },
     onError: (e) => {
+      // ไม่ปิด dialog → ผู้ใช้เห็นเหตุผลแล้วแก้ต่อได้ · โหลดกราฟใหม่เผื่อมีคนจองเพิ่มระหว่างนั้น
       setError(bookingErrorText(e, "edit"));
       queryClient.invalidateQueries({ queryKey: ["availability", r.id, date, b.id] });
     },
@@ -116,6 +122,7 @@ function EditForm({ booking: b, restaurant: r, close }: { booking: Booking; rest
   const seats = check?.seats ?? r.seats; // ใช้ตัวเดียวกับที่ตัดสินว่าเกิน (availability) · ระหว่างโหลดใช้ของร้าน
   const seatsOk = !!check && !check.firstOver;
   const notPast = atMinutes(date, start) > new Date();
+  // ไม่ต้องเช็กเวลาเปิดร้านแยก เพราะ TimeRangeSelect ให้เลือกได้แค่ในช่วง open–close อยู่แล้ว · Go ตรวจซ้ำทุกข้อตอนบันทึก
   const ok = seatsOk && notPast && end > start;
 
   const msg = check ? seatText(check, party, "edit") : "กำลังตรวจที่นั่ง…";

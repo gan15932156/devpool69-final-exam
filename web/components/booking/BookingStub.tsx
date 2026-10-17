@@ -18,13 +18,15 @@ import { EditBookingDialog } from "./EditBookingDialog";
 export function BookingStub({ booking: b, kind }: { booking: Booking; kind: "upcoming" | "past" | "cancelled" }) {
   const api = useApi();
   const queryClient = useQueryClient();
-  const [confirming, setConfirming] = useState(false);
-  const [editing, setEditing] = useState(false);
-  const d = dateParts(b.serviceDate);
+  const [confirming, setConfirming] = useState(false); // กดยกเลิกครั้งแรก = เปิดแถบยืนยันในการ์ด · ยังไม่ยิง API
+  const [editing, setEditing] = useState(false); // true = render EditBookingDialog → โหลดร้าน/ที่นั่งเฉพาะตอนเปิดแก้ไข
+  const d = dateParts(b.serviceDate); // ต้นขั้วใช้วันของรอบ → ร้านข้ามคืนที่จอง 01:00 ยังขึ้นเป็นคืนเดิม
   const cancelled = b.status === "cancelled";
 
   const cancel = useMutation({
     mutationFn: () => api(`/api/v1/bookings/${b.id}/cancel`, { method: "POST" }),
+    // onSettled (ไม่ใช่ onSuccess) = ทำทั้งตอนสำเร็จและไม่สำเร็จ
+    // ไม่สำเร็จ เช่น เลยเวลายกเลิกระหว่างเปิดหน้าทิ้งไว้ → โหลดใหม่แล้ว canCancel เป็น false ปุ่มปิดเองตามจริง
     onSettled: () => {
       setConfirming(false);
       // โหลดรายการใหม่ → การ์ดย้ายไปแท็บ "ยกเลิกแล้ว" โดยไม่ต้อง reload หน้า
@@ -79,6 +81,7 @@ export function BookingStub({ booking: b, kind }: { booking: Booking; kind: "upc
             )}
           </div>
 
+          {/* disabled ตาม canCancel ที่ Go คิดให้ · ซ่อนปุ่มเป็นแค่ UX — ยิง API ตรงก็โดน Go ตอบ 409 อยู่ดี */}
           {kind === "upcoming" && !confirming && (
             <div className="flex shrink-0 gap-2 md:w-[172px] md:flex-col">
               <Button className="flex-1" disabled={!b.canCancel} onClick={() => setEditing(true)}>
