@@ -387,7 +387,7 @@ const routes: [string, string, Handler][] = [
     requireAuth(c);
     return new Response(null, { status: 204 });
   }],
-  ["GET", "me", (c) => json(userDTO(c.s.users.find((u) => u.id === requireAuth(c))!))],
+  ["GET", "me", (c) => { const me = requireAuth(c); return json(userDTO(c.s.users.find((u) => u.id === me)!)); }],
   ["GET", "restaurants", listRestaurants],
   ["GET", "restaurants/:", (c, i) => json(restaurantDetailDTO(c.s, findRestaurant(c, i)))],
   ["POST", "restaurants", createRestaurant],
