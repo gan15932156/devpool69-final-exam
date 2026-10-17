@@ -50,6 +50,21 @@ func main() {
 		log.Fatal("JWT_SECRET สั้นเกินไป ต้องยาวอย่างน้อย 32 ตัวอักษร (หรือไม่ต้องตั้ง แล้วระบบจะสุ่มเก็บไว้ใน DB)")
 	}
 
+	app := newApp()
+	h := &handlers.Handler{
+		DB:        db,
+		JWTSecret: secret,
+		UploadDir: cfg.UploadDir,
+		Now:       time.Now,
+	}
+	h.Routes(app)
+	go h.CleanUploads(time.Hour) // ลบรูปที่อัปโหลดทิ้งไว้แล้วไม่มีร้านไหนใช้
+
+	log.Fatal(app.Listen(":" + cfg.Port))
+}
+
+// newApp ตั้งค่า Fiber ทั้งหมด (ยังไม่มี route) · แยกออกมาให้ main_test.go ทดสอบค่าเหล่านี้ได้
+func newApp() *fiber.App {
 	app := fiber.New(fiber.Config{
 		BodyLimit:    10 * 1024 * 1024, // 10MB — default 4MB ไม่พอสำหรับอัปโหลดรูป
 		ErrorHandler: apperr.Handler,   // ทุก error ตอบรูปแบบเดียวกัน
@@ -64,15 +79,5 @@ func main() {
 		EnableIPValidation: true,
 	})
 	app.Use(recoverer.New()) // handler panic → กลายเป็น 500 แทนที่ server จะล่ม
-
-	h := &handlers.Handler{
-		DB:        db,
-		JWTSecret: secret,
-		UploadDir: cfg.UploadDir,
-		Now:       time.Now,
-	}
-	h.Routes(app)
-	go h.CleanUploads(time.Hour) // ลบรูปที่อัปโหลดทิ้งไว้แล้วไม่มีร้านไหนใช้
-
-	log.Fatal(app.Listen(":" + cfg.Port))
+	return app
 }
