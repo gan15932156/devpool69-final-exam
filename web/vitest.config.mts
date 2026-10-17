@@ -16,5 +16,12 @@ export default defineConfig({
     setupFiles: ["./test/setup.ts"],
     // ใบจอง/วันที่ฝั่งเว็บใช้เวลาเครื่อง (ถือว่าผู้ใช้อยู่เวลาไทย) → ล็อกเขตเวลาให้ผลเหมือนกันทุกเครื่อง
     env: { TZ: "Asia/Bangkok" },
+    // npm run test:coverage → นับทุกไฟล์โค้ด รวมไฟล์ที่ยังไม่มี test (ได้ 0%) · รายงานอยู่ที่ coverage/index.html
+    coverage: {
+      provider: "v8",
+      include: ["app/**/*.{ts,tsx}", "components/**/*.{ts,tsx}", "lib/**/*.{ts,tsx}", "mock/**/*.ts", "auth.ts"],
+      exclude: ["**/*.test.{ts,tsx}"],
+      reporter: ["text", "html"],
+    },
   },
 });
