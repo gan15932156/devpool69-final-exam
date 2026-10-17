@@ -9,8 +9,9 @@ import { Button, ButtonLink } from "@/components/ui/Button";
 import { Field, FormAlert, Input } from "@/components/ui/Field";
 import { loginSchema, type LoginValues } from "@/lib/schemas/auth";
 
+// callbackUrl = หน้าที่จะกลับไปหลัง login · ผ่าน safeCallbackUrl มาแล้วใน page.tsx (กัน open redirect ไปเว็บอื่น)
 export function LoginForm({ callbackUrl }: { callbackUrl: string }) {
-  const [formError, setFormError] = useState("");
+  const [formError, setFormError] = useState(""); // error ทั้งฟอร์ม · บอกรวม "อีเมลหรือรหัสผ่าน" ไม่บอกว่าผิดช่องไหน → เดาไม่ได้ว่าอีเมลนี้มีบัญชีไหม
   const {
     register,
     handleSubmit,
@@ -20,6 +21,7 @@ export function LoginForm({ callbackUrl }: { callbackUrl: string }) {
   async function onSubmit(values: LoginValues) {
     setFormError("");
     // redirect: false → ไม่ให้ NextAuth พาไปหน้าอื่นเอง เราจะเช็กผลก่อน
+    // signIn → authorize() ใน auth.ts (ฝั่ง server) เรียก Go /auth/login → ได้ token มาเก็บใน cookie แบบ httpOnly
     const res = await signIn("credentials", { ...values, redirect: false });
     if (res?.error) {
       setFormError(

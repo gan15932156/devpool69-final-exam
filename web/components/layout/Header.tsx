@@ -4,6 +4,7 @@ import { Logo } from "@/components/ui/Logo";
 import { AvatarMenu } from "./AvatarMenu";
 import { NavLinks } from "./NavLinks";
 
+// server component (ไม่มี "use client") → อ่าน session จาก cookie ฝั่ง server ได้เลย ไม่มีช่วงกะพริบ "ยังไม่ login" ตอนโหลด
 export async function Header() {
   const session = await auth();
   return (

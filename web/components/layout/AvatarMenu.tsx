@@ -21,6 +21,7 @@ export function AvatarMenu({ name }: { name: string }) {
       <div className="absolute right-0 z-50 mt-2 w-52 rounded-lg border border-line-strong bg-surface p-1 shadow-card">
         <button
           type="button"
+          // signOut ลบ cookie ฝั่งเว็บ และ events.signOut ใน auth.ts บอก Go ให้ยกเลิก token ด้วย (token_version +1)
           onClick={() => signOut({ redirectTo: "/" })}
           className="flex min-h-11 w-full items-center gap-2 rounded-md px-3 text-left hover:bg-paper"
         >

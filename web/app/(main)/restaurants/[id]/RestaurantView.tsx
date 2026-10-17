@@ -13,6 +13,7 @@ import { ApiError } from "@/lib/api";
 import { durationText, hoursText, reviewCountText } from "@/lib/format";
 import { useRestaurant } from "@/lib/use-api";
 
+// หน้าร้าน = ข้อมูลร้าน + ใบจอง + รีวิว · ดึงข้อมูลฝั่ง client → จอง/รีวิวแล้ว invalidate ตัวเลขบนหน้าก็อัปเดตเอง
 export function RestaurantView({ id }: { id: number }) {
   const { data: session } = useSession();
   const { data: r, error, isPending } = useRestaurant(id);
@@ -30,6 +31,7 @@ export function RestaurantView({ id }: { id: number }) {
     );
   }
 
+  // เทียบเป็น string เพราะ session.user.id ของ NextAuth เป็น string · ใช้แค่โชว์แถบเจ้าของ (สิทธิ์จริง Go เช็กเองทุกครั้ง)
   const isOwner = session?.user.id === String(r.ownerId);
 
   return (

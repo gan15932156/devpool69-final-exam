@@ -14,6 +14,8 @@ import type { Restaurant } from "@/lib/types";
 
 export type SortKey = "rating" | "reviews";
 
+// หน้าค้นหา · initialQ/initialSort มาจาก URL (page.tsx อ่านฝั่ง server) → เปิดลิงก์ที่แชร์มาแล้วได้ผลค้นเดิมตั้งแต่แรก
+// ค้นหา/เรียงทำที่ Go (SQL) ไม่กรองในเบราว์เซอร์ → ไม่ต้องโหลดร้านทั้งหมดมาก่อน และลำดับตรงกับกติกา "รีวิวน้อยไว้ท้าย"
 export function RestaurantSearch({ initialQ, initialSort }: { initialQ: string; initialSort: SortKey }) {
   const api = useApi();
   const router = useRouter();
@@ -44,7 +46,7 @@ export function RestaurantSearch({ initialQ, initialSort }: { initialQ: string; 
     queryFn: () => api<Restaurant[]>(`/api/v1/restaurants?${new URLSearchParams({ q, sort })}`),
   });
 
-  const myId = session?.user.id;
+  const myId = session?.user.id; // ร้านของตัวเอง → การ์ดขึ้นป้ายเจ้าของ และปุ่มพาไปหน้าจัดการร้านแทนหน้าจอง
 
   return (
     <>

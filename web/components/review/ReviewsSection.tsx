@@ -14,7 +14,9 @@ import { initialOf, ratingText, reviewCountText } from "@/lib/format";
 import type { RestaurantDetail } from "@/lib/types";
 import { useApi } from "@/lib/use-api";
 
+// คำตอบของ GET /restaurants/:id/reviews · isMine = Go บอกว่ารีวิวนี้เป็นของคนที่ login (หน้าเว็บไม่ต้องเทียบ id เอง)
 type Review = { id: number; rating: number; comment: string; userName: string; isMine: boolean; createdAt: string; updatedAt: string };
+// total = จำนวนรีวิวทั้งหมด (ใช้รู้ว่ายังมีหน้าถัดไปไหม) · mine = รีวิวของฉัน ส่งมาเฉพาะหน้าแรก (offset=0)
 type ReviewPage = { total: number; items: Review[]; mine: Review | null };
 
 // ป้ายคะแนนตามดีไซน์ (Restaurant.dc.html บรรทัด 368)
@@ -46,9 +48,10 @@ export function ReviewsSection({ restaurant: r }: { restaurant: RestaurantDetail
       return loaded < last.total ? loaded : undefined;
     },
   });
-  const items = reviews.data?.pages.flatMap((p) => p.items) ?? [];
-  const mine = reviews.data?.pages[0]?.mine ?? null;
+  const items = reviews.data?.pages.flatMap((p) => p.items) ?? []; // รวมทุกหน้าที่โหลดแล้วเป็นรายการเดียว
+  const mine = reviews.data?.pages[0]?.mine ?? null; // Go ส่ง mine มาแค่หน้าแรก
 
+  // แท่งการกระจายดาวเทียบกับดาวที่มีคนให้มากที่สุด (ไม่ใช่จำนวนรวม) → แท่งยาวสุดเต็มความกว้างพอดี · max ≥ 1 กันหารศูนย์ตอนยังไม่มีรีวิว
   const max = Math.max(1, ...Object.values(r.distribution));
 
   return (
@@ -135,11 +138,13 @@ export function ReviewsSection({ restaurant: r }: { restaurant: RestaurantDetail
 function ReviewForm({ restaurantId, mine }: { restaurantId: number; mine: Review | null }) {
   const api = useApi();
   const queryClient = useQueryClient();
+  // ค่าเริ่มต้น = รีวิวเดิม (ถ้ามี) → ฟอร์มเดียวใช้ได้ทั้งเขียนใหม่และแก้ไข · rating 0 = ยังไม่เลือกดาว (ปุ่มโพสต์กดไม่ได้)
   const [rating, setRating] = useState(mine?.rating ?? 0);
   const [comment, setComment] = useState(mine?.comment ?? "");
-  const [done, setDone] = useState(false);
+  const [done, setDone] = useState(false); // โชว์ "บันทึกแล้ว" · แตะดาว/พิมพ์ใหม่ → ล้าง เพราะค่าบนจอไม่ใช่ค่าที่บันทึกแล้ว
 
   const post = useMutation({
+    // PUT .../reviews/me = upsert: ยังไม่มีรีวิว → สร้าง · มีแล้ว → แก้ของเดิม (1 คน 1 รีวิวต่อร้าน บังคับด้วย unique ที่ DB)
     mutationFn: () => api(`/api/v1/restaurants/${restaurantId}/reviews/me`, { method: "PUT", json: { rating, comment } }),
     onSuccess: async () => {
       setDone(true);

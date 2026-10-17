@@ -7,6 +7,7 @@ export const NAV_LINKS = [
   { href: "/owner", label: "ร้านของฉัน", icon: Store },
 ] as const;
 
+// เมนูไหนควรขีดเส้นใต้ · หน้าร้าน /restaurants/:id เปิดมาจากหน้าค้นหา จึงนับเป็นเมนู "ค้นหาร้าน"
 export function isActive(pathname: string, href: string) {
   if (href === "/") return pathname === "/" || pathname.startsWith("/restaurants");
   return pathname.startsWith(href);

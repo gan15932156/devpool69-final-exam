@@ -19,17 +19,18 @@ import type { RestaurantDetail } from "@/lib/types";
 import { useApi } from "@/lib/use-api";
 import { RestaurantCard } from "./RestaurantCard";
 
-const LEAD_PRESETS = [30, 60, 120, 180];
+const LEAD_PRESETS = [30, 60, 120, 180]; // ปุ่มลัดเวลายกเลิกล่วงหน้า (นาที)
 
 // ฟอร์มเดียวใช้ทั้ง "สร้างร้าน" (ไม่มี initial) และ "แก้ไขร้าน" (มี initial)
+// ownerId ใช้แค่กับการ์ดตัวอย่าง · เจ้าของจริง Go เอาจาก token ไม่รับจากฟอร์ม (ปลอมเป็นร้านของคนอื่นไม่ได้)
 export function RestaurantForm({ initial, ownerId }: { initial?: RestaurantDetail; ownerId: number }) {
   const api = useApi();
   const router = useRouter();
   const queryClient = useQueryClient();
-  const fileInput = useRef<HTMLInputElement>(null);
-  const [uploading, setUploading] = useState(false);
+  const fileInput = useRef<HTMLInputElement>(null); // <input type="file"> ที่ซ่อนไว้ · ปุ่ม "เพิ่มรูป" สั่ง click() แทน
+  const [uploading, setUploading] = useState(false); // ระหว่างอัปโหลด ปิดปุ่มบันทึก → ไม่ส่งฟอร์มที่รูปยังขึ้นไม่ครบ
   const [uploadError, setUploadError] = useState("");
-  const [formError, setFormError] = useState("");
+  const [formError, setFormError] = useState(""); // error จาก Go ที่ไม่ผูกกับช่องไหน (เช่น 403 / 500)
 
   const {
     register,
@@ -39,6 +40,7 @@ export function RestaurantForm({ initial, ownerId }: { initial?: RestaurantDetai
     setError,
     formState: { errors, isSubmitting },
   } = useForm<RestaurantValues>({
+    // react-hook-form เก็บค่าฟอร์ม · zod ตรวจตามกติกาเดียวกับ Go (lib/schemas/restaurant.ts) ก่อนส่ง
     resolver: zodResolver(restaurantSchema),
     defaultValues: {
       name: initial?.name ?? "",
@@ -51,9 +53,11 @@ export function RestaurantForm({ initial, ownerId }: { initial?: RestaurantDetai
       images: initial?.images ?? [],
     },
   });
+  // useWatch = ค่าล่าสุดทุกช่อง → การ์ดตัวอย่าง / กล่อง "ปิดข้ามเที่ยงคืน" / ตัวอย่างเวลายกเลิก อัปเดตตามที่พิมพ์
   const v = useWatch({ control });
-  const images = v.images ?? [];
+  const images = v.images ?? []; // URL ที่ Go ตอบหลังอัปโหลด ("/uploads/...") · ตัวแรก = รูปหลัก
   const lead = v.cancelLeadMinutes ?? 30;
+  // แค่แสดงคำอธิบาย · Go คิด crossesMidnight เองตอนบันทึก (close ≤ open · เท่ากันไม่รับ)
   const crosses = !!v.openTime && !!v.closeTime && toMinutes(v.closeTime) < toMinutes(v.openTime);
 
   async function onFiles(files: FileList | null) {
@@ -85,10 +89,12 @@ export function RestaurantForm({ initial, ownerId }: { initial?: RestaurantDetai
         method: initial ? "PUT" : "POST",
         json: values,
       });
+      // ล้างทุก key (ไม่ระบุ) → ร้านโผล่ในหลายที่ (หน้าค้นหา หน้าร้าน dashboard กราฟที่นั่ง) ล้างทีเดียวไม่ตกหล่น
       await queryClient.invalidateQueries(); // ข้อมูลร้านเปลี่ยน → ให้ทุกหน้าที่แคชไว้โหลดใหม่
       router.push(`/restaurants/${saved.id}`);
     } catch (e) {
       if (!(e instanceof ApiError)) throw e;
+      // Go ตอบ VALIDATION พร้อม { ชื่อช่อง: ข้อความ } → ขึ้นแดงใต้ช่องนั้นเหมือน error ของ zod · ชื่อช่องตรงกันเพราะใช้ชื่อ JSON เดียวกัน
       const fields = Object.entries(e.fieldErrors);
       for (const [field, message] of fields) setError(field as keyof RestaurantValues, { message });
       if (fields.length === 0) setFormError(e.message);
@@ -307,10 +313,10 @@ function DeleteRestaurant({ id }: { id: number }) {
   const remove = useMutation({
     mutationFn: () => api(`/api/v1/restaurants/${id}`, { method: "DELETE" }),
     onSuccess: async () => {
-      await queryClient.invalidateQueries();
+      await queryClient.invalidateQueries(); // ร้านหายไปจากทุกรายการ
       router.push("/owner");
     },
-    onError: () => setConfirming(false),
+    onError: () => setConfirming(false), // กลับเป็นปุ่มลบปกติ แล้วโชว์เหตุผลจาก Go (remove.error) เช่น HAS_FUTURE_BOOKINGS
   });
 
   return (

@@ -16,33 +16,39 @@ import { hoursText, ratingText, reviewCountText } from "@/lib/format";
 import type { Restaurant } from "@/lib/types";
 import { useApi } from "@/lib/use-api";
 
+// การจอง 1 รายการในตารางของเจ้าของร้าน (ownerBookingDTO ใน Go) · Go ส่งแค่ชื่อลูกค้า ไม่ส่งอีเมล
+// กรองด้วยวันของรอบ → ร้านโต้รุ่ง การจอง 01:00 ของคืนวันที่ 25 อยู่ในรายการวันที่ 25
 type OwnerBooking = { id: number; customerName: string; partySize: number; start: string; end: string; status: "confirmed" | "cancelled" };
 
+// Dashboard เจ้าของร้าน: เลือกร้าน → เลือกวัน → เห็นกราฟที่นั่ง + รายการจองของวันนั้น
 export function OwnerDashboard({ initialId }: { initialId?: number }) {
   const api = useApi();
   const router = useRouter();
   const days = nextDays(5);
-  const [date, setDate] = useState(days[0].iso);
-  const [pickedId, setPickedId] = useState(initialId);
+  const [date, setDate] = useState(days[0].iso); // วันของรอบที่ดูอยู่ · เริ่มที่วันนี้
+  const [pickedId, setPickedId] = useState(initialId); // ร้านที่เลือก (มาจาก ?r= ใน URL ตอนเปิดหน้า)
 
   const { data: shops, isPending } = useQuery({
     queryKey: ["my-restaurants"],
     queryFn: () => api<Restaurant[]>("/api/v1/me/restaurants"),
   });
+  // ?r= ไม่ตรงร้านไหนของเรา (ลบไปแล้ว / พิมพ์ id ร้านคนอื่น) → ใช้ร้านแรกแทน ไม่ขึ้นหน้าว่าง
   const cur = shops?.find((s) => s.id === pickedId) ?? shops?.[0];
 
   // กราฟใช้ endpoint availability ตัวเดียวกับใบจองของลูกค้า → ตัวเลขตรงกันเสมอ
   const { data: av } = useQuery({
     queryKey: ["availability", cur?.id, date],
     queryFn: () => api<Availability>(`/api/v1/restaurants/${cur!.id}/availability?date=${date}`),
-    enabled: !!cur,
+    enabled: !!cur, // ยังโหลดรายชื่อร้านไม่เสร็จ / ไม่มีร้าน → ยังไม่ยิง (cur! ปลอดภัยเพราะเหตุนี้)
   });
+  // Go เช็กว่าเป็นเจ้าของร้านนี้จริง (ownedRestaurant) · คนอื่นยิงตรงได้ 403
   const { data: bookings } = useQuery({
     queryKey: ["owner-bookings", cur?.id, date],
     queryFn: () => api<OwnerBooking[]>(`/api/v1/restaurants/${cur!.id}/bookings?date=${date}`),
     enabled: !!cur,
   });
 
+  // เลือกร้าน → จำใน URL ด้วย (replace ไม่เพิ่มประวัติ) → reload / กด back จากหน้าแก้ไขร้านแล้วยังอยู่ร้านเดิม
   function pick(id: number) {
     setPickedId(id);
     router.replace(`/owner?r=${id}`, { scroll: false });
@@ -50,9 +56,10 @@ export function OwnerDashboard({ initialId }: { initialId?: number }) {
 
   if (isPending) return <p className="py-20 text-center text-muted">กำลังโหลด…</p>;
 
-  const active = bookings?.filter((b) => b.status === "confirmed") ?? [];
-  const guests = active.reduce((n, b) => n + b.partySize, 0);
-  const peak = av ? Math.max(0, ...av.slots.map((s) => s.used)) : 0;
+  // ตัวเลขสรุปของวันนั้น คิดจากข้อมูลที่โหลดมาแล้ว ไม่ต้องมี endpoint เพิ่ม
+  const active = bookings?.filter((b) => b.status === "confirmed") ?? []; // ยกเลิกแล้วยังโชว์ในตาราง แต่ไม่นับ
+  const guests = active.reduce((n, b) => n + b.partySize, 0); // ลูกค้าทั้งวัน (คนละช่วงเวลาก็นับรวม)
+  const peak = av ? Math.max(0, ...av.slots.map((s) => s.used)) : 0; // ช่วงที่แน่นที่สุด = ต้องเตรียมโต๊ะเท่านี้
 
   return (
     <div className="mx-auto flex max-w-[1200px] flex-col gap-7 px-4 pt-6 pb-10 md:px-8 md:pt-11 md:pb-[72px] xl:px-0">

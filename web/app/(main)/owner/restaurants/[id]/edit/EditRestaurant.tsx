@@ -4,6 +4,7 @@ import { Lock } from "lucide-react";
 import { RestaurantForm } from "@/components/restaurant/RestaurantForm";
 import { useRestaurant } from "@/lib/use-api";
 
+// myId มาจาก session ที่ page.tsx (server) อ่านไว้ · โหลดร้านด้วย key เดียวกับหน้าร้าน → เปิดจากหน้าร้านมาก็ไม่ต้องโหลดซ้ำ
 export function EditRestaurant({ id, myId }: { id: number; myId: number }) {
   const { data, error, isPending } = useRestaurant(id);
 

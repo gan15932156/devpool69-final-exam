@@ -13,6 +13,7 @@ import { cn } from "@/lib/cn";
 import { registerSchema, type RegisterValues } from "@/lib/schemas/auth";
 
 export function RegisterForm() {
+  // แค่เลือกว่าสมัครเสร็จแล้วพาไปหน้าไหน (ไม่ส่งให้ Go · ไม่มี role) → ทุกบัญชีเปิดร้านทีหลังได้เสมอ
   const [wantsShop, setWantsShop] = useState(false);
   const [formError, setFormError] = useState("");
   const {
@@ -34,7 +35,7 @@ export function RegisterForm() {
     { ok: /[0-9]/.test(pw), text: "มีตัวเลข" },
     { ok: !!values.confirm && values.confirm === pw, text: "ยืนยันตรงกัน" },
   ];
-  const ready = registerSchema.safeParse(values).success;
+  const ready = registerSchema.safeParse(values).success; // ผ่าน zod ครบทุกช่องแล้วหรือยัง → ใช้เปิด/ปิดปุ่มสมัคร
 
   async function onSubmit({ name, email, password }: RegisterValues) {
     setFormError("");
