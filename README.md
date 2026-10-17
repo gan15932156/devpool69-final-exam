@@ -105,6 +105,7 @@ npm run dev:mock                     # http://localhost:3000 (เปลี่ย
 
 ## ทดสอบกติกาการจอง
 
+- **`cd api && go test ./...`** — unit test + integration test ของ API · integration test ใช้ Postgres ตัวเดียวกับ dev (`docker compose up -d db`) แต่สร้าง database แยก `toawang_test_*` ไม่แตะข้อมูล dev · ไม่ได้เปิด DB = ข้ามเฉพาะ test ที่ต้องใช้ DB · ชี้ไป Postgres อื่นได้ด้วย `TEST_DATABASE_URL`
 - **`api/requests.http`** — เปิดใน VS Code ติดตั้ง extension *REST Client* แล้วกด "Send Request" ไล่ลงมา · ทุก request มีบรรทัด "คาดหวัง:" บอกผลที่ต้องได้ (นอกเวลาเปิด · เวลาที่ผ่านไปแล้ว · ที่นั่งเกิน · ร้านข้ามเที่ยงคืน · แก้ไข 7→8 / 7→5 · สิทธิ์เจ้าของ ฯลฯ)
 - **`bash api/scripts/race.sh`** (Git Bash) — สองคนจองที่นั่งสุดท้ายพร้อมกัน 5 รอบ → ทุกรอบต้องได้ 201 หนึ่งคน + 409 หนึ่งคน
 
